@@ -8,7 +8,7 @@ public class FirstAgent implements Agent {
 	
 	//DEBUG VALUES
 	boolean printingLevelScene = true;
-	boolean debug = true;
+	public static boolean debug = true;
 	
 	String name = "FirstAgent";
 	

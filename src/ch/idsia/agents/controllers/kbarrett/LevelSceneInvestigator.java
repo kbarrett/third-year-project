@@ -10,6 +10,7 @@ public class LevelSceneInvestigator
 		public void setLevelScene(byte[][] levelScene)
 		{
 			this.levelScene = levelScene;
+			if(FirstAgent.debug){checkLevelScene();}
 		}
 		public void setMarioLoc(int[] marioLoc)
 		{
@@ -37,39 +38,42 @@ public class LevelSceneInvestigator
 		
 		public byte[] getBlockageLocation(boolean facingRight)
 		{
+			int direction = 1;
+			if(!facingRight)
+			{
+				direction = -1;
+			}
 			
-			if(facingRight)
+			byte oneAway = levelScene[marioLoc[0]][marioLoc[1] + direction];
+			if(
+					oneAway == Encoding.WALL  || 
+					oneAway == Encoding.FLOWERPOT  || 
+					oneAway == Encoding.CORNERTOPLEFT || 
+					oneAway == Encoding.BRICK  || 
+					oneAway == Encoding.BREAKABLE_BRICK
+			)
 			{
-				if(
-						levelScene[marioLoc[0]][marioLoc[1] + 1] == -112  || levelScene[marioLoc[0]][marioLoc[1] + 2] == -112 ||
-						levelScene[marioLoc[0]][marioLoc[1] + 1] == -90  || levelScene[marioLoc[0]][marioLoc[1] + 2] == -90 ||
-						levelScene[marioLoc[0]][marioLoc[1] + 1] == -128 || levelScene[marioLoc[0]][marioLoc[1] + 2] == -128 ||
-						levelScene[marioLoc[0]][marioLoc[1] + 1] == -22  || levelScene[marioLoc[0]][marioLoc[1] + 2] == -22 ||
-						levelScene[marioLoc[0]][marioLoc[1] + 1] == -20  || levelScene[marioLoc[0]][marioLoc[1] + 2] == -20
-				)
-				{
-					byte[] result = new byte[2];
-					result[0] = (byte) (marioLoc[0]);
-					result[1] = (byte) (marioLoc[1] + 1);
-					return result;
-				}
+				byte[] result = new byte[2];
+				result[0] = (byte) (marioLoc[0]);
+				result[1] = (byte) (marioLoc[1] + 1);
+				return result;
 			}
-			else
-			{
-				if(
-						levelScene[marioLoc[0]][marioLoc[1] - 1] == -112  || levelScene[marioLoc[0]][marioLoc[1] - 2] == -112 ||
-						levelScene[marioLoc[0]][marioLoc[1] - 1] == -90  || levelScene[marioLoc[0]][marioLoc[1] - 2] == -90 ||
-						levelScene[marioLoc[0]][marioLoc[1] - 1] == -128 || levelScene[marioLoc[0]][marioLoc[1] - 2] == -128 ||
-						levelScene[marioLoc[0]][marioLoc[1] - 1] == -22  || levelScene[marioLoc[0]][marioLoc[1] - 2] == -22 ||
-						levelScene[marioLoc[0]][marioLoc[1] - 1] == -20  || levelScene[marioLoc[0]][marioLoc[1] - 2] == -20
-				)
-				{
-					byte[] result = new byte[2];
-					result[0] = (byte) (marioLoc[0] + 2);
-					result[1] = (byte) (marioLoc[1] + 1);
-					return result;
-				}
+			byte twoAway = levelScene[marioLoc[0]][marioLoc[1] + (2 * direction)];
+			if
+			(
+					twoAway == Encoding.WALL  ||
+					twoAway == Encoding.FLOWERPOT  ||
+					twoAway == Encoding.CORNERTOPLEFT ||
+					twoAway == Encoding.BRICK  ||
+					twoAway == Encoding.BREAKABLE_BRICK
+			)
+			{	
+				byte[] result = new byte[2];
+				result[0] = (byte) (marioLoc[0]);
+				result[1] = (byte) (marioLoc[1] + 1);
+				return result;
 			}
+			
 			return null;
 		}
 		
@@ -109,4 +113,22 @@ public class LevelSceneInvestigator
 			System.out.println(" ");
 			
 		}
+		private void checkLevelScene()
+		{
+			for(int i = 0; i< levelScene.length; i++)
+			{
+				for(int j = 0; j < levelScene[i].length; ++j)
+				{
+					for(int thing : Encoding.knownThings)
+					{
+						if(levelScene[i][j] == thing)
+						{
+							return;
+						}
+					}
+					System.err.println("ARRRRRRGGGGHHHHHH: " + levelScene[i][j]);
+				}
+			}
+		}
+		
 }
