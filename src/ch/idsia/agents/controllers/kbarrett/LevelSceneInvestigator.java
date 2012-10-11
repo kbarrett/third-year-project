@@ -22,13 +22,15 @@ public class LevelSceneInvestigator
 		{
 			for(byte i = 0; i < levelScene.length; i++)
 			{
-				for(byte j = 5; j <= marioLoc[0]; j++)
+				for(byte j = 5; j < levelScene[i].length; j++)
 				{
+					System.out.print(levelScene[i][j]+" || ");
 					if(levelScene[j][i] == Encoding.COIN)
 					{
 						byte[] result = new byte[2];
 						result[0] = j;
 						result[1] = i;
+						if(FirstAgent.debug){System.out.println("REWARD FOUND AT: " + i + "," + j);}
 						return result;
 					}
 				}

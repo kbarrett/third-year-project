@@ -26,15 +26,6 @@ public class FirstAgent implements Agent {
 	
 	@Override
 	public boolean[] getAction() {
-		
-		if(movement.isJumping())
-		{
-			movement.jump();
-		}
-		else if (!movement.actionsHaveBeenDecided());
-		{
-			movement.goRight();
-		}
 	
 		return movement.reset();
 	}

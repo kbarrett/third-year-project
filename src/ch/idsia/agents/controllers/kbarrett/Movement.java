@@ -73,6 +73,14 @@ public class Movement {
 	}
 	public boolean[] reset()
 	{
+		if(isJumping())
+		{
+			jump();
+		}
+		else if (!actionsHaveBeenDecided());
+		{
+			goRight();
+		}
 		boolean[] copyOfActions = actions.clone();
 		actions = new boolean[Environment.numberOfKeys];
 		return copyOfActions;
@@ -95,6 +103,9 @@ public class Movement {
 			jumpSize = Math.max(1, (int)(marioLoc[0] - location[0]));
 		}
 		
+		System.out.println("------------------------");
+		System.out.println("location is " + location[0] + "," + location[1]);
+		System.out.println("------------------------");
 		//horizontal movement
 		if(location[1] >= marioLoc[1])
 		{
