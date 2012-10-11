@@ -12,67 +12,80 @@ public class FirstAgent implements Agent {
 	
 	String name = "FirstAgent";
 	
-	//Encodings of Environment
-	byte COIN = 2;
-	
-	//Relating to jumping
-	int jumpSize = 0;
-	int currentJumpPoint = 0;
-	
 	//Knowledge & decisions
-	boolean[] actions = new boolean[Environment.numberOfKeys];
-	byte[][] levelScene;
-	boolean facingRight = true;
-	int[] marioLoc;
+	//byte[][] levelScene;
+	
+	Movement movement;
+	LevelSceneInvestigator levelSceneInvestigator;
 
+	public FirstAgent()
+	{
+		movement = new Movement();
+		levelSceneInvestigator = new LevelSceneInvestigator();
+	}
+	
 	@Override
 	public boolean[] getAction() {
 		
-		if(isJumping())
+		if(movement.isJumping())
 		{
-			jump();
+			movement.jump();
 		}
-		else if (!actionsHaveBeenDecided());
+		else if (!movement.actionsHaveBeenDecided());
 		{
-			goRight();
+			movement.goRight();
 		}
 	
-		return resetActions();
+		return movement.reset();
 	}
 
 	@Override
 	public void integrateObservation(Environment environment) {
 		
-		marioLoc = environment.getMarioEgoPos();
-		levelScene = environment.getMergedObservationZZ(0, 0);
-		if(printingLevelScene) {printLevelScene();}
+		int[] marioLoc = environment.getMarioEgoPos();
+		movement.setMarioLoc(marioLoc);
+		levelSceneInvestigator.setMarioLoc(marioLoc);
 		
-		if(isJumping() && environment.isMarioOnGround())
+		levelSceneInvestigator.setLevelScene(environment.getMergedObservationZZ(0, 0));
+		
+		if(printingLevelScene) {levelSceneInvestigator.printLevelScene();}
+		
+		if(movement.isJumping() && environment.isMarioOnGround())
 		{
 			if(debug){System.out.println("LANDED");}
-			land();
+			movement.land();
 		}
 		
 		else
 		{
-			byte[] locationOfReward = null;// = getRewardLocation();
+			byte[] locationOfReward = levelSceneInvestigator.getRewardLocation();
 			
 			if(locationOfReward != null)
 			{
-				if(debug){System.out.println("FOUND REWARD");}
-				moveTowards(locationOfReward);
+				if(debug)
+				{
+					System.out.println("FOUND REWARD");
+				}
+				movement.moveTowards(locationOfReward);
 			}
 			
-			else
+			else if (!movement.isJumping())
 			{	
-				byte[] locationOfBlockage = getBlockageLocation();
+				byte[] locationOfBlockage = levelSceneInvestigator.getBlockageLocation(movement.isFacingRight());
 				if(locationOfBlockage != null)
 				{
 					if(debug){System.out.println("FOUND BLOCKAGE");}
 					byte[] requiredLocation = new byte[2];
-					requiredLocation[0] = (byte) (locationOfBlockage[0] + 1);
-					requiredLocation[1] = (byte) (locationOfBlockage[1] + 1);
-					moveTowards(requiredLocation);
+					requiredLocation[0] = (byte) (locationOfBlockage[0] - 1);
+					if(movement.isFacingRight())
+					{
+						requiredLocation[1] = (byte) (locationOfBlockage[1] + 1);
+					}
+					else
+					{
+						requiredLocation[1] = (byte) (locationOfBlockage[1] - 1);
+					}
+					movement.moveTowards(requiredLocation);
 				}
 			}
 		}
@@ -106,205 +119,5 @@ public class FirstAgent implements Agent {
 		this.name = name;
 	}
 	
-	//Checking Mario Movements
-	private boolean isJumping()
-	{
-		return jumpSize > 0;
-	}
-	
-	private boolean[] resetActions()
-	{
-		boolean[] copyOfActions = actions.clone();
-		actions = new boolean[Environment.numberOfKeys];
-		return copyOfActions;
-	}
-	
-	//Mario Movements
-	private void moveTowards(byte[] location)
-	{
-		System.out.println("");
-		
-		if(location.length != 2)
-		{
-			System.err.println("Cannot move to this location.");
-			return;
-		}
-		
-		//vertical movement
-		if(location[1] >= marioLoc[1])
-		{
-			jumpSize = Math.max(1, (int)((location[1] - marioLoc[1]) / 4));
-		}
-		
-		//horizontal movement
-		if(location[0] >= marioLoc[0])
-		{
-			goRight();
-		}
-		else
-		{
-			goLeft();
-		}
-		System.out.println(toStringActions());
-	}
-	private void goRight()
-	{
-		if(!actions[Mario.KEY_LEFT])
-		{
-			actions[Mario.KEY_RIGHT] = true;
-			facingRight = true;
-		}
-	}
-	private void goLeft()
-	{
-		if(!actions[Mario.KEY_RIGHT])
-		{
-			actions[Mario.KEY_LEFT] = true;
-			facingRight = false;
-		}
-	}
-	private void jump()
-	{
-		if(currentJumpPoint>jumpSize) {return;}
-		actions[Mario.KEY_JUMP] = true;
-		++currentJumpPoint;
-	}
-	private void land()
-	{
-		currentJumpPoint = 0;
-		jumpSize = 0;
-	}
-	
-	//Analysis of Environment
-	private byte[] getRewardLocation()
-	{
-		for(byte i = 0; i < levelScene.length; i++)
-		{
-			for(byte j = 0; j< levelScene[i].length; j++)
-			{
-				if(levelScene[i][j] == 2)
-				{
-					byte[] result = new byte[2];
-					result[0] = i;
-					result[1] = j;
-					return result;
-				}
-			}
-		}
-		return null;
-	}
-	private byte[] getBlockageLocation()
-	{
-		printLevelSceneLoc((byte)(marioLoc[0] ), (byte)(marioLoc[1] + 1));
-		printLevelSceneLoc((byte)(marioLoc[0] ), (byte)(marioLoc[1] + 2));
-		
-		if(facingRight)
-		{
-			if(
-					levelScene[marioLoc[0]][marioLoc[1] + 1] == -112  || levelScene[marioLoc[0]][marioLoc[1]+2] == -112 ||
-					levelScene[marioLoc[0]][marioLoc[1] + 1] == -90  || levelScene[marioLoc[0]][marioLoc[1]+2] == -90 ||
-					levelScene[marioLoc[0]][marioLoc[1] + 1] == -128 || levelScene[marioLoc[0]][marioLoc[1]+2] == -128 ||
-					levelScene[marioLoc[0]][marioLoc[1] + 1] == -22  || levelScene[marioLoc[0]][marioLoc[1]+2] == -22 ||
-					levelScene[marioLoc[0]][marioLoc[1] + 1] == -20  || levelScene[marioLoc[0]][marioLoc[1]+2] == -20
-			)
-			{
-				byte[] result = new byte[2];
-				result[0] = (byte) (marioLoc[0] + 2);
-				result[1] = (byte) (marioLoc[1] + 1);
-				return result;
-			}
-		}
-		else
-		{
-			if(
-					levelScene[marioLoc[0]][marioLoc[1] - 1] == -112  || levelScene[marioLoc[0]][marioLoc[1] - 2] == -112 ||
-					levelScene[marioLoc[0]][marioLoc[1] - 1] == -90  || levelScene[marioLoc[0]][marioLoc[1] - 2] == -90 ||
-					levelScene[marioLoc[0]][marioLoc[1] - 1] == -128 || levelScene[marioLoc[0]][marioLoc[1] - 2] == -128 ||
-					levelScene[marioLoc[0]][marioLoc[1] - 1] == -22  || levelScene[marioLoc[0]][marioLoc[1] - 2] == -22 ||
-					levelScene[marioLoc[0]][marioLoc[1] - 1] == -20  || levelScene[marioLoc[0]][marioLoc[1] - 2] == -20
-			)
-			{
-				byte[] result = new byte[2];
-				result[0] = (byte) (marioLoc[0] + 2);
-				result[1] = (byte) (marioLoc[1] + 1);
-				return result;
-			}
-		}
-		return null;
-	}
-	
-	private void printLevelScene()
-	{
-		for(byte i = 0; i < levelScene.length ; ++i)
-		{
-			for(byte j = 0; j < levelScene[i].length; j++)
-			{
-				if(i == marioLoc[0] && j == marioLoc[1]) System.out.print("[[");
-				else if(i == marioLoc[0] || j == marioLoc[1]) System.out.print("[");
-				System.out.print(levelScene[i][j] + " ");
-				if(i == marioLoc[0] && j == marioLoc[1]) System.out.print("]]");
-				else if(i == marioLoc[0] || j == marioLoc[1]) System.out.print("]");
-			}
-			System.out.println(" ");
-		}
-		System.out.println(" ");
-		
-	}
-	
-	private void printLevelSceneLoc(byte i, byte j)
-	{
-		System.out.print(levelScene[i][j]);
-		if(j == levelScene[i].length - 1)
-		{
-			System.out.println("");
-		}
-		else
-		{
-			System.out.print(",");
-			if(levelScene[i][j] >= 0){System.out.print(" ");
-			if(levelScene[i][j] <  9){System.out.print(" ");}}
-			else if(levelScene[i][j] >  -9){System.out.print(" ");}
-		}
-	}
-	
-	private boolean actionsHaveBeenDecided()
-	{
-		for(int i = 0; i< actions.length; i++)
-		{
-			if(actions[i]==true) {return true;}
-		}
-		return false;
-	}
-	
-	private String toStringActions()
-	{
-		String s = "{";
-		if(actions[Mario.KEY_DOWN])
-		{
-			s += "DOWN, ";
-		}
-		if(actions[Mario.KEY_UP])
-		{
-			s += "UP, ";
-		}
-		if(actions[Mario.KEY_JUMP])
-		{
-			s += "JUMP, ";
-		}
-		if(actions[Mario.KEY_LEFT])
-		{
-			s += "LEFT, ";
-		}
-		if(actions[Mario.KEY_RIGHT])
-		{
-			s += "RIGHT, ";
-		}
-		if(actions[Mario.KEY_SPEED])
-		{
-			s += "SPEED, ";
-		}
-		s+= "}";
-		return s;
-	}
 	
 }
