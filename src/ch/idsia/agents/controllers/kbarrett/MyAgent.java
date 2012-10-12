@@ -8,6 +8,11 @@ import ch.idsia.benchmark.mario.engine.sprites.Mario;
 import ch.idsia.benchmark.mario.engine.sprites.Sprite;
 import ch.idsia.benchmark.mario.environments.Environment;
 
+/**
+ * 
+ * @author Kim Barrett
+ *
+ */
 public class MyAgent /*extends KeyAdapter*/ implements Agent {
 	
 	String name = "Kim's Agent";

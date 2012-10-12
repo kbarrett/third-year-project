@@ -2,19 +2,23 @@ package ch.idsia.agents.controllers.kbarrett;
 
 import ch.idsia.agents.Agent;
 import ch.idsia.benchmark.mario.engine.sprites.Mario;
+import ch.idsia.benchmark.mario.engine.sprites.Sprite;
 import ch.idsia.benchmark.mario.environments.Environment;
+import ch.idsia.benchmark.mario.environments.MarioEnvironment;
 
+/**
+ * FirstAgent is an Agent that looks at its environment and decides which action is best using a predetermined list of what to do when.
+ * @author Kim Barrett
+ */
 public class FirstAgent implements Agent {
 	
 	//DEBUG VALUES
-	boolean printingLevelScene = true;
+	boolean printingLevelScene = false;
 	public static boolean debug = true;
 	
 	String name = "FirstAgent";
 	
 	//Knowledge & decisions
-	//byte[][] levelScene;
-	
 	Movement movement;
 	LevelSceneInvestigator levelSceneInvestigator;
 
@@ -33,53 +37,40 @@ public class FirstAgent implements Agent {
 	@Override
 	public void integrateObservation(Environment environment) {
 		
-		int[] marioLoc = environment.getMarioEgoPos();
-		movement.setMarioLoc(marioLoc);
-		levelSceneInvestigator.setMarioLoc(marioLoc);
-		
-		levelSceneInvestigator.setLevelScene(environment.getMergedObservationZZ(0, 0));
-		
-		if(printingLevelScene) {levelSceneInvestigator.printLevelScene();}
-		
-		if(movement.isJumping() && environment.isMarioOnGround())
-		{
-			if(debug){System.out.println("LANDED");}
-			movement.land();
-		}
-		
-		else
-		{
-			byte[] locationOfReward = levelSceneInvestigator.getRewardLocation();
+		//Update other classes with this information
+			//Give Movement & LevelSceneInvestigator Mario's location
+				int[] marioLoc = environment.getMarioEgoPos();
+				movement.setMarioLoc(marioLoc);
+				levelSceneInvestigator.setMarioLoc(marioLoc);
 			
-			if(locationOfReward != null)
+			//Give LevelSceneInvestigator the new LevelScene
+				levelSceneInvestigator.setLevelScene(environment.getMergedObservationZZ(0, 0));
+		
+			//Find Mario from the list of all Sprites and update knowledge of how many coins he has collected
+			for(Sprite s : ((MarioEnvironment)environment).getSprites())
 			{
-				if(debug)
+				if(s instanceof Mario)
 				{
-					System.out.println("FOUND REWARD");
-				}
-				movement.moveTowards(locationOfReward);
-			}
-			
-			else if (!movement.isJumping())
-			{	
-				byte[] locationOfBlockage = levelSceneInvestigator.getBlockageLocation(movement.isFacingRight());
-				if(locationOfBlockage != null)
-				{
-					if(debug){System.out.println("FOUND BLOCKAGE");}
-					byte[] requiredLocation = new byte[2];
-					requiredLocation[0] = (byte) (locationOfBlockage[0] - 1);
-					if(movement.isFacingRight())
-					{
-						requiredLocation[1] = (byte) (locationOfBlockage[1] + 1);
-					}
-					else
-					{
-						requiredLocation[1] = (byte) (locationOfBlockage[1] - 1);
-					}
-					movement.moveTowards(requiredLocation);
+					levelSceneInvestigator.updateCoins(((Mario) s).coins);
+					break;
 				}
 			}
-		}
+		
+		if(debug && printingLevelScene) {levelSceneInvestigator.printLevelScene();}
+		
+		//Use provided information to decide on next move
+			//If Mario was jumping but has finished, he must now land
+			if(movement.isJumping() && environment.isMarioOnGround())
+			{
+				if(FirstAgent.debug){System.out.println("LANDED");}
+				movement.land();
+			}
+			//Decide next movement and pass this to Movement to be acted upon
+			else
+			{
+				movement.moveTowards(
+						levelSceneInvestigator.decideLocation(movement.isFacingRight()));
+			}
 	}
 
 	@Override

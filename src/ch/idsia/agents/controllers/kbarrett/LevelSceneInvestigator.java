@@ -1,10 +1,15 @@
 package ch.idsia.agents.controllers.kbarrett;
 
+/**
+ * This class is responsible for seeing what is in the vicinity of Mario.
+ * @author Kim Barrett
+ */
 public class LevelSceneInvestigator
 {
 	//Data
 		private byte[][] levelScene;
 		private int[] marioLoc;
+		private int numberOfCollectedCoins = 0;
 		
 	//Update
 		public void setLevelScene(byte[][] levelScene)
@@ -16,21 +21,59 @@ public class LevelSceneInvestigator
 		{
 			this.marioLoc = marioLoc;
 		}
+		public void updateCoins(int coins)
+		{
+			if(numberOfCollectedCoins != coins)
+			{
+				numberOfCollectedCoins = coins;
+			}
+			//TODO: To be used to see if a coin has been achieved by an action in order to give up if impossible 
+		}
 
 	//Analysis of Environment
+		public byte[] decideLocation(boolean isFacingRight)
+		{
+			byte[] locationOfReward = getRewardLocation();
+			if(locationOfReward != null)
+			{
+				if(FirstAgent.debug)
+				{
+					System.out.println("FOUND REWARD");
+				}
+				return locationOfReward;
+			}	
+			
+			byte[] locationOfBlockage = getBlockageLocation(isFacingRight);
+			if(locationOfBlockage != null)
+			{
+				if(FirstAgent.debug){System.out.println("FOUND BLOCKAGE");}
+				byte[] requiredLocation = new byte[2];
+				requiredLocation[0] = (byte) (locationOfBlockage[0] - 1);
+				if(isFacingRight)
+				{
+					requiredLocation[1] = (byte) (locationOfBlockage[1] + 1);
+				}
+				else
+				{
+					requiredLocation[1] = (byte) (locationOfBlockage[1] - 1);
+				}
+				return requiredLocation;
+			}
+			
+			return null;
+		}
+		
 		public byte[] getRewardLocation()
 		{
-			for(byte i = 0; i < levelScene.length; i++)
+			for(byte i = (byte) (marioLoc[1] - (Movement.MAX_JUMP_WIDTH/2)); i < (marioLoc[1] + (Movement.MAX_JUMP_WIDTH/2)); ++i)
 			{
-				for(byte j = 5; j < levelScene[i].length; j++)
+				for(byte j = (byte) (marioLoc[0] - Movement.MAX_JUMP_HEIGHT); j < levelScene[i].length; j++)
 				{
-					System.out.print(levelScene[i][j]+" || ");
 					if(levelScene[j][i] == Encoding.COIN)
-					{
+					{	
 						byte[] result = new byte[2];
 						result[0] = j;
 						result[1] = i;
-						if(FirstAgent.debug){System.out.println("REWARD FOUND AT: " + i + "," + j);}
 						return result;
 					}
 				}
@@ -79,7 +122,7 @@ public class LevelSceneInvestigator
 			return null;
 		}
 		
-		
+		//DEBUG
 		private void printLevelSceneLoc(byte i, byte j)
 		{
 			System.out.print(levelScene[i][j]);
@@ -95,9 +138,6 @@ public class LevelSceneInvestigator
 				else if(levelScene[i][j] >  -9){System.out.print(" ");}
 			}
 		}
-		
-		
-		//DEBUG
 		public void printLevelScene()
 		{
 			for(byte i = 0; i < levelScene.length ; ++i)

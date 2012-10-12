@@ -3,6 +3,10 @@ package ch.idsia.agents.controllers.kbarrett;
 import ch.idsia.benchmark.mario.engine.sprites.Mario;
 import ch.idsia.benchmark.mario.environments.Environment;
 
+/** 
+ * This class is responsible for storing the array of actions that move Mario.
+ * @author Kim Barrett
+ */
 public class Movement {
 	
 	//Relating to jumping
@@ -13,6 +17,8 @@ public class Movement {
 	private int[] marioLoc = new int[2];
 	private boolean facingRight = true;
 	private boolean[] actions = new boolean[Environment.numberOfKeys];
+	public static int MAX_JUMP_HEIGHT = 5;
+	public static int MAX_JUMP_WIDTH = 5;
 	
 	//DEBUG
 	private String toStringActions()
@@ -56,6 +62,7 @@ public class Movement {
 	}
 	public boolean actionsHaveBeenDecided()
 	{
+		System.out.println(toStringActions());
 		for(int i = 0; i< actions.length; i++)
 		{
 			if(actions[i]==true) {return true;}
@@ -73,23 +80,37 @@ public class Movement {
 	}
 	public boolean[] reset()
 	{
+		//If we're jumping and haven't yet landed, continue jumping
 		if(isJumping())
 		{
 			jump();
 		}
-		else if (!actionsHaveBeenDecided());
-		{
-			goRight();
-		}
+		
+		//Return the decided actions & reset them for next time
 		boolean[] copyOfActions = actions.clone();
 		actions = new boolean[Environment.numberOfKeys];
 		return copyOfActions;
 	}
 	
 	//Mario Movements
+	
+	/**
+	 * Sets the action array to actions that will move Mario towards the provided location.
+	 */
 	public void moveTowards(byte[] location)
 	{
-		System.out.println("");
+		
+		//If no location has been provided, take the default value
+		if(location == null)
+		{
+			System.out.println("location: " + location);
+			defaultMove();
+			return;
+		}
+		if(FirstAgent.debug)
+		{
+			System.out.println("location: " + location[0] + ", " + location[1]);
+		}
 		
 		if(location.length != 2)
 		{
@@ -98,23 +119,28 @@ public class Movement {
 		}
 		
 		//vertical movement
-		if(location[0] <= marioLoc[0])
+		if(location[0] < marioLoc[0])
 		{
-			jumpSize = Math.max(1, (int)(marioLoc[0] - location[0]));
+			if(!isJumping())
+			{
+				jumpSize = Math.max(1, (int)(1.6 * (marioLoc[0] - location[0])));
+			}
 		}
 		
-		System.out.println("------------------------");
-		System.out.println("location is " + location[0] + "," + location[1]);
-		System.out.println("------------------------");
 		//horizontal movement
-		if(location[1] >= marioLoc[1])
+		if(location[1] > marioLoc[1])
 		{
 			goRight();
 		}
-		else
+		else if(location[1] < marioLoc[1])
 		{
 			goLeft();
 		}
+	}
+	
+	public void defaultMove()
+	{
+		goRight();
 	}
 	public void goRight()
 	{
@@ -134,7 +160,10 @@ public class Movement {
 	}
 	public void jump()
 	{
-		if(currentJumpPoint>jumpSize) {return;}
+		if(currentJumpPoint>jumpSize)
+		{
+			return;
+		}
 		actions[Mario.KEY_JUMP] = true;
 		++currentJumpPoint;
 	}

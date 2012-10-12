@@ -3,6 +3,10 @@ package ch.idsia.agents.controllers.kbarrett;
 import ch.idsia.benchmark.mario.engine.GeneralizerLevelScene;
 import ch.idsia.benchmark.mario.engine.sprites.Sprite;
 
+/**
+ * This class stores the encodings of all objects stored in levelScene. 
+ * @author Kim
+ */
 public class Encoding {
 
 	//Encodings of Environment
@@ -17,12 +21,12 @@ public class Encoding {
 	
 	static final public byte LADDER = GeneralizerLevelScene.LADDER;
 	
-	/*
+	/**
 	 * This has a question mark on it & could contain a coin, a flower, a mushroom or some coins.
 	 * Note: always contains something.
 	 */
 	static final public byte BRICK = GeneralizerLevelScene.UNBREAKABLE_BRICK;
-	/*
+	/**
 	 *  This could contain coins, a friendly flower or nothing.
 	 */
 	static final public byte BREAKABLE_BRICK = GeneralizerLevelScene.BREAKABLE_BRICK;
