@@ -10,8 +10,39 @@ import ch.idsia.benchmark.mario.engine.sprites.Sprite;
 public class Encoding 
 {
 
-	//Encodings of Environment : represented by negative integers
+	/**
+	 * Used to check type. 
+	 * If an encoding < ENVIRONMENTTYPE, it is a enviroment piece (e.g. brick/wall/floor). 
+	 * If it is > ENVIRONMENTTYPE, it is a Sprite (e.g. enemy/coin).
+	 * Note: if they are equal, the encoding represents nothing.
+	 * @see ch.idsia.agents.controllers.kbarrett.Encoding#isEnvironment(byte)
+	 * @see ch.idsia.agents.controllers.kbarrett.Encoding#isSprite(byte)
+	 */
+	static final public byte ENVIRONMENTTYPE = 0;
+	/**
+	 * Used to check whether a given encoding is an Environment type.
+	 * @param type - the encoding of the piece
+	 * @return boolean indicating whether it is an Environment piece or not.
+	 */
+	static final public boolean isEnvironment(byte type)
+	{
+		return type < ENVIRONMENTTYPE;
+	}
+	/**
+	 * Used to check whether a given encoding is a Sprite type.
+	 * @param type - the encoding of the piece
+	 * @return boolean indicating whether it is an Sprite piece or not.
+	 */
+	static final public boolean isSprite(byte type)
+	{
+		return type > ENVIRONMENTTYPE;
+	}
 	
+	//Encodings of Environment : represented by negative integers
+			/** 
+			 * If there is nothing in the square.
+			 */
+			static final public byte NOTHING = 0;
 			static final public byte FLOOR = GeneralizerLevelScene.BORDER_CANNOT_PASS_THROUGH;
 			static final public byte WALL = -112;
 			static final public byte CORNERTOPLEFT = -128;

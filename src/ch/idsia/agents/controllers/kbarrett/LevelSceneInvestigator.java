@@ -16,7 +16,8 @@ public class LevelSceneInvestigator
 		 */
 		private byte[][] levelScene;
 		/**
-		 * Stores the location of Mario in the 2d array levelScene.
+		 * Stores the location of Mario in the 2D array levelScene.
+		 * I.e. levelScene[marioLoc[0]][marioLoc[1]] will return the square that Mario is currently occupying.
 		 * @see ch.idsia.agents.controllers.kbarrett.LevelSceneInvestigator.levelScene
 		 */
 		private int[] marioLoc;
@@ -24,6 +25,8 @@ public class LevelSceneInvestigator
 		 * Stores the total number of coins Mario has collected so far.
 		 */
 		private int numberOfCollectedCoins = 0;
+		
+		private int headButtCount = 0;
 		
 	//Methods for updating the data
 		/**
@@ -55,6 +58,7 @@ public class LevelSceneInvestigator
 			if(numberOfCollectedCoins != coins) //do something if the # of coins changes
 			{
 				numberOfCollectedCoins = coins;
+				headButtCount = 0;
 			}
 			//TODO: To be used to see if a coin has been achieved by an action in order to give up if impossible 
 		}
@@ -68,14 +72,15 @@ public class LevelSceneInvestigator
 		 */
 		public byte[] decideLocation(boolean isFacingRight)
 		{
+			
 			byte[] locationOfReward = getRewardLocation();
 			if(locationOfReward != null)
 			{
 				if(FirstAgent.debug)
 				{
-					System.out.println("FOUND REWARD");
+					System.out.println("FOUND REWARD at " + locationOfReward[0] + "," + locationOfReward[1] );
 				}
-				return locationOfReward;
+				return getGapAvoidanceLocation(locationOfReward, isFacingRight);
 			}	
 			
 			byte[] locationOfBlockage = getBlockageLocation(isFacingRight);
@@ -92,27 +97,103 @@ public class LevelSceneInvestigator
 				{
 					requiredLocation[1] = (byte) (locationOfBlockage[1] - 1);
 				}
-				return requiredLocation;
+				return getGapAvoidanceLocation(requiredLocation, isFacingRight);
 			}
 			
 			return null;
 		}
 		
+		private byte[] getGapAvoidanceLocation(byte[] desiredPosition, boolean isFacingRight) {
+
+			int increment = 1;
+			if(marioLoc[1] > desiredPosition[1]) {increment = -1;}
+			
+			if //if immediately below Mario's next step is empty
+			(
+					levelScene[desiredPosition[0]][marioLoc[1] + increment] == Encoding.NOTHING
+			)
+			{
+				if(debug){System.out.println("true");}
+				byte[] result = new byte[2];
+				
+				//check beneath Mario for next step to see if there's floor there
+				for(int i = 0; i < Movement.MAX_JUMP_WIDTH; i++)
+				{
+					if(levelScene[marioLoc[0]][marioLoc[1] + (increment * i)] == Encoding.FLOOR)
+					{
+						return desiredPosition;
+					}
+				}
+				//if none found, check for floor within eyeshot
+				for(int i = 0; i < Movement.MAX_JUMP_HEIGHT; i++)
+				{
+					if(levelScene[marioLoc[0] + i][marioLoc[1] + increment] == Encoding.FLOOR)
+					{
+						return desiredPosition;
+					}
+				}
+				
+				result[0] = (byte) marioLoc[0];
+				result[1] = (byte) (marioLoc[1] - increment);
+				return result;
+			}
+			return desiredPosition;
+		}
+		
 		public byte[] getRewardLocation()
 		{
+			int whichCoin = 0;
 			for(byte i = (byte) (marioLoc[1] - (Movement.MAX_JUMP_WIDTH/2)); i < (marioLoc[1] + (Movement.MAX_JUMP_WIDTH/2)); ++i)
 			{
-				for(byte j = (byte) (marioLoc[0] - Movement.MAX_JUMP_HEIGHT); j < levelScene[i].length; j++)
+				rows : for(byte j = (byte) (marioLoc[0] - Movement.MAX_JUMP_HEIGHT); j < levelScene[i].length; j++)
 				{
 					if(levelScene[j][i] == Encoding.COIN)
 					{	
+						if(headButtCount > 0 && whichCoin < headButtCount)
+						{
+							whichCoin++;
+							continue;
+						}
 						byte[] result = new byte[2];
 						result[0] = j;
+						//If coin directly above Mario
+						if(j < marioLoc[0] && marioLoc[1] == i)
+						{
+							//check not going to headbutt something
+							for(int k = marioLoc[0]; k > j; --k)
+							{
+								debugPrint("COIN DIRECTLY ABOVE: " + k + " " + levelScene[k][i]);
+								if(Encoding.isEnvironment(levelScene[k][i]))
+								{
+									if(debug) {System.out.println("upwards FLOOR IN WAY OF COIN");}
+									headButtCount += 5;
+									continue rows;
+								}
+							}
+						}
+						//if coin directly below Mario
+						else if (j > marioLoc[0] && marioLoc[1] == i )
+						{
+							debugPrint("COIN DIRECTLY BELOW");
+							//if coin immediately below Mario & floor in way, ignore it
+							for(int k = marioLoc[0]; k < j; k++)
+							{
+							if(Encoding.isEnvironment(levelScene[k][i]))
+							{
+								if(debug) {System.out.println("downwards FLOOR IN WAY OF COIN");}
+								headButtCount += 5;
+								continue;
+							}
+							}
+						}
+
 						result[1] = i;
+						headButtCount--;
 						return result;
 					}
 				}
 			}
+			headButtCount--;
 			return null;
 		}
 		
@@ -150,7 +231,7 @@ public class LevelSceneInvestigator
 			{	
 				byte[] result = new byte[2];
 				result[0] = (byte) (marioLoc[0]);
-				result[1] = (byte) (marioLoc[1] + 1);
+				result[1] = (byte) (marioLoc[1] + 2);
 				return result;
 			}
 			
@@ -209,6 +290,13 @@ public class LevelSceneInvestigator
 					}
 					System.err.println("ARRRRRRGGGGHHHHHH: " + levelScene[i][j]);
 				}
+			}
+		}
+		private void debugPrint(String s)
+		{
+			if(debug)
+			{
+				System.out.println(s);
 			}
 		}
 		
