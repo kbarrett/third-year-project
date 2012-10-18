@@ -14,7 +14,6 @@ import ch.idsia.benchmark.mario.environments.MarioEnvironment;
 public class FirstAgent implements Agent {
 	
 	//DEBUG VALUES
-	boolean printingLevelScene = false;
 	/**
 	 * Remove this to find everywhere where a debug instruction has been entered.
 	 */
@@ -64,12 +63,10 @@ public class FirstAgent implements Agent {
 				levelSceneInvestigator.setMarioLoc(marioLoc);
 			
 			//Give LevelSceneInvestigator the new LevelScene
-				levelSceneInvestigator.setLevelScene(environment.getMergedObservationZZ(0, 0));
+				levelSceneInvestigator.setLevelScene(environment.getMergedObservationZZ(0, 0), environment.getMarioFloatPos());
 		
 			//Update knowledge of how many coins Mario has collected
 				levelSceneInvestigator.updateCoins(Mario.coins);
-		
-		if(debug && printingLevelScene) {levelSceneInvestigator.printLevelScene();}
 		
 		//Use provided information to decide on next move
 			//If Mario was jumping but has landed, pass this information to Movement
@@ -115,8 +112,8 @@ public class FirstAgent implements Agent {
 	 */
 	@Override
 	public void setObservationDetails(int rfWidth, int rfHeight, int egoRow, int egoCol) {
-		// TODO Auto-generated method stub
-
+		//Pass this information to the levelSceneInvestigator, so it can create an initial map of the correct size.
+		levelSceneInvestigator.giveMapSize(rfWidth, rfHeight);
 	}
 
 	/**

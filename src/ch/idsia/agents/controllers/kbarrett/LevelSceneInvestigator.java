@@ -1,5 +1,8 @@
 package ch.idsia.agents.controllers.kbarrett;
 
+import java.awt.Point;
+import java.awt.geom.Point2D;
+
 /**
  * This class is responsible for seeing what is in the vicinity of Mario.
  * @author Kim Barrett
@@ -22,22 +25,63 @@ public class LevelSceneInvestigator
 		 */
 		private int[] marioLoc;
 		/**
+		 * Stores the float position of Mario on the screen.
+		 */
+		private float[] marioScreenPos;
+		private MapSquare[][] map;
+		private int[] marioMapLoc = {0,0};
+		/** 
+		 * Stores the physical size of a square in levelScene.
+		 * @see ch.idsia.agents.controllers.kbarrett.LevelSceneInvestigator.levelScene
+		 */
+		private static final float SQUARESIZE = 12;
+		/**
 		 * Stores the total number of coins Mario has collected so far.
 		 */
 		private int numberOfCollectedCoins = 0;
-		
-		private int headButtCount = 0;
 		
 	//Methods for updating the data
 		/**
 		 * Used for updating the levelScene when a new one is acquired.
 		 * @param levelScene a 2D array representing the current environment of Mario encoded as integers.
+		 * @param marioScreenPos a float array of size 2 containing Mario's actual position on the screen
 		 * @see ch.idsia.agents.controllers.kbarrett.LevelSceneInvestigator.levelScene
 		 */
-		public void setLevelScene(byte[][] levelScene)
+		public void setLevelScene(byte[][] levelScene, float[] marioScreenPos)
 		{
 			this.levelScene = levelScene;
-			if(FirstAgent.debug){checkLevelScene();}
+				if(FirstAgent.debug){checkLevelScene();}
+				
+			if (
+					this.marioScreenPos != null &&
+					(
+							Math.abs(this.marioScreenPos[0] - marioScreenPos[0]) > SQUARESIZE ||
+							Math.abs(this.marioScreenPos[1] - marioScreenPos[0]) > SQUARESIZE
+					)
+				)
+			{
+				//Update Mario's vertical position
+					if(this.marioScreenPos[0] < marioScreenPos[0]) //Mario has moved downwards
+					{
+						++marioMapLoc[0];
+					}
+					else if(this.marioScreenPos[0] > marioScreenPos[0]) //Mario has moved upwards
+					{
+						--marioMapLoc[0];
+					}
+				//Update Mario's horizontal position
+					if(this.marioScreenPos[1] < marioScreenPos[1]) //Mario has moved right
+					{
+						++marioMapLoc[1];
+					}
+					else if(this.marioScreenPos[0] > marioScreenPos[0]) //Mario has moved left
+					{
+						--marioMapLoc[1];
+					}
+				updateMap();
+				if(debug) {printMap();}
+			}
+			this.marioScreenPos = marioScreenPos;
 		}
 		/**
 		 * Used for updating marioLoc.
@@ -58,9 +102,89 @@ public class LevelSceneInvestigator
 			if(numberOfCollectedCoins != coins) //do something if the # of coins changes
 			{
 				numberOfCollectedCoins = coins;
-				headButtCount = 0;
 			}
 			//TODO: To be used to see if a coin has been achieved by an action in order to give up if impossible 
+		}
+		/**
+		 * Creates a map of the given size, if no map has previously been created.
+		 * @param width of the map
+		 * @param height of the map
+		 */
+		public void giveMapSize(int width, int height)
+		{
+			if(map==null)
+			{
+				map = new MapSquare[width][height];
+			}
+		}
+		/** 
+		 * Incorporates the current levelScene into the map.
+		 */
+		private void updateMap()
+		{
+			map = getNewMapOfCorrectSize();
+			for(int i = 0; i < levelScene.length; ++i)
+			{
+				for(int j = 0; j < levelScene[i].length; ++j)
+				{
+					map[i + marioMapLoc[0] - (levelScene.length / 2)][j + marioMapLoc[1] - (levelScene.length / 2)] 
+							= new MapSquare(levelScene[i][j]);
+				}
+			}
+			
+		}
+		/**
+		 * @return MapSquare[][] of the required size to fit the new levelScene observations into.
+		 */
+		private MapSquare[][] getNewMapOfCorrectSize()
+		{
+			MapSquare[][] newMap = null;
+			if(marioMapLoc[0] + (levelScene.length / 2) > map.length) //if off bottom of map
+			{
+				newMap = transferOldMapIntoNewMap(map.length + (levelScene.length / 2), map[0].length, new Point2D.Float(0,0));
+				System.err.println(debug + "shouldn't happen");
+			}
+			else if(marioMapLoc[0] < (levelScene.length / 2)) //if off top of map
+			{
+				newMap = transferOldMapIntoNewMap(map.length + (levelScene.length / 2), map[0].length, new Point2D.Float(0, levelScene.length / 2));
+				marioMapLoc[0]+=levelScene.length / 2;
+				System.err.println(debug + "shouldn't happen " + marioMapLoc[0] + "," + marioMapLoc[1]);
+			}
+			
+			if(marioMapLoc[1] + (levelScene[0].length / 2) > map[0].length) //if off right of map
+			{
+				newMap = transferOldMapIntoNewMap(map.length, map[0].length  + (levelScene.length / 2), new Point2D.Float(0,0));
+			}
+			else if(marioMapLoc[1] < (levelScene[0].length / 2)) //if off left of map
+			{
+				newMap = transferOldMapIntoNewMap(map.length, map[0].length  + (levelScene.length / 2), new Point2D.Float(levelScene.length / 2,0));
+				marioMapLoc[1]+=levelScene.length / 2;
+				System.err.println(debug + "definitely shouldn't happen !!" + marioMapLoc[0] + "," + marioMapLoc[1]);
+			}
+			if(newMap == null) //if none of those
+			{
+				return map;
+			}
+			return newMap;
+		}
+		/**
+		 * Copies the old map array into the new one in the correct position.
+		 * @param newHeight - height of the new map
+		 * @param newWidth - width of the new map
+		 * @param newPosOfOrigin - the position the origin of the old map needs to take in the new map
+		 * @return MapSquare[][] with the all the same MapSquares as the old map, but with additional nulls where the map has been enlarged.
+		 */
+		private MapSquare[][] transferOldMapIntoNewMap(int newHeight, int newWidth, Point2D.Float newPosOfOrigin)
+		{
+			MapSquare[][] newMap = new MapSquare[newHeight][newWidth];
+			for(int i = (int) newPosOfOrigin.x; i < map.length; ++i)
+			{
+				for(int j = (int) newPosOfOrigin.y; j< map[i].length; ++j)
+				{
+					newMap[i][j] = map[i][j];
+				}
+			}
+			return newMap;
 		}
 
 	//Methods for analysing the environment
@@ -142,18 +266,12 @@ public class LevelSceneInvestigator
 		
 		public byte[] getRewardLocation()
 		{
-			int whichCoin = 0;
 			for(byte i = (byte) (marioLoc[1] - (Movement.MAX_JUMP_WIDTH/2)); i < (marioLoc[1] + (Movement.MAX_JUMP_WIDTH/2)); ++i)
 			{
 				rows : for(byte j = (byte) (marioLoc[0] - Movement.MAX_JUMP_HEIGHT); j < levelScene[i].length; j++)
 				{
 					if(levelScene[j][i] == Encoding.COIN)
-					{	
-						if(headButtCount > 0 && whichCoin < headButtCount)
-						{
-							whichCoin++;
-							continue;
-						}
+					{
 						byte[] result = new byte[2];
 						result[0] = j;
 						//If coin directly above Mario
@@ -166,7 +284,6 @@ public class LevelSceneInvestigator
 								if(Encoding.isEnvironment(levelScene[k][i]))
 								{
 									if(debug) {System.out.println("upwards FLOOR IN WAY OF COIN");}
-									headButtCount += 5;
 									continue rows;
 								}
 							}
@@ -181,19 +298,16 @@ public class LevelSceneInvestigator
 							if(Encoding.isEnvironment(levelScene[k][i]))
 							{
 								if(debug) {System.out.println("downwards FLOOR IN WAY OF COIN");}
-								headButtCount += 5;
 								continue;
 							}
 							}
 						}
 
 						result[1] = i;
-						headButtCount--;
 						return result;
 					}
 				}
 			}
-			headButtCount--;
 			return null;
 		}
 		
@@ -297,6 +411,22 @@ public class LevelSceneInvestigator
 			if(debug)
 			{
 				System.out.println(s);
+			}
+		}
+		private void printMap()
+		{
+			for(int i = 0; i<map.length; ++i)
+			{
+				for(int j = 0; j<map[i].length; ++j)
+				{
+					String s = ""+map[i][j];
+					while(s.length()<4)
+					{
+						s+=" ";
+					}
+					System.out.print(s);
+				}
+				System.out.println();
 			}
 		}
 		
