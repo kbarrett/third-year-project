@@ -72,7 +72,6 @@ public class FirstAgent implements Agent {
 			//If Mario was jumping but has landed, pass this information to Movement
 			if(movement.isJumping() && environment.isMarioOnGround())
 			{
-				if(FirstAgent.debug){System.out.println("LANDED");}
 				movement.land();
 			}
 			//Decide next movement and pass this to Movement to be acted upon

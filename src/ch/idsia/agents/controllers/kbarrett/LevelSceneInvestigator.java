@@ -2,6 +2,11 @@ package ch.idsia.agents.controllers.kbarrett;
 
 import java.awt.Point;
 import java.awt.geom.Point2D;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.PriorityQueue;
+
+import org.objectweb.asm.tree.IntInsnNode;
 
 /**
  * This class is responsible for seeing what is in the vicinity of Mario.
@@ -79,7 +84,10 @@ public class LevelSceneInvestigator
 						--marioMapLoc[1];
 					}
 				updateMap();
-				if(debug) {printMap();}
+				if(debug && false)
+				{
+					printMap();
+				}
 			}
 			this.marioScreenPos = marioScreenPos;
 		}
@@ -127,8 +135,16 @@ public class LevelSceneInvestigator
 			{
 				for(int j = 0; j < levelScene[i].length; ++j)
 				{
-					map[i + marioMapLoc[0] - (levelScene.length / 2)][j + marioMapLoc[1] - (levelScene.length / 2)] 
-							= new MapSquare(levelScene[i][j]);
+					MapSquare square = map[i + marioMapLoc[0] - (levelScene.length / 2)][j + marioMapLoc[1] - (levelScene.length / 2)];
+					if(square==null)
+					{
+						map[i + marioMapLoc[0] - (levelScene.length / 2)][j + marioMapLoc[1] - (levelScene.length / 2)] 
+								= new MapSquare(levelScene[i][j], map, i, j);
+					}
+					else
+					{
+						square.setEncoding(levelScene[i][j]);
+					}
 				}
 			}
 			
@@ -142,13 +158,11 @@ public class LevelSceneInvestigator
 			if(marioMapLoc[0] + (levelScene.length / 2) > map.length) //if off bottom of map
 			{
 				newMap = transferOldMapIntoNewMap(map.length + (levelScene.length / 2), map[0].length, new Point2D.Float(0,0));
-				System.err.println(debug + "shouldn't happen");
 			}
 			else if(marioMapLoc[0] < (levelScene.length / 2)) //if off top of map
 			{
 				newMap = transferOldMapIntoNewMap(map.length + (levelScene.length / 2), map[0].length, new Point2D.Float(0, levelScene.length / 2));
 				marioMapLoc[0]+=levelScene.length / 2;
-				System.err.println(debug + "shouldn't happen " + marioMapLoc[0] + "," + marioMapLoc[1]);
 			}
 			
 			if(marioMapLoc[1] + (levelScene[0].length / 2) > map[0].length) //if off right of map
@@ -159,7 +173,6 @@ public class LevelSceneInvestigator
 			{
 				newMap = transferOldMapIntoNewMap(map.length, map[0].length  + (levelScene.length / 2), new Point2D.Float(levelScene.length / 2,0));
 				marioMapLoc[1]+=levelScene.length / 2;
-				System.err.println(debug + "definitely shouldn't happen !!" + marioMapLoc[0] + "," + marioMapLoc[1]);
 			}
 			if(newMap == null) //if none of those
 			{
@@ -196,21 +209,15 @@ public class LevelSceneInvestigator
 		 */
 		public byte[] decideLocation(boolean isFacingRight)
 		{
-			
 			byte[] locationOfReward = getRewardLocation();
 			if(locationOfReward != null)
 			{
-				if(FirstAgent.debug)
-				{
-					System.out.println("FOUND REWARD at " + locationOfReward[0] + "," + locationOfReward[1] );
-				}
 				return getGapAvoidanceLocation(locationOfReward, isFacingRight);
 			}	
 			
 			byte[] locationOfBlockage = getBlockageLocation(isFacingRight);
 			if(locationOfBlockage != null)
 			{
-				if(FirstAgent.debug){System.out.println("FOUND BLOCKAGE");}
 				byte[] requiredLocation = new byte[2];
 				requiredLocation[0] = (byte) (locationOfBlockage[0] - 1);
 				if(isFacingRight)
@@ -227,8 +234,73 @@ public class LevelSceneInvestigator
 			return null;
 		}
 		
+		private MapSquare[] aStar(MapSquare destination)
+		{
+			//Store result here & return at end, so can make sure we run reset before returning it.
+			MapSquare[] result = null;
+			
+			PriorityQueue<MapSquare> exploredSquares = new PriorityQueue<MapSquare>(20, 
+					new Comparator<MapSquare>() 
+					{
+						@Override
+						public int compare(MapSquare o1, MapSquare o2) {
+							return Integer.compare(o1.getH() + o1.getG(), o2.getH() + o1.getG());
+						}
+					}
+			);
+			ArrayList<MapSquare> expandedSquares = new ArrayList<MapSquare>();
+			
+			MapSquare initialSquare = map[marioMapLoc[0]][marioMapLoc[1]];
+			initialSquare.setH(0);
+			exploredSquares.add(initialSquare);
+			
+			while(!exploredSquares.isEmpty())
+			{
+				MapSquare currentSquare = exploredSquares.poll();
+				if(currentSquare.equals(destination))
+				{
+					//TODO: backtrack route
+					if(debug)
+					{
+						System.out.println("We fucking found it: " + currentSquare.getG());
+					}
+					result = null; //TODO: put result in here
+					break;
+				}
+				for(MapSquare s : currentSquare.getReachableSquares())
+				{
+					if(s == null || expandedSquares.contains(s))
+					{
+						continue;
+					}
+					s.calculateH(initialSquare);
+					s.setG(currentSquare.getG() + 1);
+					exploredSquares.add(s);
+				}
+			}
+			if(debug)
+				System.err.println("Oh shit. We didn't find it...");
+			resetAfterAStar(exploredSquares, expandedSquares);
+			return result;
+		}
+		private void resetAfterAStar(PriorityQueue<MapSquare> exploredSquares, ArrayList<MapSquare> expandedSquares)
+		{
+			for(MapSquare sq : exploredSquares)
+			{
+				sq.setG(0);
+				sq.setH(0);
+			}
+			for(MapSquare sq : expandedSquares)
+			{
+				sq.setG(0);
+				sq.setH(0);
+			}
+		}
+		
 		private byte[] getGapAvoidanceLocation(byte[] desiredPosition, boolean isFacingRight) {
 
+			if(debug && map[0][0] != null) {aStar(map[desiredPosition[0] + marioMapLoc[0] - (levelScene.length / 2)][desiredPosition[1] + marioMapLoc[1] - (levelScene.length / 2)]);}
+			
 			int increment = 1;
 			if(marioLoc[1] > desiredPosition[1]) {increment = -1;}
 			
@@ -237,7 +309,6 @@ public class LevelSceneInvestigator
 					levelScene[desiredPosition[0]][marioLoc[1] + increment] == Encoding.NOTHING
 			)
 			{
-				if(debug){System.out.println("true");}
 				byte[] result = new byte[2];
 				
 				//check beneath Mario for next step to see if there's floor there
@@ -280,10 +351,8 @@ public class LevelSceneInvestigator
 							//check not going to headbutt something
 							for(int k = marioLoc[0]; k > j; --k)
 							{
-								debugPrint("COIN DIRECTLY ABOVE: " + k + " " + levelScene[k][i]);
 								if(Encoding.isEnvironment(levelScene[k][i]))
 								{
-									if(debug) {System.out.println("upwards FLOOR IN WAY OF COIN");}
 									continue rows;
 								}
 							}
@@ -291,13 +360,11 @@ public class LevelSceneInvestigator
 						//if coin directly below Mario
 						else if (j > marioLoc[0] && marioLoc[1] == i )
 						{
-							debugPrint("COIN DIRECTLY BELOW");
 							//if coin immediately below Mario & floor in way, ignore it
 							for(int k = marioLoc[0]; k < j; k++)
 							{
 							if(Encoding.isEnvironment(levelScene[k][i]))
 							{
-								if(debug) {System.out.println("downwards FLOOR IN WAY OF COIN");}
 								continue;
 							}
 							}
@@ -419,7 +486,9 @@ public class LevelSceneInvestigator
 			{
 				for(int j = 0; j<map[i].length; ++j)
 				{
-					String s = ""+map[i][j];
+					String s;
+					if(map[i][j] == null) {s = ""+map[i][j];}
+					else {s = ""+map[i][j].getEncoding();}
 					while(s.length()<4)
 					{
 						s+=" ";

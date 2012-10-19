@@ -176,7 +176,6 @@ public class Movement
 					{
 						//Is he is not currently jumping, set the required jumpSize based on the height he needs to reach.
 						jumpSize = Math.max(1, (int)(1.6 * (marioLoc[0] - location[0])));
-						System.out.println("-----------------jumpSize: " + jumpSize + "----------------------");
 					}
 				}
 			

@@ -29,6 +29,16 @@ public class Encoding
 		return type < ENVIRONMENTTYPE;
 	}
 	/**
+	 * Used to check whether the encoding for a given MapSquare is an Environment type.
+	 * @param type - the piece for which the encoding should be checked
+	 * @return boolean indicating whether it is an Environment piece or not.
+	 */
+	static final public boolean isEnvironment(MapSquare type)
+	{
+		if(type==null) {return false;}
+		return isEnvironment(type.getEncoding());
+	}
+	/**
 	 * Used to check whether a given encoding is a Sprite type.
 	 * @param type - the encoding of the piece
 	 * @return boolean indicating whether it is an Sprite piece or not.
@@ -36,6 +46,16 @@ public class Encoding
 	static final public boolean isSprite(byte type)
 	{
 		return type > ENVIRONMENTTYPE;
+	}
+	/**
+	 * Used to check whether the encoding for a given MapSquare is a Sprite type.
+	 * @param type - the piece for which the encoding should be checked
+	 * @return boolean indicating whether it is an Sprite piece or not.
+	 */
+	static final public boolean isSprite(MapSquare type)
+	{
+		if(type==null) {return false;}
+		return isSprite(type.getEncoding());
 	}
 	
 	//Encodings of Environment : represented by negative integers
