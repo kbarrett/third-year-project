@@ -40,7 +40,7 @@ public class MapSquare {
 					//He can reach the square above
 					reachableSquares.add(map[locationInMapY - 1][locationInMapX]);
 				}
-				else if (locationInMapY != map.length - 1)
+				if (locationInMapY < map.length - 1 && !Encoding.isEnvironment(map[locationInMapY+1][locationInMapX]))
 				{
 					//He can reach the square below, because it is empty
 					reachableSquares.add(map[locationInMapY + 1][locationInMapX]);
@@ -58,7 +58,7 @@ public class MapSquare {
 					//He can reach the square to the right
 					reachableSquares.add(map[locationInMapY][locationInMapX - 1]);
 				}
-		if(FirstAgent.debug){System.out.println(this + ":" + reachableSquares);}
+		if(FirstAgent.debug){/*System.out.println(this + ":" + reachableSquares);*/}
 	}
 	
 	private boolean canJump(MapSquare[][] map)

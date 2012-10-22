@@ -39,7 +39,7 @@ public class LevelSceneInvestigator
 		 * Stores the physical size of a square in levelScene.
 		 * @see ch.idsia.agents.controllers.kbarrett.LevelSceneInvestigator.levelScene
 		 */
-		private static final float SQUARESIZE = 12;
+		private static final float SQUARESIZE = 5;
 		/**
 		 * Stores the total number of coins Mario has collected so far.
 		 */
@@ -49,20 +49,28 @@ public class LevelSceneInvestigator
 		/**
 		 * Used for updating the levelScene when a new one is acquired.
 		 * @param levelScene a 2D array representing the current environment of Mario encoded as integers.
-		 * @param marioScreenPos a float array of size 2 containing Mario's actual position on the screen
+		 * @param marioScreenPos a float array of size 2 containing Mario's actual position on the screen. Note: this is as an (x,y) coordinate.
 		 * @see ch.idsia.agents.controllers.kbarrett.LevelSceneInvestigator.levelScene
 		 */
 		public void setLevelScene(byte[][] levelScene, float[] marioScreenPos)
 		{
+			/*Swap the terms in marioScreenPos, so they match the y-x orientation of the map.*/
+			float temp = marioScreenPos[0];
+			marioScreenPos[0] = marioScreenPos[1];
+			marioScreenPos[1] = temp;
+			
 			this.levelScene = levelScene;
 				if(FirstAgent.debug){checkLevelScene();}
 				
-			if (
-					this.marioScreenPos != null &&
-					(
-							Math.abs(this.marioScreenPos[0] - marioScreenPos[0]) > SQUARESIZE ||
-							Math.abs(this.marioScreenPos[1] - marioScreenPos[0]) > SQUARESIZE
-					)
+			if(this.marioScreenPos == null)
+			{
+				this.marioScreenPos = new float[2];
+				this.marioScreenPos[0] = marioScreenPos[0];
+				this.marioScreenPos[1] = marioScreenPos[1];
+			}
+			else if (
+					Math.abs(this.marioScreenPos[0] - marioScreenPos[0]) > SQUARESIZE ||
+					Math.abs(this.marioScreenPos[1] - marioScreenPos[1]) > SQUARESIZE
 				)
 			{
 				//Update Mario's vertical position
@@ -79,17 +87,21 @@ public class LevelSceneInvestigator
 					{
 						++marioMapLoc[1];
 					}
-					else if(this.marioScreenPos[0] > marioScreenPos[0]) //Mario has moved left
+					else if(this.marioScreenPos[1] > marioScreenPos[1]) //Mario has moved left
 					{
 						--marioMapLoc[1];
 					}
-				updateMap();
-				if(debug && false)
+					
+					//Update the new current position to be here.
+					this.marioScreenPos[0] = marioScreenPos[0];
+					this.marioScreenPos[1] = marioScreenPos[1];
+					
+				map = MapUpdater.updateMap(map, levelScene, marioMapLoc);
+				if(debug && true)
 				{
 					printMap();
 				}
 			}
-			this.marioScreenPos = marioScreenPos;
 		}
 		/**
 		 * Used for updating marioLoc.
@@ -128,78 +140,7 @@ public class LevelSceneInvestigator
 		/** 
 		 * Incorporates the current levelScene into the map.
 		 */
-		private void updateMap()
-		{
-			map = getNewMapOfCorrectSize();
-			for(int i = 0; i < levelScene.length; ++i)
-			{
-				for(int j = 0; j < levelScene[i].length; ++j)
-				{
-					MapSquare square = map[i + marioMapLoc[0] - (levelScene.length / 2)][j + marioMapLoc[1] - (levelScene.length / 2)];
-					if(square==null)
-					{
-						map[i + marioMapLoc[0] - (levelScene.length / 2)][j + marioMapLoc[1] - (levelScene.length / 2)] 
-								= new MapSquare(levelScene[i][j], map, i, j);
-					}
-					else
-					{
-						square.setEncoding(levelScene[i][j]);
-					}
-				}
-			}
-			
-		}
-		/**
-		 * @return MapSquare[][] of the required size to fit the new levelScene observations into.
-		 */
-		private MapSquare[][] getNewMapOfCorrectSize()
-		{
-			MapSquare[][] newMap = null;
-			if(marioMapLoc[0] + (levelScene.length / 2) > map.length) //if off bottom of map
-			{
-				newMap = transferOldMapIntoNewMap(map.length + (levelScene.length / 2), map[0].length, new Point2D.Float(0,0));
-			}
-			else if(marioMapLoc[0] < (levelScene.length / 2)) //if off top of map
-			{
-				newMap = transferOldMapIntoNewMap(map.length + (levelScene.length / 2), map[0].length, new Point2D.Float(0, levelScene.length / 2));
-				marioMapLoc[0]+=levelScene.length / 2;
-			}
-			
-			if(marioMapLoc[1] + (levelScene[0].length / 2) > map[0].length) //if off right of map
-			{
-				newMap = transferOldMapIntoNewMap(map.length, map[0].length  + (levelScene.length / 2), new Point2D.Float(0,0));
-			}
-			else if(marioMapLoc[1] < (levelScene[0].length / 2)) //if off left of map
-			{
-				newMap = transferOldMapIntoNewMap(map.length, map[0].length  + (levelScene.length / 2), new Point2D.Float(levelScene.length / 2,0));
-				marioMapLoc[1]+=levelScene.length / 2;
-			}
-			if(newMap == null) //if none of those
-			{
-				return map;
-			}
-			return newMap;
-		}
-		/**
-		 * Copies the old map array into the new one in the correct position.
-		 * @param newHeight - height of the new map
-		 * @param newWidth - width of the new map
-		 * @param newPosOfOrigin - the position the origin of the old map needs to take in the new map
-		 * @return MapSquare[][] with the all the same MapSquares as the old map, but with additional nulls where the map has been enlarged.
-		 */
-		private MapSquare[][] transferOldMapIntoNewMap(int newHeight, int newWidth, Point2D.Float newPosOfOrigin)
-		{
-			MapSquare[][] newMap = new MapSquare[newHeight][newWidth];
-			for(int i = (int) newPosOfOrigin.x; i < map.length; ++i)
-			{
-				for(int j = (int) newPosOfOrigin.y; j< map[i].length; ++j)
-				{
-					newMap[i][j] = map[i][j];
-				}
-			}
-			return newMap;
-		}
-
+		
 	//Methods for analysing the environment
 		/**
 		 * Used to make a decision based on the environment about which location Mario needs to move to.
@@ -262,7 +203,7 @@ public class LevelSceneInvestigator
 					//TODO: backtrack route
 					if(debug)
 					{
-						System.out.println("We fucking found it: " + currentSquare.getG());
+						System.out.println("We fucking found " + destination + " with G : " + currentSquare.getG());
 					}
 					result = null; //TODO: put result in here
 					break;
@@ -279,10 +220,15 @@ public class LevelSceneInvestigator
 				}
 			}
 			if(debug)
-				System.err.println("Oh shit. We didn't find it...");
+				System.err.println("Oh shit. We didn't find " + destination + " ...");
 			resetAfterAStar(exploredSquares, expandedSquares);
 			return result;
 		}
+		/**
+		 * I'm thinking this method probably isn't necessary.. Future self, work out whether it is or not.
+		 * @param exploredSquares
+		 * @param expandedSquares
+		 */
 		private void resetAfterAStar(PriorityQueue<MapSquare> exploredSquares, ArrayList<MapSquare> expandedSquares)
 		{
 			for(MapSquare sq : exploredSquares)
@@ -299,7 +245,11 @@ public class LevelSceneInvestigator
 		
 		private byte[] getGapAvoidanceLocation(byte[] desiredPosition, boolean isFacingRight) {
 
-			if(debug && map[0][0] != null) {aStar(map[desiredPosition[0] + marioMapLoc[0] - (levelScene.length / 2)][desiredPosition[1] + marioMapLoc[1] - (levelScene.length / 2)]);}
+			if(debug && map[marioMapLoc[0]][marioMapLoc[1]] != null) 
+			{
+				//aStar(map[desiredPosition[0] + marioMapLoc[0] - (levelScene.length / 2)][desiredPosition[1] + marioMapLoc[1] - (levelScene.length / 2)]);
+				aStar(map[marioMapLoc[0]][marioMapLoc[1]]);
+			}
 			
 			int increment = 1;
 			if(marioLoc[1] > desiredPosition[1]) {increment = -1;}
@@ -339,37 +289,12 @@ public class LevelSceneInvestigator
 		{
 			for(byte i = (byte) (marioLoc[1] - (Movement.MAX_JUMP_WIDTH/2)); i < (marioLoc[1] + (Movement.MAX_JUMP_WIDTH/2)); ++i)
 			{
-				rows : for(byte j = (byte) (marioLoc[0] - Movement.MAX_JUMP_HEIGHT); j < levelScene[i].length; j++)
+				for(byte j = (byte) (marioLoc[0] - Movement.MAX_JUMP_HEIGHT); j < levelScene[i].length; j++)
 				{
 					if(levelScene[j][i] == Encoding.COIN)
 					{
 						byte[] result = new byte[2];
 						result[0] = j;
-						//If coin directly above Mario
-						if(j < marioLoc[0] && marioLoc[1] == i)
-						{
-							//check not going to headbutt something
-							for(int k = marioLoc[0]; k > j; --k)
-							{
-								if(Encoding.isEnvironment(levelScene[k][i]))
-								{
-									continue rows;
-								}
-							}
-						}
-						//if coin directly below Mario
-						else if (j > marioLoc[0] && marioLoc[1] == i )
-						{
-							//if coin immediately below Mario & floor in way, ignore it
-							for(int k = marioLoc[0]; k < j; k++)
-							{
-							if(Encoding.isEnvironment(levelScene[k][i]))
-							{
-								continue;
-							}
-							}
-						}
-
 						result[1] = i;
 						return result;
 					}
@@ -460,13 +385,13 @@ public class LevelSceneInvestigator
 		{
 			for(int i = 0; i< levelScene.length; i++)
 			{
-				for(int j = 0; j < levelScene[i].length; ++j)
+				middleloop: for(int j = 0; j < levelScene[i].length; ++j)
 				{
 					for(int thing : Encoding.knownThings)
 					{
 						if(levelScene[i][j] == thing)
 						{
-							return;
+							continue middleloop;
 						}
 					}
 					System.err.println("ARRRRRRGGGGHHHHHH: " + levelScene[i][j]);

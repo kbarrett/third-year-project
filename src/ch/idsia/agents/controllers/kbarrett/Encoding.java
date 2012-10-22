@@ -80,6 +80,13 @@ public class Encoding
 			 *  This could contain coins, a friendly flower or nothing.
 			 */
 			static final public byte BREAKABLE_BRICK = GeneralizerLevelScene.BREAKABLE_BRICK;
+			
+			static final public byte ENVIRONMENT1 = -110;
+			static final public byte ENVIRONMENT2 = -96;
+			static final public byte ENVIRONMENT3 = -94;
+			static final public byte ENVIRONMENT4 = -126;
+			static final public byte ENVIRONMENT5 = -125;
+			static final public byte ENVIRONMENT6 = -109;
 	
 	//Encodings of Sprites : represented by positive integers
 			
@@ -117,6 +124,6 @@ public class Encoding
 	
 	//DEBUG:
 	private boolean debug = FirstAgent.debug; 
-	public static int[] knownThings = {0, 2, -60, -112, -128, -90, -62, 61, -22, -20, -82, -80, 5, 3, 
+	public static int[] knownThings = {0, 2, -60, -112, -128, -90, -62, 61, -22, -20, -82, -80, 5, 3, -110, -96, -94, -126, -125, -109,
 		/*Enemies from here*/ 25, 84, 80, 95, 81, 96, 82, 97, 13, 98, 93, 91, 99};
 }
