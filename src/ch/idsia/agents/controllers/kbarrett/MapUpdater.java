@@ -45,7 +45,7 @@ public class MapUpdater {
 				if(square==null)
 				{
 					map[i + marioMapLoc[0] - levelSceneMidPoint0][j + marioMapLoc[1] - levelSceneMidPoint1] 
-							= new MapSquare(levelScene[i][j], map, i, j);
+							= new MapSquare(levelScene[i][j], map, j, i);
 				}
 				else
 				{
@@ -156,6 +156,10 @@ public class MapUpdater {
 			for(int j = (int) newPosOfOrigin.y; j< map[i].length; ++j)
 			{
 				newMap[i][j] = map[i][j];
+				if(newMap[i][j]!=null)
+				{
+					newMap[i][j].setLocInMap(j, i);
+				}
 			}
 		}
 		return newMap;

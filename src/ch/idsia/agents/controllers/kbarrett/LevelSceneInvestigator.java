@@ -1,12 +1,8 @@
 package ch.idsia.agents.controllers.kbarrett;
 
-import java.awt.Point;
-import java.awt.geom.Point2D;
-import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.PriorityQueue;
-
-import org.objectweb.asm.tree.IntInsnNode;
+import java.util.LinkedList;
+import java.util.TreeSet;
 
 /**
  * This class is responsible for seeing what is in the vicinity of Mario.
@@ -39,7 +35,7 @@ public class LevelSceneInvestigator
 		 * Stores the physical size of a square in levelScene.
 		 * @see ch.idsia.agents.controllers.kbarrett.LevelSceneInvestigator.levelScene
 		 */
-		private static final float SQUARESIZE = 5;
+		private static final float SQUARESIZE = 20.5f;
 		/**
 		 * Stores the total number of coins Mario has collected so far.
 		 */
@@ -97,7 +93,7 @@ public class LevelSceneInvestigator
 					this.marioScreenPos[1] = marioScreenPos[1];
 					
 				map = MapUpdater.updateMap(map, levelScene, marioMapLoc);
-				if(debug && true)
+				if(debug && false)
 				{
 					printMap();
 				}
@@ -180,24 +176,22 @@ public class LevelSceneInvestigator
 			//Store result here & return at end, so can make sure we run reset before returning it.
 			MapSquare[] result = null;
 			
-			PriorityQueue<MapSquare> exploredSquares = new PriorityQueue<MapSquare>(20, 
-					new Comparator<MapSquare>() 
-					{
-						@Override
-						public int compare(MapSquare o1, MapSquare o2) {
-							return Integer.compare(o1.getH() + o1.getG(), o2.getH() + o1.getG());
-						}
-					}
-			);
-			ArrayList<MapSquare> expandedSquares = new ArrayList<MapSquare>();
+			TreeSet<MapSquareWrapper> exploredSquares = new TreeSet<MapSquareWrapper>(new Comparator<MapSquareWrapper>(){
+
+				@Override
+				public int compare(MapSquareWrapper msw1, MapSquareWrapper msw2) {
+					return Integer.compare(msw1.getH() + msw1.getG(), msw2.getH() + msw2.getG());
+				}});
 			
-			MapSquare initialSquare = map[marioMapLoc[0]][marioMapLoc[1]];
+			LinkedList<MapSquareWrapper> expandedSquares = new LinkedList<MapSquareWrapper>();
+			
+			MapSquareWrapper initialSquare = new MapSquareWrapper(map[marioMapLoc[0]][marioMapLoc[1]]);
 			initialSquare.setH(0);
 			exploredSquares.add(initialSquare);
 			
 			while(!exploredSquares.isEmpty())
 			{
-				MapSquare currentSquare = exploredSquares.poll();
+				MapSquareWrapper currentSquare = exploredSquares.pollFirst();
 				if(currentSquare.equals(destination))
 				{
 					//TODO: backtrack route
@@ -205,50 +199,45 @@ public class LevelSceneInvestigator
 					{
 						System.out.println("We fucking found " + destination + " with G : " + currentSquare.getG());
 					}
-					result = null; //TODO: put result in here
+					result = new MapSquare[1]; //TODO: put result in here
 					break;
 				}
-				for(MapSquare s : currentSquare.getReachableSquares())
+				for(MapSquare s : currentSquare.getMapSquare().getReachableSquares())
 				{
+					MapSquareWrapper msw = new MapSquareWrapper(s);
 					if(s == null || expandedSquares.contains(s))
 					{
 						continue;
 					}
-					s.calculateH(initialSquare);
-					s.setG(currentSquare.getG() + 1);
-					exploredSquares.add(s);
+					if(msw.getH() == -1) {msw.calculateH(initialSquare.getMapSquare());}
+					msw.setG(currentSquare.getG() + 1);
+					exploredSquares.add(msw);
 				}
+				expandedSquares.add(currentSquare);
 			}
-			if(debug)
-				System.err.println("Oh shit. We didn't find " + destination + " ...");
-			resetAfterAStar(exploredSquares, expandedSquares);
+			if(debug && result == null)
+				System.err.println("Oh shit. We didn't find " + destination + " ..." + destination.getEncoding());
 			return result;
-		}
-		/**
-		 * I'm thinking this method probably isn't necessary.. Future self, work out whether it is or not.
-		 * @param exploredSquares
-		 * @param expandedSquares
-		 */
-		private void resetAfterAStar(PriorityQueue<MapSquare> exploredSquares, ArrayList<MapSquare> expandedSquares)
-		{
-			for(MapSquare sq : exploredSquares)
-			{
-				sq.setG(0);
-				sq.setH(0);
-			}
-			for(MapSquare sq : expandedSquares)
-			{
-				sq.setG(0);
-				sq.setH(0);
-			}
 		}
 		
 		private byte[] getGapAvoidanceLocation(byte[] desiredPosition, boolean isFacingRight) {
 
 			if(debug && map[marioMapLoc[0]][marioMapLoc[1]] != null) 
 			{
-				//aStar(map[desiredPosition[0] + marioMapLoc[0] - (levelScene.length / 2)][desiredPosition[1] + marioMapLoc[1] - (levelScene.length / 2)]);
-				aStar(map[marioMapLoc[0]][marioMapLoc[1]]);
+				aStar(map[desiredPosition[0] + marioMapLoc[0] - (levelScene.length / 2)][desiredPosition[1] + marioMapLoc[1] - (levelScene.length / 2)]);
+				
+				MapSquare marioLoc = map[marioMapLoc[0]][marioMapLoc[1]];
+				try{
+				debugPrint(""+marioLoc.isReachable(map[marioMapLoc[0] - 1][marioMapLoc[1] - 1])
+				+""+marioLoc.isReachable(map[marioMapLoc[0] - 1][marioMapLoc[1]])
+				+""+marioLoc.isReachable(map[marioMapLoc[0] - 1][marioMapLoc[1] + 1]));
+				debugPrint(""+marioLoc.isReachable(map[marioMapLoc[0]][marioMapLoc[1] - 1])
+				+""+marioLoc.isReachable(map[marioMapLoc[0]][marioMapLoc[1]])
+				+""+marioLoc.isReachable(map[marioMapLoc[0]][marioMapLoc[1] + 1]));
+				debugPrint(""+marioLoc.isReachable(map[marioMapLoc[0] + 1][marioMapLoc[1] - 1])
+				+""+marioLoc.isReachable(map[marioMapLoc[0] + 1][marioMapLoc[1]])
+				+""+marioLoc.isReachable(map[marioMapLoc[0] + 1][marioMapLoc[1] + 1]));}
+				catch(Exception e){}
 			}
 			
 			int increment = 1;

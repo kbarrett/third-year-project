@@ -101,6 +101,9 @@ public class Encoding
 			 * @see ch.idsia.agents.controllers.kbarrett.Encoding#COIN
 			 */
 			static final public byte MUSHROOM = Sprite.KIND_MUSHROOM;
+			/**
+			 * This is a flower that gives you extra life.
+			 */
 			static final public byte FIRE_FLOWER = Sprite.KIND_FIRE_FLOWER;
 			static final public byte PRINCESS = GeneralizerLevelScene.PRINCESS;
 			
