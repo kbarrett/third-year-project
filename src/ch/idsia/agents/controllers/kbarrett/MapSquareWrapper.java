@@ -39,6 +39,19 @@ public class MapSquareWrapper {
 		return false;
 	}
 	
+	public MapSquare[] backtrackRouteFromHere()
+	{
+		MapSquare[] result = new MapSquare[getG()];
+		int i = getG();
+		MapSquareWrapper parent = this.parent;
+		while(parent != null)
+		{
+			result[i--] = parent.getMapSquare();
+			parent = this.parent;
+		}
+		return result;
+	}
+	
 	@Override
 	public boolean equals(Object other)
 	{

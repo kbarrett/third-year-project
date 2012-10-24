@@ -183,7 +183,7 @@ public class LevelSceneInvestigator
 			LinkedList<MapSquareWrapper> expandedSquares = new LinkedList<MapSquareWrapper>();
 			
 			MapSquareWrapper initialSquare = new MapSquareWrapper(map[marioMapLoc[0]][marioMapLoc[1]], null);
-			initialSquare.setH(0);
+			initialSquare.setG(0);
 			exploredSquares.add(initialSquare);
 			
 			while(!exploredSquares.isEmpty())
@@ -191,12 +191,16 @@ public class LevelSceneInvestigator
 				MapSquareWrapper currentSquare = exploredSquares.pollFirst();
 				if(currentSquare.equals(destination))
 				{
-					//TODO: backtrack route
 					if(debug)
 					{
-						System.out.println("We fucking found " + destination + " with G : " + currentSquare.getG());
+						System.out.println("We fucking found " + destination + " with G : " + currentSquare.getG() + " with route: ");
+						MapSquare[] result = currentSquare.backtrackRouteFromHere();
+						for(int i = 0; i<result.length; i++)
+						{
+							debugPrint(""+result[i]);
+						}
 					}
-					return null; //TODO: put result in here
+					return currentSquare.backtrackRouteFromHere();
 				}
 				for(MapSquare s : currentSquare.getMapSquare().getReachableSquares())
 				{
@@ -220,7 +224,8 @@ public class LevelSceneInvestigator
 
 			if(debug && map[marioMapLoc[0]][marioMapLoc[1]] != null) 
 			{
-				aStar(map[desiredPosition[0] + marioMapLoc[0] - (levelScene.length / 2)][desiredPosition[1] + marioMapLoc[1] - (levelScene.length / 2)]);
+				//aStar(map[desiredPosition[0] + marioMapLoc[0] - (levelScene.length / 2)][desiredPosition[1] + marioMapLoc[1] - (levelScene.length / 2)]);
+				if(marioMapLoc[1]<map[0].length - 1){aStar(map[marioMapLoc[0]][marioMapLoc[1]+1]);}
 				
 				MapSquare marioLoc = map[marioMapLoc[0]][marioMapLoc[1]];
 				try{
