@@ -89,7 +89,7 @@ public class MapSquare {
 					reachableSquares.add(getSquareLeft());
 				}
 				//If the square to the right is empty
-				if(locationInMapX < map[0].length - 1 && Encoding.isEnvironment(getSquareRight()))
+				if(locationInMapX < map[0].length - 1 && !Encoding.isEnvironment(getSquareRight()))
 				{
 					//He can reach the square to the right
 					reachableSquares.add(getSquareRight());

@@ -5,17 +5,38 @@ import java.awt.geom.Point2D;
 public class MapSquareWrapper {
 	
 	private MapSquare mapSquare;
+	private MapSquareWrapper parent;
 	private int g = -1;
 	private int h = -1;
 	
-	public MapSquareWrapper(MapSquare mapSquare)
+	public MapSquareWrapper(MapSquare mapSquare, MapSquareWrapper parent)
 	{
 		this.mapSquare = mapSquare;
+		this.parent = parent;
 	}
 	
 	public MapSquare getMapSquare()
 	{
 		return mapSquare;
+	}
+	
+	protected MapSquareWrapper getParent()
+	{
+		return parent;
+	}
+	
+	public boolean checkParentTreeFor(MapSquare s)
+	{
+		MapSquareWrapper parent = this.parent;
+		while(parent != null)
+		{
+			if(parent.getMapSquare().equals(s))
+			{
+				return true;
+			}
+			parent = parent.getParent();
+		}
+		return false;
 	}
 	
 	@Override

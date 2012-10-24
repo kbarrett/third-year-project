@@ -173,9 +173,6 @@ public class LevelSceneInvestigator
 		
 		private MapSquare[] aStar(MapSquare destination)
 		{
-			//Store result here & return at end, so can make sure we run reset before returning it.
-			MapSquare[] result = null;
-			
 			TreeSet<MapSquareWrapper> exploredSquares = new TreeSet<MapSquareWrapper>(new Comparator<MapSquareWrapper>(){
 
 				@Override
@@ -185,7 +182,7 @@ public class LevelSceneInvestigator
 			
 			LinkedList<MapSquareWrapper> expandedSquares = new LinkedList<MapSquareWrapper>();
 			
-			MapSquareWrapper initialSquare = new MapSquareWrapper(map[marioMapLoc[0]][marioMapLoc[1]]);
+			MapSquareWrapper initialSquare = new MapSquareWrapper(map[marioMapLoc[0]][marioMapLoc[1]], null);
 			initialSquare.setH(0);
 			exploredSquares.add(initialSquare);
 			
@@ -199,13 +196,12 @@ public class LevelSceneInvestigator
 					{
 						System.out.println("We fucking found " + destination + " with G : " + currentSquare.getG());
 					}
-					result = new MapSquare[1]; //TODO: put result in here
-					break;
+					return null; //TODO: put result in here
 				}
 				for(MapSquare s : currentSquare.getMapSquare().getReachableSquares())
 				{
-					MapSquareWrapper msw = new MapSquareWrapper(s);
-					if(s == null || expandedSquares.contains(s))
+					MapSquareWrapper msw = new MapSquareWrapper(s, currentSquare);
+					if(s == null || expandedSquares.contains(s) || msw.checkParentTreeFor(s))
 					{
 						continue;
 					}
@@ -215,9 +211,9 @@ public class LevelSceneInvestigator
 				}
 				expandedSquares.add(currentSquare);
 			}
-			if(debug && result == null)
+			if(debug)
 				System.err.println("Oh shit. We didn't find " + destination + " ..." + destination.getEncoding());
-			return result;
+			return null;
 		}
 		
 		private byte[] getGapAvoidanceLocation(byte[] desiredPosition, boolean isFacingRight) {
@@ -387,9 +383,9 @@ public class LevelSceneInvestigator
 				}
 			}
 		}
-		private void debugPrint(String s)
+		public static void debugPrint(String s)
 		{
-			if(debug)
+			if(FirstAgent.debug)
 			{
 				System.out.println(s);
 			}
