@@ -182,7 +182,7 @@ public class LevelSceneInvestigator
 			
 			LinkedList<MapSquareWrapper> expandedSquares = new LinkedList<MapSquareWrapper>();
 			
-			MapSquareWrapper initialSquare = new MapSquareWrapper(map[marioMapLoc[0]][marioMapLoc[1]], null);
+			MapSquareWrapper initialSquare = new MapSquareWrapper(map[marioMapLoc[0]][marioMapLoc[1]], null, 0);
 			initialSquare.setG(0);
 			exploredSquares.add(initialSquare);
 			
@@ -202,14 +202,19 @@ public class LevelSceneInvestigator
 					}
 					return currentSquare.backtrackRouteFromHere();
 				}
-				for(MapSquare s : currentSquare.getMapSquare().getReachableSquares())
+				for(MapSquare s : currentSquare.getMapSquare().getReachableSquares(currentSquare.getLevelInJump()))
 				{
-					MapSquareWrapper msw = new MapSquareWrapper(s, currentSquare);
+					int levelInJump = 0;
+					if(currentSquare.getMapSquare().getSquareAbove() == s)
+					{
+						levelInJump = currentSquare.getLevelInJump() + 1;
+					}
+					MapSquareWrapper msw = new MapSquareWrapper(s, currentSquare, levelInJump);
 					if(s == null || expandedSquares.contains(s) || msw.checkParentTreeFor(s))
 					{
 						continue;
 					}
-					if(msw.getH() == -1) {msw.calculateH(initialSquare.getMapSquare());}
+					if(msw.getH() == -1) {msw.calculateH(destination);}
 					msw.setG(currentSquare.getG() + 1);
 					exploredSquares.add(msw);
 				}
@@ -224,21 +229,33 @@ public class LevelSceneInvestigator
 
 			if(debug && map[marioMapLoc[0]][marioMapLoc[1]] != null) 
 			{
-				//aStar(map[desiredPosition[0] + marioMapLoc[0] - (levelScene.length / 2)][desiredPosition[1] + marioMapLoc[1] - (levelScene.length / 2)]);
-				if(marioMapLoc[1]<map[0].length - 1){aStar(map[marioMapLoc[0]][marioMapLoc[1]+1]);}
+				aStar(map[desiredPosition[0] + marioMapLoc[0] - (levelScene.length / 2)][desiredPosition[1] + marioMapLoc[1] - (levelScene.length / 2)]);
 				
 				MapSquare marioLoc = map[marioMapLoc[0]][marioMapLoc[1]];
-				try{
-				debugPrint(""+marioLoc.isReachable(map[marioMapLoc[0] - 1][marioMapLoc[1] - 1])
-				+""+marioLoc.isReachable(map[marioMapLoc[0] - 1][marioMapLoc[1]])
-				+""+marioLoc.isReachable(map[marioMapLoc[0] - 1][marioMapLoc[1] + 1]));
-				debugPrint(""+marioLoc.isReachable(map[marioMapLoc[0]][marioMapLoc[1] - 1])
-				+""+marioLoc.isReachable(map[marioMapLoc[0]][marioMapLoc[1]])
-				+""+marioLoc.isReachable(map[marioMapLoc[0]][marioMapLoc[1] + 1]));
-				debugPrint(""+marioLoc.isReachable(map[marioMapLoc[0] + 1][marioMapLoc[1] - 1])
-				+""+marioLoc.isReachable(map[marioMapLoc[0] + 1][marioMapLoc[1]])
-				+""+marioLoc.isReachable(map[marioMapLoc[0] + 1][marioMapLoc[1] + 1]));}
-				catch(Exception e){}
+				if(debug)
+				{
+					System.out.println("-------");
+					try{
+					for(int i = -1; i<=1; i++)
+					{
+						for(int j = -1; j<=1; j++)
+						{
+							if(marioLoc.isReachable(map[marioMapLoc[0] + i][marioMapLoc[1] + j]))
+							{
+								System.err.print("true" + j + "," + i);
+							}
+							else
+							{
+								System.out.print("false" + j + "," + i);
+							}
+						}
+						System.out.println();
+					}
+					
+					System.out.println("-------");
+					}
+				catch(Exception e){System.out.println("------");}
+				}
 			}
 			
 			int increment = 1;

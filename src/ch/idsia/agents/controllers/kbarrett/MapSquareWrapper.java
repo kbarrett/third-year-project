@@ -8,11 +8,13 @@ public class MapSquareWrapper {
 	private MapSquareWrapper parent;
 	private int g = -1;
 	private int h = -1;
+	private int levelInJump = 0;
 	
-	public MapSquareWrapper(MapSquare mapSquare, MapSquareWrapper parent)
+	public MapSquareWrapper(MapSquare mapSquare, MapSquareWrapper parent, int levelInJump)
 	{
 		this.mapSquare = mapSquare;
 		this.parent = parent;
+		this.levelInJump = levelInJump;
 	}
 	
 	public MapSquare getMapSquare()
@@ -23,6 +25,11 @@ public class MapSquareWrapper {
 	protected MapSquareWrapper getParent()
 	{
 		return parent;
+	}
+	
+	public int getLevelInJump()
+	{
+		return levelInJump;
 	}
 	
 	public boolean checkParentTreeFor(MapSquare s)
@@ -42,12 +49,14 @@ public class MapSquareWrapper {
 	public MapSquare[] backtrackRouteFromHere()
 	{
 		MapSquare[] result = new MapSquare[getG()];
-		int i = getG();
-		MapSquareWrapper parent = this.parent;
-		while(parent != null)
+		int i = getG() - 1;
+		MapSquareWrapper parent = this;
+		while(parent.getParent() != null)
+		//for(int i = getG() - 1; i>=0; i--)
 		{
-			result[i--] = parent.getMapSquare();
-			parent = this.parent;
+			result[i] = parent.getMapSquare();
+			parent = parent.getParent();
+			--i;
 		}
 		return result;
 	}
@@ -68,6 +77,12 @@ public class MapSquareWrapper {
 			return mapSquare.equals(other);
 		}
 		return false;
+	}
+	
+	@Override
+	public String toString()
+	{
+		return "{" + mapSquare.toString() + ", " + getG() + getH() + "}";
 	}
 
 	//A* Stuff

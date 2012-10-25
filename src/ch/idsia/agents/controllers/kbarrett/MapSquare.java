@@ -22,7 +22,6 @@ public class MapSquare {
 		this.locationInMapX = locationInMapX;
 		this.locationInMapY = locationInMapY;
 		this.map = map;
-		workOutReachableSquares();
 	}
 	
 	public void setLocInMap(int newX, int newY)
@@ -31,14 +30,14 @@ public class MapSquare {
 		locationInMapY = newY;
 	}
 	
-	private MapSquare getSquareAbove()
+	public MapSquare getSquareAbove()
 	{
 		if(locationInMapY <= 0) {return null;}
 		return map[locationInMapY - 1][locationInMapX];
 	}
 	private MapSquare getSquareBelow()
 	{
-		if(locationInMapY > map.length - 1) {return null;}
+		if(locationInMapY >= map.length - 1) {return null;}
 		return map[locationInMapY + 1][locationInMapX];
 	}
 	private MapSquare getSquareLeft()
@@ -48,11 +47,11 @@ public class MapSquare {
 	}
 	private MapSquare getSquareRight()
 	{
-		if(locationInMapX > map[0].length - 1) {return null;}
+		if(locationInMapX >= map[0].length - 1) {return null;}
 		return map[locationInMapY][locationInMapX + 1];
 	}
 	
-	private void workOutReachableSquares()
+	public void workOutReachableSquares()
 	{
 		//If the current square has an environment piece in it, Mario cannot get to it & therefore can't reach anywhere else from it.
 		if(Encoding.isEnvironment((byte) encoding))
@@ -71,7 +70,7 @@ public class MapSquare {
 		}
 			//Vertical
 				
-				if(locationInMapY > 0 && canJump(map))
+				if(canJump(map))
 				{
 					//He can reach the square above
 					reachableSquares.add(getSquareAbove());
@@ -104,14 +103,23 @@ public class MapSquare {
 		(false)*/
 		
 		//If the location above isn't empty, then we can't jump
-		if(locationInMapY != 0 && getSquareAbove()!=null && getSquareAbove().getEncoding()!= Encoding.NOTHING) {return false;}
-		
-		//If there isn't a floor within MAXJUMPHEIGHT of this square, we can't jump
-		for(int i = 1; i < Movement.MAX_JUMP_HEIGHT; ++i)
+		if(locationInMapY > 0)
 		{
-			if(locationInMapY + i < map.length && Encoding.isEnvironment(map[locationInMapY + i][locationInMapX])) {return true;}
+			if(getSquareAbove()==null || getSquareAbove().getEncoding()!= Encoding.NOTHING) {return false;}
+			if(getSquareBelow()==null || getSquareBelow().getEncoding()== Encoding.NOTHING) {return false;}
 		}
+		return true;
 		
+	}
+	private boolean checkCanJumpHigher(int currentHeight)
+	{
+		if(currentHeight == 0) {return false;}
+		//If there isn't a floor within MAXJUMPHEIGHT of this square, we can't jump
+		if(currentHeight<Movement.MAX_JUMP_HEIGHT)
+		{
+			return getSquareAbove()==null || 
+					getSquareAbove().getEncoding()== Encoding.NOTHING;
+		}
 		return false;
 	}
 	
@@ -120,16 +128,20 @@ public class MapSquare {
 	}
 
 	public void setEncoding(byte encoding) {
-		boolean changed = (encoding != this.encoding);
 		this.encoding = encoding;
-		if(changed)
-		{
-			workOutReachableSquares();
-		}
 	}
-	
 	public ArrayList<MapSquare> getReachableSquares()
 	{
+		return getReachableSquares(0);
+	}
+	public ArrayList<MapSquare> getReachableSquares(int currentJumpHeight)
+	{
+		if(checkCanJumpHigher(currentJumpHeight))
+		{
+			ArrayList<MapSquare> listWithAbove = (ArrayList<MapSquare>)reachableSquares.clone();
+			listWithAbove.add(getSquareAbove());
+			return listWithAbove;
+		}
 		return reachableSquares;
 	}
 	public boolean isReachable(MapSquare square)

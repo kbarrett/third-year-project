@@ -29,6 +29,7 @@ public class MapUpdater {
 		MapUpdater.levelScene = levelScene;
 		MapUpdater.marioMapLoc = marioMapLoc;
 		updateMap();
+		workOutReachableSquares();
 		return MapUpdater.map;
 	}
 
@@ -55,6 +56,19 @@ public class MapUpdater {
 		}
 		LevelSceneInvestigator.debugPrint("");
 		
+	}
+	private static void workOutReachableSquares()
+	{
+		for(int i = 0; i < levelScene.length; ++i)
+		{
+			int levelSceneMidPoint0 = (levelScene.length / 2);
+			for(int j = 0; j < levelScene[i].length; ++j)
+			{
+				int levelSceneMidPoint1 = (levelScene[i].length / 2);
+				MapSquare square = map[i + marioMapLoc[0] - levelSceneMidPoint0][j + marioMapLoc[1] - levelSceneMidPoint1];
+				square.workOutReachableSquares();
+			}
+		}
 	}
 	/**
 	 * @return MapSquare[][] of the required size to fit the new levelScene observations into.
