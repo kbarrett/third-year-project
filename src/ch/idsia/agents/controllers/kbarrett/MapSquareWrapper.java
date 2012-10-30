@@ -68,9 +68,12 @@ public class MapSquareWrapper {
 		{
 			MapSquareWrapper mapSquareWrapper = (MapSquareWrapper)other;
 			return 
-					g == mapSquareWrapper.getG()
+			(
+					mapSquare.equals(mapSquareWrapper.getMapSquare())
+				&&  (parent == null || parent.equals(mapSquareWrapper.getParent().getMapSquare()))
+				&&	g == mapSquareWrapper.getG()
 				&&	h == mapSquareWrapper.getH()
-				&&	mapSquare.equals(mapSquareWrapper.getMapSquare());
+			);
 		}
 		if(other instanceof MapSquare)
 		{

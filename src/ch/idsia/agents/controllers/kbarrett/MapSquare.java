@@ -30,12 +30,20 @@ public class MapSquare {
 		locationInMapY = newY;
 	}
 	
+	private void addToReachableSquares(MapSquare square)
+	{
+		if(square!=null && !reachableSquares.contains(square))
+		{
+			reachableSquares.add(square);
+		}
+	}
+	
 	public MapSquare getSquareAbove()
 	{
 		if(locationInMapY <= 0) {return null;}
 		return map[locationInMapY - 1][locationInMapX];
 	}
-	private MapSquare getSquareBelow()
+	public MapSquare getSquareBelow()
 	{
 		if(locationInMapY >= map.length - 1) {return null;}
 		return map[locationInMapY + 1][locationInMapX];
@@ -73,25 +81,25 @@ public class MapSquare {
 				if(canJump(map))
 				{
 					//He can reach the square above
-					reachableSquares.add(getSquareAbove());
+					addToReachableSquares(getSquareAbove());
 				}
 				if (locationInMapY < map.length - 1 && !Encoding.isEnvironment(getSquareBelow()))
 				{
 					//He can reach the square below, because it is empty
-					reachableSquares.add(getSquareBelow());
+					addToReachableSquares(getSquareBelow());
 				}
 			//Horizontal
 				//If the square to the left is empty
 				if(locationInMapX > 0 && !Encoding.isEnvironment(getSquareLeft()))
 				{
 					//He can reach the square to the left
-					reachableSquares.add(getSquareLeft());
+					addToReachableSquares(getSquareLeft());
 				}
 				//If the square to the right is empty
 				if(locationInMapX < map[0].length - 1 && !Encoding.isEnvironment(getSquareRight()))
 				{
 					//He can reach the square to the right
-					reachableSquares.add(getSquareRight());
+					addToReachableSquares(getSquareRight());
 				}
 	}
 	
@@ -122,6 +130,24 @@ public class MapSquare {
 		}
 		return false;
 	}
+	private ArrayList<MapSquare> checkCanMoveDirection(ArrayList<MapSquare> newList)
+	{
+		if(getSquareRight() != null && !Encoding.isEnvironment(getSquareRight().getEncoding()))
+		{
+			if(!newList.contains(getSquareRight()))
+			{
+				newList.add(getSquareRight());
+			}
+		}
+		if(getSquareLeft() != null && !Encoding.isEnvironment(getSquareLeft().getEncoding()))
+		{
+			if(!newList.contains(getSquareLeft()))
+			{
+				newList.add(getSquareLeft());
+			}
+		}
+		return newList;
+	}
 	
 	public byte getEncoding() {
 		return encoding;
@@ -130,19 +156,26 @@ public class MapSquare {
 	public void setEncoding(byte encoding) {
 		this.encoding = encoding;
 	}
-	public ArrayList<MapSquare> getReachableSquares()
+	
+	/**
+	 * 
+	 * @param currentJumpHeight - the current square height we are in the jump
+	 * @param enteredFromAbove - whether or not this square was entered from above (i.e. whilst falling)
+	 * @return list of all MapSquares that can be entered from this one in the current circumstances
+	 */
+	public ArrayList<MapSquare> getReachableSquares(int currentJumpHeight, boolean enteredFromAbove)
 	{
-		return getReachableSquares(0);
-	}
-	public ArrayList<MapSquare> getReachableSquares(int currentJumpHeight)
-	{
-		if(checkCanJumpHigher(currentJumpHeight))
-		{
-			ArrayList<MapSquare> listWithAbove = (ArrayList<MapSquare>)reachableSquares.clone();
-			listWithAbove.add(getSquareAbove());
-			return listWithAbove;
+		ArrayList<MapSquare> newList = (ArrayList<MapSquare>)reachableSquares.clone();
+		if(getSquareAbove() != null && checkCanJumpHigher(currentJumpHeight))
+		{ 
+			newList.add(getSquareAbove());
 		}
-		return reachableSquares;
+		if(enteredFromAbove)
+		{
+			newList = checkCanMoveDirection(newList);
+		}
+		
+		return newList;
 	}
 	public boolean isReachable(MapSquare square)
 	{

@@ -133,9 +133,6 @@ public class LevelSceneInvestigator
 				map = new MapSquare[width][height];
 			}
 		}
-		/** 
-		 * Incorporates the current levelScene into the map.
-		 */
 		
 	//Methods for analysing the environment
 		/**
@@ -177,7 +174,15 @@ public class LevelSceneInvestigator
 
 				@Override
 				public int compare(MapSquareWrapper msw1, MapSquareWrapper msw2) {
-					return Integer.compare(msw1.getH() + msw1.getG(), msw2.getH() + msw2.getG());
+					int compare = Integer.compare(msw1.getH() + msw1.getG(), msw2.getH() + msw2.getG());
+					if(compare == 0 && !msw1.equals(msw2))
+					{
+						return 1;
+					}
+					else
+					{
+						return compare;
+					}
 				}});
 			
 			LinkedList<MapSquareWrapper> expandedSquares = new LinkedList<MapSquareWrapper>();
@@ -202,7 +207,9 @@ public class LevelSceneInvestigator
 					}
 					return currentSquare.backtrackRouteFromHere();
 				}
-				for(MapSquare s : currentSquare.getMapSquare().getReachableSquares(currentSquare.getLevelInJump()))
+				for(MapSquare s : currentSquare.getMapSquare().getReachableSquares(
+						currentSquare.getLevelInJump(), 
+						currentSquare.getParent()==null || currentSquare.equals(currentSquare.getParent().getMapSquare().getSquareBelow())))
 				{
 					int levelInJump = 0;
 					if(currentSquare.getMapSquare().getSquareAbove() == s)
@@ -229,7 +236,10 @@ public class LevelSceneInvestigator
 
 			if(debug && map[marioMapLoc[0]][marioMapLoc[1]] != null) 
 			{
-				aStar(map[desiredPosition[0] + marioMapLoc[0] - (levelScene.length / 2)][desiredPosition[1] + marioMapLoc[1] - (levelScene.length / 2)]);
+				int x = desiredPosition[0] + marioMapLoc[0] - (levelScene.length / 2);
+				int y = desiredPosition[1] + marioMapLoc[1] - (levelScene.length / 2);
+				MapSquare s = map[x][y];
+				aStar(s);
 				
 				MapSquare marioLoc = map[marioMapLoc[0]][marioMapLoc[1]];
 				if(debug)

@@ -42,10 +42,10 @@ public class MapUpdater {
 			for(int j = 0; j < levelScene[i].length; ++j)
 			{
 				int levelSceneMidPoint1 = (levelScene[i].length / 2);
-				MapSquare square = map[i + marioMapLoc[0] - levelSceneMidPoint0][j + marioMapLoc[1] - levelSceneMidPoint1];
+				MapSquare square = map[i + marioMapLoc[0] - levelSceneMidPoint0 - 1][j + marioMapLoc[1] - levelSceneMidPoint1 - 1];
 				if(square==null)
 				{
-					map[i + marioMapLoc[0] - levelSceneMidPoint0][j + marioMapLoc[1] - levelSceneMidPoint1] 
+					map[i + marioMapLoc[0] - levelSceneMidPoint0 - 1][j + marioMapLoc[1] - levelSceneMidPoint1 - 1] 
 							= new MapSquare(levelScene[i][j], map, j, i);
 				}
 				else
@@ -65,7 +65,7 @@ public class MapUpdater {
 			for(int j = 0; j < levelScene[i].length; ++j)
 			{
 				int levelSceneMidPoint1 = (levelScene[i].length / 2);
-				MapSquare square = map[i + marioMapLoc[0] - levelSceneMidPoint0][j + marioMapLoc[1] - levelSceneMidPoint1];
+				MapSquare square = map[i + marioMapLoc[0] - levelSceneMidPoint0 - 1][j + marioMapLoc[1] - levelSceneMidPoint1 - 1];
 				square.workOutReachableSquares();
 			}
 		}
