@@ -11,9 +11,9 @@ public class Movement
 {	
 	//Data
 		/**
-		 * Contains Mario's location in the levelScene, this is generally {9,9}.
+		 * Contains Mario's location in the map.
 		 */
-		private int[] marioLoc = new int[2];
+		private int[] marioMapLoc = new int[2];
 		/**
 		 * Contains whether Mario is facing right. Used to determine whether something is in front of or behind Mario.
 		 */
@@ -114,9 +114,9 @@ public class Movement
 		 * Updates stored value for marioLoc.
 		 * @param newLoc int array containing Mario's new location within the matrix of observations (levelScene).
 		 */
-		public void setMarioLoc(int[] newLoc)
+		public void setMarioMapLoc(int[] newLoc)
 		{
-			marioLoc = newLoc;
+			marioMapLoc = newLoc;
 		}
 		/**
 		 * Used to retrieve and reset the array of actions.
@@ -169,24 +169,24 @@ public class Movement
 			
 			//Deciding whether to make a vertical movement
 				//If the location provided is higher on the screen than Mario's current position, he needs to move higher.
-				if(location[0] < marioLoc[0])
+				if(location[0] < marioMapLoc[0])
 				{
 					//If Mario is already jumping, telling him to jump again will have no effect until he has landed so do nothing.
 					if(!isJumping())
 					{
 						//Is he is not currently jumping, set the required jumpSize based on the height he needs to reach.
-						jumpSize = Math.max(1, (int)(1.6 * (marioLoc[0] - location[0])));
+						jumpSize = Math.max(1, (int)(1.6 * (marioMapLoc[0] - location[0])));
 					}
 				}
 			
 			//Deciding whether to make a horizontal movement
 				//If the required location is further right on the screen than Mario, move him right.
-				if(location[1] > marioLoc[1])
+				if(location[1] > marioMapLoc[1])
 				{
 					goRight();
 				}
 				//If it is further left, move him left.
-				else if(location[1] < marioLoc[1])
+				else if(location[1] < marioMapLoc[1])
 				{
 					goLeft();
 				}

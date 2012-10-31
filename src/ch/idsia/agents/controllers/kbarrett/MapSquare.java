@@ -70,7 +70,7 @@ public class MapSquare {
 		//Otherwise work out reachable squares
 		if(reachableSquares==null)
 		{
-			reachableSquares = new ArrayList<MapSquare>();
+			reachableSquares = new ArrayList<MapSquare>(4);
 		}
 		else
 		{
@@ -115,8 +115,9 @@ public class MapSquare {
 		{
 			if(getSquareAbove()==null || getSquareAbove().getEncoding()!= Encoding.NOTHING) {return false;}
 			if(getSquareBelow()==null || getSquareBelow().getEncoding()== Encoding.NOTHING) {return false;}
+			return true;
 		}
-		return true;
+		return false;
 		
 	}
 	private boolean checkCanJumpHigher(int currentHeight)
@@ -185,7 +186,7 @@ public class MapSquare {
 	@Override
 	public String toString()
 	{
-		return locationInMapX + "," + locationInMapY;
+		return locationInMapY + "," + locationInMapX;
 	}
 	
 	@Override

@@ -13,95 +13,20 @@ public class AStarTestClass {
 	public static void main(String[] args)
 	{
 		byte[][] levelScene = {
-				{Encoding.NOTHING,	Encoding.NOTHING,	Encoding.NOTHING,	Encoding.NOTHING, 	Encoding.NOTHING},
-				{Encoding.WALL,		Encoding.NOTHING,	Encoding.WALL,		Encoding.WALL,		Encoding.NOTHING},
-				{Encoding.NOTHING,	Encoding.NOTHING,	Encoding.NOTHING,	Encoding.WALL, 		Encoding.NOTHING},
-				{Encoding.WALL,		Encoding.NOTHING,	Encoding.NOTHING,	Encoding.NOTHING, 	Encoding.NOTHING}, 
-				{Encoding.NOTHING,	Encoding.WALL,		Encoding.NOTHING,	Encoding.WALL,		Encoding.NOTHING}};
+				{Encoding.NOTHING,	Encoding.NOTHING,	Encoding.NOTHING,	Encoding.NOTHING, 	Encoding.NOTHING, Encoding.NOTHING, Encoding.NOTHING,	Encoding.NOTHING, Encoding.NOTHING},
+				{Encoding.WALL,		Encoding.NOTHING,	Encoding.NOTHING,	Encoding.NOTHING,	Encoding.NOTHING,Encoding.NOTHING,Encoding.NOTHING,	Encoding.WALL,	 Encoding.NOTHING},
+				{Encoding.NOTHING,	Encoding.NOTHING,	Encoding.NOTHING,	Encoding.NOTHING,	Encoding.NOTHING,Encoding.NOTHING,Encoding.NOTHING,	Encoding.WALL, 	Encoding.NOTHING},
+				{Encoding.NOTHING,	Encoding.WALL,		Encoding.WALL,		Encoding.WALL,	 	Encoding.NOTHING, Encoding.NOTHING,Encoding.NOTHING,	Encoding.WALL, 	Encoding.NOTHING}, 
+				{Encoding.NOTHING,	Encoding.NOTHING,	Encoding.NOTHING,	Encoding.WALL,		Encoding.NOTHING, Encoding.NOTHING,Encoding.NOTHING,	Encoding.WALL, 	Encoding.NOTHING},
+				{Encoding.NOTHING,	Encoding.NOTHING,	Encoding.NOTHING,	Encoding.WALL,		Encoding.NOTHING, 	Encoding.NOTHING,Encoding.NOTHING,Encoding.WALL, 	Encoding.NOTHING},
+				{Encoding.NOTHING,	Encoding.NOTHING,	Encoding.NOTHING,	Encoding.WALL,		Encoding.NOTHING, Encoding.NOTHING,Encoding.NOTHING,	Encoding.WALL, 	Encoding.NOTHING}};
 		
-		int[] marioMapLoc = {2,2};
-		MapUpdater.updateMap(map, levelScene, marioMapLoc);
+		//only used to put levelScene into map, actual map pos is global
+		int[] marioMapLoc = {3,4};
+		map = MapUpdater.updateMap(map, levelScene, marioMapLoc);
 		
-		aStar(map[4][4]);
+		Search.aStar(map[6][8], map[AStarTestClass.marioMapLoc[0]][AStarTestClass.marioMapLoc[1]]);
 		
-		(new MapSquareWrapper(map[0][2], new MapSquareWrapper(map[0][1], null, 0), 0)).equals(new MapSquareWrapper(map[1][1], new MapSquareWrapper(map[1][2], null, 0), 0));
-	}
-	
-	public static MapSquare[] aStar(MapSquare destination)
-	{
-		TreeSet<MapSquareWrapper> exploredSquares = new TreeSet<MapSquareWrapper>(new Comparator<MapSquareWrapper>(){
-
-			@Override
-			public int compare(MapSquareWrapper msw1, MapSquareWrapper msw2) {
-				int compare = Integer.compare(msw1.getH() + msw1.getG(), msw2.getH() + msw2.getG());
-				if(compare == 0)
-				{
-					if(msw1.equals(msw2)) { return 0;}
-					else {return -1;}
-				}
-				else
-				{
-					return compare;
-				}
-			}});
-		
-		LinkedList<MapSquareWrapper> expandedSquares = new LinkedList<MapSquareWrapper>();
-		
-		MapSquareWrapper initialSquare = new MapSquareWrapper(map[marioMapLoc[0]][marioMapLoc[1]], (MapSquareWrapper)null, 0);
-		initialSquare.setG(0);
-		exploredSquares.add(initialSquare);
-		
-		while(!exploredSquares.isEmpty())
-		{
-			MapSquareWrapper currentSquare = exploredSquares.pollFirst();
-			System.out.println("Taking square: " +currentSquare);
-			if(currentSquare.equals(destination))
-			{
-				if(debug)
-				{
-					System.out.println("We fucking found " + destination + " with G : " + currentSquare.getG() + " with route: ");
-					MapSquare[] result = currentSquare.backtrackRouteFromHere();
-					for(int i = 0; i<result.length; i++)
-					{
-						System.out.println(""+result[i]);
-					}
-				}
-				return currentSquare.backtrackRouteFromHere();
-			}
-
-			for(MapSquare s : currentSquare.getMapSquare().getReachableSquares(
-					currentSquare.getLevelInJump(), 
-					currentSquare.getParent()==null || currentSquare.getParent().getMapSquare().getSquareBelow().equals(currentSquare)))
-			{
-				System.out.println("s is " + s);
-				
-				if(s == null || expandedSquares.contains(s) || currentSquare.checkParentTreeFor(s))
-				{
-					System.out.println("skipping " + s);
-					continue;
-				}
-				
-				//If not jumping (i.e. just moved up, then levelInJump is 0.
-				//Otherwise it is the previous levelInJump + 1
-				int levelInJump = 0;
-				if(currentSquare.getMapSquare().getSquareAbove() == s)
-				{
-					levelInJump = currentSquare.getLevelInJump() + 1;
-				}
-				
-				MapSquareWrapper msw = new MapSquareWrapper(s, currentSquare, levelInJump);
-
-				if(msw.getH() == -1) {msw.calculateH(destination);}
-				msw.setG(currentSquare.getG() + 1);
-				System.out.println("Adding " + msw + "to exploredSquares: " + exploredSquares.toString());
-				if(!exploredSquares.add(msw)) {System.out.println("We already have " + msw.toString() + " in exploredSquares: " + exploredSquares.toString());}
-				System.out.println("Resultant exploredSquares: " + exploredSquares.toString());
-			}
-			expandedSquares.add(currentSquare);
-		}
-		if(debug)
-			System.err.println("Oh shit. We didn't find " + destination + " ..." + destination.getEncoding());
-		return null;
 	}
 
 }

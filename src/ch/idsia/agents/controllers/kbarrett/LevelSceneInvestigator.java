@@ -18,13 +18,13 @@ public class LevelSceneInvestigator
 		 * @see ch.idsia.agents.controllers.kbarrett.Encoding
 		 * @see ch.idsia.agents.controllers.kbarrett.LevelSceneInvestigator.marioLoc
 		 */
-		private byte[][] levelScene;
+		//private byte[][] levelScene;
 		/**
 		 * Stores the location of Mario in the 2D array levelScene.
 		 * I.e. levelScene[marioLoc[0]][marioLoc[1]] will return the square that Mario is currently occupying.
 		 * @see ch.idsia.agents.controllers.kbarrett.LevelSceneInvestigator.levelScene
 		 */
-		private int[] marioLoc;
+		//private int[] marioLoc;
 		/**
 		 * Stores the float position of Mario on the screen.
 		 */
@@ -40,6 +40,14 @@ public class LevelSceneInvestigator
 		 * Stores the total number of coins Mario has collected so far.
 		 */
 		private int numberOfCollectedCoins = 0;
+		/**
+		 * Stores the value of levelScene.length
+		 */
+		private int levelScenelength;
+		/**
+		 * Stores the value of levelScene[0].length
+		 */
+		private int levelScene0length;
 		
 	//Methods for updating the data
 		/**
@@ -55,8 +63,9 @@ public class LevelSceneInvestigator
 			marioScreenPos[0] = marioScreenPos[1];
 			marioScreenPos[1] = temp;
 			
-			this.levelScene = levelScene;
-				if(FirstAgent.debug){checkLevelScene();}
+			if(FirstAgent.debug){checkLevelScene(levelScene);}
+			levelScenelength = levelScene.length;
+			levelScene0length = levelScene[0].length;
 				
 			if(this.marioScreenPos == null)
 			{
@@ -92,11 +101,11 @@ public class LevelSceneInvestigator
 					this.marioScreenPos[0] = marioScreenPos[0];
 					this.marioScreenPos[1] = marioScreenPos[1];
 					
-				map = MapUpdater.updateMap(map, levelScene, marioMapLoc);
-				if(debug && false)
-				{
-					printMap();
-				}
+			}
+			map = MapUpdater.updateMap(map, levelScene, marioMapLoc);
+			if(debug && false)
+			{
+				printMap();
 			}
 		}
 		/**
@@ -104,9 +113,9 @@ public class LevelSceneInvestigator
 		 * @param marioLoc int array of size 2 representing the position of Mario in levelScene.
 		 * @see ch.idsia.agents.controllers.kbarrett.LevelSceneInvestigator.marioLoc
 		 */
-		public void setMarioLoc(int[] marioLoc)
+		public void setMarioLoc(Movement movement)
 		{
-			this.marioLoc = marioLoc;
+			movement.setMarioMapLoc(marioMapLoc);
 		}
 		/**
 		 * Used for updating the number of coins Mario has collected.
@@ -168,147 +177,32 @@ public class LevelSceneInvestigator
 			return null;
 		}
 		
-		private MapSquare[] aStar(MapSquare destination)
-		{
-			TreeSet<MapSquareWrapper> exploredSquares = new TreeSet<MapSquareWrapper>(new Comparator<MapSquareWrapper>(){
-
-				@Override
-				public int compare(MapSquareWrapper msw1, MapSquareWrapper msw2) {
-					int compare = Integer.compare(msw1.getH() + msw1.getG(), msw2.getH() + msw2.getG());
-					if(compare == 0 && !msw1.equals(msw2))
-					{
-						return 1;
-					}
-					else
-					{
-						return compare;
-					}
-				}});
-			
-			LinkedList<MapSquareWrapper> expandedSquares = new LinkedList<MapSquareWrapper>();
-			
-			MapSquareWrapper initialSquare = new MapSquareWrapper(map[marioMapLoc[0]][marioMapLoc[1]], null, 0);
-			initialSquare.setG(0);
-			exploredSquares.add(initialSquare);
-			
-			while(!exploredSquares.isEmpty())
-			{
-				MapSquareWrapper currentSquare = exploredSquares.pollFirst();
-				if(currentSquare.equals(destination))
-				{
-					if(debug)
-					{
-						System.out.println("We fucking found " + destination + " with G : " + currentSquare.getG() + " with route: ");
-						MapSquare[] result = currentSquare.backtrackRouteFromHere();
-						for(int i = 0; i<result.length; i++)
-						{
-							debugPrint(""+result[i]);
-						}
-					}
-					return currentSquare.backtrackRouteFromHere();
-				}
-				for(MapSquare s : currentSquare.getMapSquare().getReachableSquares(
-						currentSquare.getLevelInJump(), 
-						currentSquare.getParent()==null || currentSquare.equals(currentSquare.getParent().getMapSquare().getSquareBelow())))
-				{
-					int levelInJump = 0;
-					if(currentSquare.getMapSquare().getSquareAbove() == s)
-					{
-						levelInJump = currentSquare.getLevelInJump() + 1;
-					}
-					MapSquareWrapper msw = new MapSquareWrapper(s, currentSquare, levelInJump);
-					if(s == null || expandedSquares.contains(s) || msw.checkParentTreeFor(s))
-					{
-						continue;
-					}
-					if(msw.getH() == -1) {msw.calculateH(destination);}
-					msw.setG(currentSquare.getG() + 1);
-					exploredSquares.add(msw);
-				}
-				expandedSquares.add(currentSquare);
-			}
-			if(debug)
-				System.err.println("Oh shit. We didn't find " + destination + " ..." + destination.getEncoding());
-			return null;
-		}
+		
 		
 		private byte[] getGapAvoidanceLocation(byte[] desiredPosition, boolean isFacingRight) {
 
-			if(debug && map[marioMapLoc[0]][marioMapLoc[1]] != null) 
-			{
-				int x = desiredPosition[0] + marioMapLoc[0] - (levelScene.length / 2);
-				int y = desiredPosition[1] + marioMapLoc[1] - (levelScene.length / 2);
-				MapSquare s = map[x][y];
-				aStar(s);
-				
-				MapSquare marioLoc = map[marioMapLoc[0]][marioMapLoc[1]];
-				if(debug)
-				{
-					System.out.println("-------");
-					try{
-					for(int i = -1; i<=1; i++)
-					{
-						for(int j = -1; j<=1; j++)
-						{
-							if(marioLoc.isReachable(map[marioMapLoc[0] + i][marioMapLoc[1] + j]))
-							{
-								System.err.print("true" + j + "," + i);
-							}
-							else
-							{
-								System.out.print("false" + j + "," + i);
-							}
-						}
-						System.out.println();
-					}
-					
-					System.out.println("-------");
-					}
-				catch(Exception e){System.out.println("------");}
-				}
-			}
+			MapSquare s = map[desiredPosition[0]][desiredPosition[1]];
+			MapSquare[] plan = Search.aStar(s, map[marioMapLoc[0]][marioMapLoc[1]]);
 			
-			int increment = 1;
-			if(marioLoc[1] > desiredPosition[1]) {increment = -1;}
+			//check for plan
+			//if !exists run astar
+			//check for enemies
+			//return first step of plan
 			
-			if //if immediately below Mario's next step is empty
-			(
-					levelScene[desiredPosition[0]][marioLoc[1] + increment] == Encoding.NOTHING
-			)
-			{
-				byte[] result = new byte[2];
-				
-				//check beneath Mario for next step to see if there's floor there
-				for(int i = 0; i < Movement.MAX_JUMP_WIDTH; i++)
-				{
-					if(levelScene[marioLoc[0]][marioLoc[1] + (increment * i)] == Encoding.FLOOR)
-					{
-						return desiredPosition;
-					}
-				}
-				//if none found, check for floor within eyeshot
-				for(int i = 0; i < Movement.MAX_JUMP_HEIGHT; i++)
-				{
-					if(levelScene[marioLoc[0] + i][marioLoc[1] + increment] == Encoding.FLOOR)
-					{
-						return desiredPosition;
-					}
-				}
-				
-				result[0] = (byte) marioLoc[0];
-				result[1] = (byte) (marioLoc[1] - increment);
-				return result;
-			}
+			if(plan==null) return desiredPosition; 
+			desiredPosition[0] = (byte) plan[0].getMapLocationY(); 
+			desiredPosition[1] = (byte) plan[0].getMapLocationY();
 			return desiredPosition;
 		}
 		
 		public byte[] getRewardLocation()
 		{
-			for(byte i = (byte) (marioLoc[1] - (Movement.MAX_JUMP_WIDTH/2)); i < (marioLoc[1] + (Movement.MAX_JUMP_WIDTH/2)); ++i)
+			for(byte i = marioMapLoc[1] - (Movement.MAX_JUMP_WIDTH/2) > 0 ? (byte) (marioMapLoc[1] - (Movement.MAX_JUMP_WIDTH/2)) : 0; i < (marioMapLoc[1] + (Movement.MAX_JUMP_WIDTH/2)); ++i)
 			{
-				for(byte j = (byte) (marioLoc[0] - Movement.MAX_JUMP_HEIGHT); j < levelScene[i].length; j++)
+				for(byte j = marioMapLoc[0] - Movement.MAX_JUMP_HEIGHT > 0? (byte) (marioMapLoc[0] - Movement.MAX_JUMP_HEIGHT) : 0; j < levelScene0length; j++)
 				{
-					if(levelScene[j][i] == Encoding.COIN)
+					if(map[j][i] == null) {continue;}
+					if(map[j][i].getEncoding() == Encoding.COIN)
 					{
 						byte[] result = new byte[2];
 						result[0] = j;
@@ -328,33 +222,20 @@ public class LevelSceneInvestigator
 				direction = -1;
 			}
 			
-			byte oneAway = levelScene[marioLoc[0]][marioLoc[1] + direction];
-			if(
-					oneAway == Encoding.WALL  || 
-					oneAway == Encoding.FLOWERPOT  || 
-					oneAway == Encoding.CORNERTOPLEFT || 
-					oneAway == Encoding.BRICK  || 
-					oneAway == Encoding.BREAKABLE_BRICK
-			)
+			byte oneAway = map[marioMapLoc[0]][marioMapLoc[1] + direction]!= null ? map[marioMapLoc[0]][marioMapLoc[1] + direction].getEncoding() : 0;
+			if(Encoding.isEnvironment(oneAway))
 			{
 				byte[] result = new byte[2];
-				result[0] = (byte) (marioLoc[0]);
-				result[1] = (byte) (marioLoc[1] + 1);
+				result[0] = (byte) (marioMapLoc[0]);
+				result[1] = (byte) (marioMapLoc[1] + 1);
 				return result;
 			}
-			byte twoAway = levelScene[marioLoc[0]][marioLoc[1] + (2 * direction)];
-			if
-			(
-					twoAway == Encoding.WALL  ||
-					twoAway == Encoding.FLOWERPOT  ||
-					twoAway == Encoding.CORNERTOPLEFT ||
-					twoAway == Encoding.BRICK  ||
-					twoAway == Encoding.BREAKABLE_BRICK
-			)
+			byte twoAway = map[marioMapLoc[0]][marioMapLoc[1] + (2 * direction)]!= null ? map[marioMapLoc[0]][marioMapLoc[1] + (2 * direction)].getEncoding() : 0;
+			if(Encoding.isEnvironment(twoAway))
 			{	
 				byte[] result = new byte[2];
-				result[0] = (byte) (marioLoc[0]);
-				result[1] = (byte) (marioLoc[1] + 2);
+				result[0] = (byte) (marioMapLoc[0]);
+				result[1] = (byte) (marioMapLoc[1] + 2);
 				return result;
 			}
 			
@@ -363,7 +244,7 @@ public class LevelSceneInvestigator
 		
 		//DEBUG
 		boolean debug = FirstAgent.debug;
-		private void printLevelSceneLoc(byte i, byte j)
+		private void printLevelSceneLoc(byte[][] levelScene, byte i, byte j)
 		{
 			System.out.print(levelScene[i][j]);
 			if(j == levelScene[i].length - 1)
@@ -378,7 +259,7 @@ public class LevelSceneInvestigator
 				else if(levelScene[i][j] >  -9){System.out.print(" ");}
 			}
 		}
-		public void printLevelScene()
+		public void printLevelScene(byte[][] levelScene, byte[] marioLoc)
 		{
 			for(byte i = 0; i < levelScene.length ; ++i)
 			{
@@ -398,7 +279,7 @@ public class LevelSceneInvestigator
 		/**
 		 * Makes sure all encodings in the levelScene have been encountered before.
 		 */
-		private void checkLevelScene()
+		private void checkLevelScene(byte[][] levelScene)
 		{
 			for(int i = 0; i< levelScene.length; i++)
 			{
