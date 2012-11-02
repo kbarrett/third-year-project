@@ -1,6 +1,5 @@
 package ch.idsia.agents.controllers.kbarrett;
 
-import java.awt.geom.Point2D;
 import java.util.ArrayList;
 
 public class MapSquare {
@@ -14,6 +13,13 @@ public class MapSquare {
 	//Data getters & setters
 	public int getMapLocationX() {return locationInMapX;}
 	public int getMapLocationY() {return locationInMapY;}
+	public int[] getMapLocation() 
+	{
+		int[] mapLoc = new int[2];
+		mapLoc[0] = getMapLocationY();
+		mapLoc[1] = getMapLocationX();
+		return mapLoc;
+	}
 	
 	//Constructor
 	public MapSquare(byte encoding, MapSquare[][] map, int locationInMapX, int locationInMapY)

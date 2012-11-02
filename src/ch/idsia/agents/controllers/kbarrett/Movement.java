@@ -150,7 +150,7 @@ public class Movement
 		 * @param location byte array of size 2 where location[0] is the row and location[1] is the column in the
 		 * observation matrix levelScene that Mario is required to move towards.
 		 */
-		public void moveTowards(byte[] location)
+		public void moveTowards(int[] location)
 		{
 			
 			//If no location has been provided, make the default move
@@ -176,6 +176,7 @@ public class Movement
 					{
 						//Is he is not currently jumping, set the required jumpSize based on the height he needs to reach.
 						jumpSize = Math.max(1, (int)(1.6 * (marioMapLoc[0] - location[0])));
+						LevelSceneInvestigator.debugPrint("JUMPSIZE: " + jumpSize);
 					}
 				}
 			

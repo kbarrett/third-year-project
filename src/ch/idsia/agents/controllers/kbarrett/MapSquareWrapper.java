@@ -1,6 +1,7 @@
 package ch.idsia.agents.controllers.kbarrett;
 
 import java.awt.geom.Point2D;
+import java.util.Stack;
 
 public class MapSquareWrapper {
 	
@@ -46,17 +47,14 @@ public class MapSquareWrapper {
 		return false;
 	}
 	
-	public MapSquare[] backtrackRouteFromHere()
+	public Stack<MapSquare> backtrackRouteFromHere()
 	{
-		MapSquare[] result = new MapSquare[getG()];
-		int i = getG() - 1;
+		Stack<MapSquare> result = new Stack<MapSquare>();
 		MapSquareWrapper parent = this;
 		while(parent.getParent() != null)
-		//for(int i = getG() - 1; i>=0; i--)
 		{
-			result[i] = parent.getMapSquare();
+			result.push(parent.getMapSquare());
 			parent = parent.getParent();
-			--i;
 		}
 		return result;
 	}

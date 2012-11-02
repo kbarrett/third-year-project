@@ -59,7 +59,7 @@ public class FirstAgent implements Agent {
 		//Update other classes with this information
 			//Give Movement & LevelSceneInvestigator Mario's location
 				int[] marioLoc = environment.getMarioEgoPos();
-				levelSceneInvestigator.setMarioLoc(movement);
+				levelSceneInvestigator.setMarioLoc(environment.getMarioEgoPos(), movement);
 			
 			//Give LevelSceneInvestigator the new LevelScene
 				levelSceneInvestigator.setLevelScene(environment.getMergedObservationZZ(0, 0), environment.getMarioFloatPos());

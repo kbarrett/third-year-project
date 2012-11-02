@@ -43,8 +43,8 @@ public class MapUpdater {
 			for(int j = 0; j < levelScene[i].length; ++j)
 			{
 				int levelSceneMidPoint1 = (levelScene[i].length / 2);
-				int y = i + marioMapLoc[0] - levelSceneMidPoint0;
-				int x = j + marioMapLoc[1] - levelSceneMidPoint1;
+				int y = getMapYCoordinate(i,  marioMapLoc[0], levelSceneMidPoint0);
+				int x = getMapXCoordinate(j,  marioMapLoc[1], levelSceneMidPoint1);
 				MapSquare square = map[y][x];
 				if(square==null)
 				{
@@ -67,7 +67,7 @@ public class MapUpdater {
 			for(int j = 0; j < levelScene[i].length; ++j)
 			{
 				int levelSceneMidPoint1 = (levelScene[i].length / 2);
-				MapSquare square = map[i + marioMapLoc[0] - levelSceneMidPoint0][j + marioMapLoc[1] - levelSceneMidPoint1];
+				MapSquare square = map[getMapYCoordinate(i,  marioMapLoc[0], levelSceneMidPoint0)][getMapXCoordinate(j,  marioMapLoc[1], levelSceneMidPoint1)];
 				square.workOutReachableSquares();
 			}
 		}
@@ -181,6 +181,36 @@ public class MapUpdater {
 		}
 		return newMap;
 	}
-
 	
+	public static int[] getLevelSceneCoordinates(int[] mapCoords, int[] marioMapLoc, int[] marioLoc)
+	{
+		int[] levelSceneCoords = new int[2];
+		levelSceneCoords[0] = getLevelSceneYCoordinate(mapCoords[0], marioMapLoc[0], marioLoc[0]);
+		levelSceneCoords[1] = getLevelSceneXCoordinate(mapCoords[1], marioMapLoc[1], marioLoc[1]);
+		return levelSceneCoords;
+	}
+	public static int getLevelSceneXCoordinate(int mapXCoord, int marioMapXLoc, int marioXLoc)
+	{
+		return mapXCoord + marioXLoc - marioMapXLoc;
+	}
+	public static int getLevelSceneYCoordinate(int mapYCoord, int marioMapYLoc, int marioYLoc)
+	{
+		return mapYCoord + marioYLoc - marioMapYLoc;
+	}
+	
+	public static int[] getMapCoordinates(int[] levelSceneCoords, int[] marioMapLoc, int[] marioLoc)
+	{
+		int[] mapCoords = new int[2];
+		mapCoords[0] = getMapYCoordinate(mapCoords[0], marioMapLoc[0], marioLoc[0]);
+		mapCoords[1] = getMapXCoordinate(mapCoords[1], marioMapLoc[1], marioLoc[1]);
+		return mapCoords;
+	}
+	public static int getMapXCoordinate(int levelSceneXCoord, int marioMapXLoc, int marioXLoc)
+	{
+		return levelSceneXCoord + marioMapXLoc - marioXLoc;
+	}
+	public static int getMapYCoordinate(int levelSceneYCoord, int marioMapYLoc, int marioYLoc)
+	{
+		return levelSceneYCoord + marioMapYLoc - marioYLoc;
+	}
 }

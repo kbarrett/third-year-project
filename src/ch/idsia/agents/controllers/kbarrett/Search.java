@@ -2,11 +2,12 @@ package ch.idsia.agents.controllers.kbarrett;
 
 import java.util.Comparator;
 import java.util.LinkedList;
+import java.util.Stack;
 import java.util.TreeSet;
 
 public class Search {
 
-	public static MapSquare[] aStar(MapSquare destination, MapSquare start)
+	public static Stack<MapSquare> aStar(MapSquare destination, MapSquare start)
 	{
 		TreeSet<MapSquareWrapper> exploredSquares = new TreeSet<MapSquareWrapper>(new Comparator<MapSquareWrapper>(){
 
@@ -37,10 +38,10 @@ public class Search {
 				if(FirstAgent.debug)
 				{
 					System.out.println("We fucking found " + destination + " with G : " + currentSquare.getG() + " with route: ");
-					MapSquare[] result = currentSquare.backtrackRouteFromHere();
-					for(int i = 0; i<result.length; i++)
+					Stack<MapSquare> result = currentSquare.backtrackRouteFromHere();
+					for(int i = 0; i<result.size(); i++)
 					{
-						LevelSceneInvestigator.debugPrint(""+result[i]);
+						LevelSceneInvestigator.debugPrint(""+result.get(i));
 					}
 				}
 				return currentSquare.backtrackRouteFromHere();
@@ -59,9 +60,15 @@ public class Search {
 				{
 					continue;
 				}
-				if(msw.getH() == -1) {msw.calculateH(destination);}
+				if(msw.getH() == -1)
+				{
+					msw.calculateH(destination);
+				}
 				msw.setG(currentSquare.getG() + 1);
-				exploredSquares.add(msw);
+				if(msw.getG() < 15 || msw.getH() < 5)
+				{
+					exploredSquares.add(msw);
+				}
 			}
 			expandedSquares.add(currentSquare);
 		}

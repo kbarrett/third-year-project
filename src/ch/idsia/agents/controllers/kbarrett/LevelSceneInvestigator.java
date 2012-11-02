@@ -1,8 +1,8 @@
 package ch.idsia.agents.controllers.kbarrett;
 
-import java.util.Comparator;
-import java.util.LinkedList;
-import java.util.TreeSet;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.Stack;
 
 /**
  * This class is responsible for seeing what is in the vicinity of Mario.
@@ -11,31 +11,20 @@ import java.util.TreeSet;
 public class LevelSceneInvestigator
 {
 	//Data
-		/** 
-		 * Stores the current surroundings of the agent.
-		 * Each element is encoded as a byte representing what is in that position relative to Mario.
-		 * Note: Mario is at the location stored in marioLoc in the 2D array.
-		 * @see ch.idsia.agents.controllers.kbarrett.Encoding
-		 * @see ch.idsia.agents.controllers.kbarrett.LevelSceneInvestigator.marioLoc
-		 */
-		//private byte[][] levelScene;
-		/**
-		 * Stores the location of Mario in the 2D array levelScene.
-		 * I.e. levelScene[marioLoc[0]][marioLoc[1]] will return the square that Mario is currently occupying.
-		 * @see ch.idsia.agents.controllers.kbarrett.LevelSceneInvestigator.levelScene
-		 */
-		//private int[] marioLoc;
+		private int[] marioLoc;
 		/**
 		 * Stores the float position of Mario on the screen.
 		 */
 		private float[] marioScreenPos;
+		private boolean justMoved = false;
 		private MapSquare[][] map;
+		private Stack<MapSquare> plan;
 		private int[] marioMapLoc = {0,0};
 		/** 
 		 * Stores the physical size of a square in levelScene.
 		 * @see ch.idsia.agents.controllers.kbarrett.LevelSceneInvestigator.levelScene
 		 */
-		private static final float SQUARESIZE = 20.5f;
+		private static final float SQUARESIZE = 16;//20.5f;
 		/**
 		 * Stores the total number of coins Mario has collected so far.
 		 */
@@ -100,7 +89,12 @@ public class LevelSceneInvestigator
 					//Update the new current position to be here.
 					this.marioScreenPos[0] = marioScreenPos[0];
 					this.marioScreenPos[1] = marioScreenPos[1];
+					justMoved = true;
 					
+			}
+			else
+			{
+				justMoved = false;
 			}
 			map = MapUpdater.updateMap(map, levelScene, marioMapLoc);
 			if(debug && false)
@@ -113,8 +107,9 @@ public class LevelSceneInvestigator
 		 * @param marioLoc int array of size 2 representing the position of Mario in levelScene.
 		 * @see ch.idsia.agents.controllers.kbarrett.LevelSceneInvestigator.marioLoc
 		 */
-		public void setMarioLoc(Movement movement)
+		public void setMarioLoc(int[] marioLoc, Movement movement)
 		{
+			this.marioLoc = marioLoc;
 			movement.setMarioMapLoc(marioMapLoc);
 		}
 		/**
@@ -150,61 +145,109 @@ public class LevelSceneInvestigator
 		 * @return byte array of size 2 denoting the location that has been decided to move towards. 
 		 * Returns null if no location has been chosen.
 		 */
-		public byte[] decideLocation(boolean isFacingRight)
+		public int[] decideLocation(boolean isFacingRight)
 		{
-			byte[] locationOfReward = getRewardLocation();
+			int[] locationOfReward = getRewardLocation();
 			if(locationOfReward != null)
 			{
-				return getGapAvoidanceLocation(locationOfReward, isFacingRight);
+				return getRoute(locationOfReward, isFacingRight);
 			}	
 			
-			byte[] locationOfBlockage = getBlockageLocation(isFacingRight);
-			if(locationOfBlockage != null)
+			int[] requiredlocationForBlockage = getBlockageLocation(isFacingRight);
+			if(requiredlocationForBlockage != null)
 			{
-				byte[] requiredLocation = new byte[2];
-				requiredLocation[0] = (byte) (locationOfBlockage[0] - 1);
-				if(isFacingRight)
-				{
-					requiredLocation[1] = (byte) (locationOfBlockage[1] + 1);
-				}
-				else
-				{
-					requiredLocation[1] = (byte) (locationOfBlockage[1] - 1);
-				}
-				return getGapAvoidanceLocation(requiredLocation, isFacingRight);
+				return getRoute(requiredlocationForBlockage, isFacingRight);
 			}
 			
-			return null;
+			return plan == null || plan.size() == 0 ? null : getRoute(marioMapLoc, isFacingRight);
 		}
 		
 		
 		
-		private byte[] getGapAvoidanceLocation(byte[] desiredPosition, boolean isFacingRight) {
+		private int[] getRoute(int[] desiredPosition, boolean isFacingRight)
+		{
 
-			MapSquare s = map[desiredPosition[0]][desiredPosition[1]];
-			MapSquare[] plan = Search.aStar(s, map[marioMapLoc[0]][marioMapLoc[1]]);
+			MapSquare lastMove = null;
+			
+			if(plan == null || plan.size() == 0)
+			{
+				MapSquare s = map[desiredPosition[0]][desiredPosition[1]];
+				plan = Search.aStar(s, map[marioMapLoc[0]][marioMapLoc[1]]);
+			}
+			else if(justMoved || (marioMapLoc[0] == plan.peek().getMapLocationY() && marioMapLoc[1] == plan.peek().getMapLocationX()))
+			{
+				lastMove = plan.pop();
+				
+				//if we're not where we think we should be
+				if(marioMapLoc[0] != lastMove.getMapLocationY() || marioMapLoc[1] != lastMove.getMapLocationX())
+				{
+					Stack<MapSquare> newPlan = new Stack<MapSquare>();
+					int rejoinSquare = -1;
+					for(int i = 0; i<plan.size(); ++i)
+					{
+						Stack<MapSquare> thisPlan = Search.aStar(plan.get(i), map[marioMapLoc[0]][marioMapLoc[1]]);
+						if(thisPlan != null && (rejoinSquare < 0 || thisPlan.size()<newPlan.size()))
+						{
+							rejoinSquare = i;
+							newPlan = thisPlan;
+						}
+					}
+					
+					if(rejoinSquare < 0) //we failed to find a new route
+					{
+						//remove plan as it is unachievable
+						plan = null;
+					}
+					else
+					{
+						for(int i = newPlan.size() - 1; i >= 0; --i)
+						{
+							plan.push(newPlan.elementAt(i));
+						}
+					}
+				}
+			}
 			
 			//check for plan
 			//if !exists run astar
 			//check for enemies
 			//return first step of plan
 			
-			if(plan==null) return desiredPosition; 
-			desiredPosition[0] = (byte) plan[0].getMapLocationY(); 
-			desiredPosition[1] = (byte) plan[0].getMapLocationY();
+			if(plan==null || plan.size() == 0) return desiredPosition;
+			
+			MapSquare nextLocation = plan.peek();
+			
+			int i = 1;
+			while(lastMove!=null && lastMove.getSquareAbove() == nextLocation)
+			{
+				if(i>=plan.size() - 1) {break;}
+				lastMove = nextLocation;
+				nextLocation = plan.elementAt(i++);
+			}
+			
+			desiredPosition[0] = nextLocation.getMapLocationY(); 
+			desiredPosition[1] = nextLocation.getMapLocationX();
 			return desiredPosition;
 		}
 		
-		public byte[] getRewardLocation()
+		public int[] getRewardLocation()
 		{
-			for(byte i = marioMapLoc[1] - (Movement.MAX_JUMP_WIDTH/2) > 0 ? (byte) (marioMapLoc[1] - (Movement.MAX_JUMP_WIDTH/2)) : 0; i < (marioMapLoc[1] + (Movement.MAX_JUMP_WIDTH/2)); ++i)
+			for(
+					int i = MapUpdater.getMapXCoordinate(marioLoc[1] - Movement.MAX_JUMP_WIDTH / 2, marioMapLoc[1], marioLoc[1]);
+					i <  MapUpdater.getMapXCoordinate(marioLoc[1] + Movement.MAX_JUMP_WIDTH / 2, marioMapLoc[1], marioLoc[1]);
+					++i
+				)
 			{
-				for(byte j = marioMapLoc[0] - Movement.MAX_JUMP_HEIGHT > 0? (byte) (marioMapLoc[0] - Movement.MAX_JUMP_HEIGHT) : 0; j < levelScene0length; j++)
+				for(
+						int j =  MapUpdater.getMapYCoordinate(marioLoc[0] - Movement.MAX_JUMP_HEIGHT / 2, marioMapLoc[0], marioLoc[0]);
+						j <	MapUpdater.getMapYCoordinate(marioLoc[1] + Movement.MAX_JUMP_HEIGHT / 2, marioMapLoc[0], marioLoc[0]);
+						++j
+					)
 				{
 					if(map[j][i] == null) {continue;}
 					if(map[j][i].getEncoding() == Encoding.COIN)
 					{
-						byte[] result = new byte[2];
+						int[] result = new int[2];
 						result[0] = j;
 						result[1] = i;
 						return result;
@@ -214,7 +257,7 @@ public class LevelSceneInvestigator
 			return null;
 		}
 		
-		public byte[] getBlockageLocation(boolean facingRight)
+		public int[] getBlockageLocation(boolean facingRight)
 		{
 			int direction = 1;
 			if(!facingRight)
@@ -222,21 +265,21 @@ public class LevelSceneInvestigator
 				direction = -1;
 			}
 			
-			byte oneAway = map[marioMapLoc[0]][marioMapLoc[1] + direction]!= null ? map[marioMapLoc[0]][marioMapLoc[1] + direction].getEncoding() : 0;
-			if(Encoding.isEnvironment(oneAway))
+			for(int i = 1; i < Movement.MAX_JUMP_WIDTH; ++i)
 			{
-				byte[] result = new byte[2];
-				result[0] = (byte) (marioMapLoc[0]);
-				result[1] = (byte) (marioMapLoc[1] + 1);
-				return result;
-			}
-			byte twoAway = map[marioMapLoc[0]][marioMapLoc[1] + (2 * direction)]!= null ? map[marioMapLoc[0]][marioMapLoc[1] + (2 * direction)].getEncoding() : 0;
-			if(Encoding.isEnvironment(twoAway))
-			{	
-				byte[] result = new byte[2];
-				result[0] = (byte) (marioMapLoc[0]);
-				result[1] = (byte) (marioMapLoc[1] + 2);
-				return result;
+				byte square = map[marioMapLoc[0]][marioMapLoc[1] + (i * direction)]!= null ? map[marioMapLoc[0]][marioMapLoc[1] + (i * direction)].getEncoding() : 0;
+				if(Encoding.isEnvironment(square))
+				{
+					int[] result = new int[2];
+	
+					result[1] = marioMapLoc[1] + (i * direction);
+					result[0] = marioMapLoc[0];
+					while(Encoding.isEnvironment(map[result[0]][result[1]]))
+					{
+						result[0] -= 1;
+					}
+					return result;
+				}
 			}
 			
 			return null;

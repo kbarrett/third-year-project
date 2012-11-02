@@ -1,9 +1,5 @@
 package ch.idsia.agents.controllers.kbarrett;
 
-import java.util.Comparator;
-import java.util.LinkedList;
-import java.util.TreeSet;
-
 public class AStarTestClass {
 	
 	static boolean debug = FirstAgent.debug;
