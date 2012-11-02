@@ -90,6 +90,7 @@ public class LevelSceneInvestigator
 					this.marioScreenPos[0] = marioScreenPos[0];
 					this.marioScreenPos[1] = marioScreenPos[1];
 					justMoved = true;
+					debugPrint("MOVED SQUARE : " + marioMapLoc[0] + ", " + marioMapLoc[1]);
 					
 			}
 			else
@@ -159,7 +160,7 @@ public class LevelSceneInvestigator
 				return getRoute(requiredlocationForBlockage, isFacingRight);
 			}
 			
-			return plan == null || plan.size() == 0 ? null : getRoute(marioMapLoc, isFacingRight);
+			return plan == null || plan.size() == 0 ? null : getRoute(null, isFacingRight);
 		}
 		
 		
@@ -169,7 +170,7 @@ public class LevelSceneInvestigator
 
 			MapSquare lastMove = null;
 			
-			if(plan == null || plan.size() == 0)
+			if((plan == null || plan.size() == 0) && desiredPosition != null) 
 			{
 				MapSquare s = map[desiredPosition[0]][desiredPosition[1]];
 				plan = Search.aStar(s, map[marioMapLoc[0]][marioMapLoc[1]]);
@@ -208,10 +209,7 @@ public class LevelSceneInvestigator
 				}
 			}
 			
-			//check for plan
-			//if !exists run astar
-			//check for enemies
-			//return first step of plan
+			//TODO: check for enemies
 			
 			if(plan==null || plan.size() == 0) return desiredPosition;
 			
@@ -225,8 +223,15 @@ public class LevelSceneInvestigator
 				nextLocation = plan.elementAt(i++);
 			}
 			
+			if(desiredPosition == null) {desiredPosition = new int[2];}
 			desiredPosition[0] = nextLocation.getMapLocationY(); 
 			desiredPosition[1] = nextLocation.getMapLocationX();
+			
+			if(desiredPosition.equals(marioMapLoc))
+			{
+				debugPrint("");
+			}
+			
 			return desiredPosition;
 		}
 		

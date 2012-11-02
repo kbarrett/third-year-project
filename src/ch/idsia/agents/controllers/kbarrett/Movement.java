@@ -160,6 +160,8 @@ public class Movement
 				return;
 			}
 			
+			if(location.equals(marioMapLoc)){LevelSceneInvestigator.debugPrint("WHY is location the same as marioMapLoc???");}
+			
 			//If the location provided is invalid, print out an error
 			if(location.length != 2)
 			{

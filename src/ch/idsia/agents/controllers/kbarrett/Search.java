@@ -37,9 +37,9 @@ public class Search {
 			{
 				if(FirstAgent.debug)
 				{
-					System.out.println("We fucking found " + destination + " with G : " + currentSquare.getG() + " with route: ");
+					LevelSceneInvestigator.debugPrint("We fucking found " + destination + " with G : " + currentSquare.getG() + " with route: ");
 					Stack<MapSquare> result = currentSquare.backtrackRouteFromHere();
-					for(int i = 0; i<result.size(); i++)
+					for(int i = result.size() - 1; i>=0; --i)
 					{
 						LevelSceneInvestigator.debugPrint(""+result.get(i));
 					}
