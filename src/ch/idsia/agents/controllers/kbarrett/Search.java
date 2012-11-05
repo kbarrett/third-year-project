@@ -6,8 +6,16 @@ import java.util.Stack;
 import java.util.TreeSet;
 
 public class Search {
-
+	
+	private static final int DIVISOR = 3;
+	private static final int DEFAULT_CUT_OFF_POINT = 15;
+	
 	public static Stack<MapSquare> aStar(MapSquare destination, MapSquare start)
+	{
+		return aStar(destination, start, DEFAULT_CUT_OFF_POINT);
+	}
+
+	public static Stack<MapSquare> aStar(MapSquare destination, MapSquare start, int cutOffPoint)
 	{
 		TreeSet<MapSquareWrapper> exploredSquares = new TreeSet<MapSquareWrapper>(new Comparator<MapSquareWrapper>(){
 
@@ -65,7 +73,7 @@ public class Search {
 					msw.calculateH(destination);
 				}
 				msw.setG(currentSquare.getG() + 1);
-				if(msw.getG() < 15 || msw.getH() < 5)
+				if(msw.getG() < cutOffPoint || msw.getH() < (int)(cutOffPoint / DIVISOR))
 				{
 					exploredSquares.add(msw);
 				}

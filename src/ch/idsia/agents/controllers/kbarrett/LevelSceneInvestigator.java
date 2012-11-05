@@ -24,7 +24,7 @@ public class LevelSceneInvestigator
 		 * Stores the physical size of a square in levelScene.
 		 * @see ch.idsia.agents.controllers.kbarrett.LevelSceneInvestigator.levelScene
 		 */
-		private static final float SQUARESIZE = 16;//20.5f;
+		private static final float SQUARESIZE = 10f;
 		/**
 		 * Stores the total number of coins Mario has collected so far.
 		 */
@@ -68,20 +68,20 @@ public class LevelSceneInvestigator
 				)
 			{
 				//Update Mario's vertical position
-					if(this.marioScreenPos[0] < marioScreenPos[0]) //Mario has moved downwards
+					if(this.marioScreenPos[0] - marioScreenPos[0] > SQUARESIZE) //Mario has moved downwards
 					{
 						++marioMapLoc[0];
 					}
-					else if(this.marioScreenPos[0] > marioScreenPos[0]) //Mario has moved upwards
+					else if(marioScreenPos[0] - this.marioScreenPos[0] > SQUARESIZE) //Mario has moved upwards
 					{
 						--marioMapLoc[0];
 					}
 				//Update Mario's horizontal position
-					if(this.marioScreenPos[1] < marioScreenPos[1]) //Mario has moved right
+					if(marioScreenPos[1] - this.marioScreenPos[1] > SQUARESIZE) //Mario has moved right
 					{
 						++marioMapLoc[1];
 					}
-					else if(this.marioScreenPos[1] > marioScreenPos[1]) //Mario has moved left
+					else if(this.marioScreenPos[1] - marioScreenPos[1] > SQUARESIZE) //Mario has moved left
 					{
 						--marioMapLoc[1];
 					}
@@ -90,7 +90,6 @@ public class LevelSceneInvestigator
 					this.marioScreenPos[0] = marioScreenPos[0];
 					this.marioScreenPos[1] = marioScreenPos[1];
 					justMoved = true;
-					debugPrint("MOVED SQUARE : " + marioMapLoc[0] + ", " + marioMapLoc[1]);
 					
 			}
 			else
@@ -167,8 +166,6 @@ public class LevelSceneInvestigator
 		
 		private int[] getRoute(int[] desiredPosition, boolean isFacingRight)
 		{
-
-			MapSquare lastMove = null;
 			
 			if((plan == null || plan.size() == 0) && desiredPosition != null) 
 			{
@@ -177,30 +174,46 @@ public class LevelSceneInvestigator
 			}
 			else if(justMoved || (marioMapLoc[0] == plan.peek().getMapLocationY() && marioMapLoc[1] == plan.peek().getMapLocationX()))
 			{
-				lastMove = plan.pop();
+				MapSquare lastMove = plan.pop();
 				
 				//if we're not where we think we should be
 				if(marioMapLoc[0] != lastMove.getMapLocationY() || marioMapLoc[1] != lastMove.getMapLocationX())
 				{
 					Stack<MapSquare> newPlan = new Stack<MapSquare>();
 					int rejoinSquare = -1;
+					FirstAgent.debug = false;
 					for(int i = 0; i<plan.size(); ++i)
 					{
-						Stack<MapSquare> thisPlan = Search.aStar(plan.get(i), map[marioMapLoc[0]][marioMapLoc[1]]);
-						if(thisPlan != null && (rejoinSquare < 0 || thisPlan.size()<newPlan.size()))
+						Stack<MapSquare> thisPlan = Search.aStar(plan.get(i), map[marioMapLoc[0]][marioMapLoc[1]], plan.size() - i);
+						if(
+								//we have successfully found a route to the required square
+								thisPlan != null &&
+								(
+										//we haven't already made a new plan
+										rejoinSquare < 0 || 
+										//this plan is shorter than the previous plan
+										thisPlan.size() + i < newPlan.size() + rejoinSquare
+								)
+							)
 						{
 							rejoinSquare = i;
 							newPlan = thisPlan;
 						}
 					}
+					FirstAgent.debug = true;
 					
 					if(rejoinSquare < 0) //we failed to find a new route
 					{
+						System.err.print("Plan unachievable.");
 						//remove plan as it is unachievable
-						plan = null;
+						plan.clear();
 					}
 					else
 					{
+						for(int i = 0; i < rejoinSquare; ++i)
+						{
+							plan.pop();
+						}
 						for(int i = newPlan.size() - 1; i >= 0; --i)
 						{
 							plan.push(newPlan.elementAt(i));
@@ -215,11 +228,13 @@ public class LevelSceneInvestigator
 			
 			MapSquare nextLocation = plan.peek();
 			
+			//jumping workaround as currently Movement judges size of jump based on distance from current square. FIXME: change this
 			int i = 1;
-			while(lastMove!=null && lastMove.getSquareAbove() == nextLocation)
+			MapSquare marioMapLocSquare = map[marioMapLoc[0]][marioMapLoc[1]];
+			while(marioMapLocSquare!=null && marioMapLocSquare.getSquareAbove() == nextLocation)
 			{
 				if(i>=plan.size() - 1) {break;}
-				lastMove = nextLocation;
+				marioMapLocSquare = nextLocation;
 				nextLocation = plan.elementAt(i++);
 			}
 			
@@ -239,7 +254,7 @@ public class LevelSceneInvestigator
 		{
 			for(
 					int i = MapUpdater.getMapXCoordinate(marioLoc[1] - Movement.MAX_JUMP_WIDTH / 2, marioMapLoc[1], marioLoc[1]);
-					i <  MapUpdater.getMapXCoordinate(marioLoc[1] + Movement.MAX_JUMP_WIDTH / 2, marioMapLoc[1], marioLoc[1]);
+					    i <  MapUpdater.getMapXCoordinate(marioLoc[1] + Movement.MAX_JUMP_WIDTH / 2, marioMapLoc[1], marioLoc[1]);
 					++i
 				)
 			{
@@ -357,9 +372,11 @@ public class LevelSceneInvestigator
 			{
 				for(int j = 0; j<map[i].length; ++j)
 				{
-					String s;
-					if(map[i][j] == null) {s = ""+map[i][j];}
-					else {s = ""+map[i][j].getEncoding();}
+					String s = "";
+					if(i == marioMapLoc[0] && j == marioMapLoc[1]) {s += "*";}
+					if(map[i][j] == null) {s += ""+map[i][j];}
+					else {s += ""+map[i][j].getEncoding();}
+					if(i == marioMapLoc[0] && j == marioMapLoc[1]) {s += "*";}
 					while(s.length()<4)
 					{
 						s+=" ";
