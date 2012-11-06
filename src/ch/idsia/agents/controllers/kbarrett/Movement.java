@@ -46,40 +46,6 @@ public class Movement
 				 * @see ch.idsia.agents.controllers.kbarrett.Movement#MAX_JUMP_HEIGHT
 				 */
 				public static int MAX_JUMP_WIDTH = 5;
-	
-	//DEBUG
-	boolean debug = FirstAgent.debug;
-	private String toStringActions()
-	{
-		boolean d = FirstAgent.debug;
-		String s = "{";
-		if(actions[Mario.KEY_DOWN])
-		{
-			s += "DOWN, ";
-		}
-		if(actions[Mario.KEY_UP])
-		{
-			s += "UP, ";
-		}
-		if(actions[Mario.KEY_JUMP])
-		{
-			s += "JUMP, ";
-		}
-		if(actions[Mario.KEY_LEFT])
-		{
-			s += "LEFT, ";
-		}
-		if(actions[Mario.KEY_RIGHT])
-		{
-			s += "RIGHT, ";
-		}
-		if(actions[Mario.KEY_SPEED])
-		{
-			s += "SPEED, ";
-		}
-		s+= "}";
-		return s;
-	}
 
 	//Methods relating to checking Mario Movements
 		/**
@@ -273,5 +239,39 @@ public class Movement
 			//Reset the information about the current jump to indicate we are no longer jumping.
 			currentJumpPoint = 0;
 			jumpSize = 0;
+		}
+		
+		//DEBUG
+		boolean debug = FirstAgent.debug;
+		private String toStringActions()
+		{
+			boolean d = FirstAgent.debug;
+			String s = "{";
+			if(actions[Mario.KEY_DOWN])
+			{
+				s += "DOWN, ";
+			}
+			if(actions[Mario.KEY_UP])
+			{
+				s += "UP, ";
+			}
+			if(actions[Mario.KEY_JUMP])
+			{
+				s += "JUMP, ";
+			}
+			if(actions[Mario.KEY_LEFT])
+			{
+				s += "LEFT, ";
+			}
+			if(actions[Mario.KEY_RIGHT])
+			{
+				s += "RIGHT, ";
+			}
+			if(actions[Mario.KEY_SPEED])
+			{
+				s += "SPEED, ";
+			}
+			s+= "}";
+			return s;
 		}
 }

@@ -2,9 +2,7 @@ package ch.idsia.agents.controllers.kbarrett;
 
 import ch.idsia.agents.Agent;
 import ch.idsia.benchmark.mario.engine.sprites.Mario;
-import ch.idsia.benchmark.mario.engine.sprites.Sprite;
 import ch.idsia.benchmark.mario.environments.Environment;
-import ch.idsia.benchmark.mario.environments.MarioEnvironment;
 
 /**
  * FirstAgent is an Agent that looks at its environment and decides which action is best using a predetermined list of what to do when.
@@ -58,7 +56,6 @@ public class FirstAgent implements Agent {
 		
 		//Update other classes with this information
 			//Give Movement & LevelSceneInvestigator Mario's location
-				int[] marioLoc = environment.getMarioEgoPos();
 				levelSceneInvestigator.setMarioLoc(environment.getMarioEgoPos(), movement);
 			
 			//Give LevelSceneInvestigator the new LevelScene & Mario's new screen position

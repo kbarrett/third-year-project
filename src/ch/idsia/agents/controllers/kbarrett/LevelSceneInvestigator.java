@@ -1,7 +1,5 @@
 package ch.idsia.agents.controllers.kbarrett;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
 import java.util.Stack;
 
 /**
@@ -13,7 +11,7 @@ public class LevelSceneInvestigator
 	//Data
 		/**
 		 * Stores Mario's location in the levelScene.
-		 * Used for translating between map co-ordinates & levelScene co-ordinates.
+		 * Used for translating between {@link #map} co-ordinates & levelScene co-ordinates.
 		 */
 		private int[] marioLoc;
 		/**
@@ -33,14 +31,14 @@ public class LevelSceneInvestigator
 		 */
 		private Stack<MapSquare> plan;
 		/**
-		 * Stores Mario's current position within the map.
+		 * Stores Mario's current position within the {@link #map}.
 		 */
 		private int[] marioMapLoc = {0,0};
 		/** 
 		 * Stores the physical size of a square in levelScene and map.
 		 * @see ch.idsia.agents.controllers.kbarrett.LevelSceneInvestigator.levelScene
 		 */
-		private static final float SQUARESIZE = 16;// 9.5f;
+		private static final float SQUARESIZE = 16.062515f;
 		/**
 		 * Stores the total number of coins Mario has collected so far.
 		 */
@@ -48,7 +46,7 @@ public class LevelSceneInvestigator
 		
 	//Methods for updating the data
 		/**
-		 * Used for updating the map from a newly acquired levelScene.
+		 * Used for updating the {@link #map} from a newly acquired levelScene.
 		 * @param levelScene a 2D array representing the current environment of Mario encoded as integers.
 		 */
 		public void updateMapFromLevelScene(byte[][] levelScene)
@@ -69,12 +67,14 @@ public class LevelSceneInvestigator
 		}
 		/**
 		 * Used for updating Mario's screen position.
-		 * Note: will only update the stored position if it has varied by more than SQUARESIZE.
-		 * This method also updates marioMapLoc, if Mario has moved into the space represented by a different position in map.
+		 * Note: will only update the stored position if it has varied by more than {@link #SQUARESIZE}.
+		 * This method also updates {@link #marioMapLoc}, if Mario has moved into the space represented by a different position in map.
 		 * @param marioScreenPos a float array of size 2 containing Mario's actual position on the screen. Note: this is as an (x,y) coordinate.
 		 */
 		public void setMarioScreenPos(float[] marioScreenPos)
 		{
+			if(debug){findSquareSize(marioScreenPos);}
+			
 			/*Swap the terms in marioScreenPos, so they match the y-x orientation of the map.*/
 			float temp = marioScreenPos[0];
 			marioScreenPos[0] = marioScreenPos[1];
@@ -126,9 +126,8 @@ public class LevelSceneInvestigator
 			
 		}
 		/**
-		 * Used for updating marioLoc.
+		 * Used for updating {@link #marioLoc}.
 		 * @param marioLoc int array of size 2 representing the position of Mario in levelScene.
-		 * @see ch.idsia.agents.controllers.kbarrett.LevelSceneInvestigator.marioLoc
 		 */
 		public void setMarioLoc(int[] marioLoc, Movement movement)
 		{
@@ -138,7 +137,7 @@ public class LevelSceneInvestigator
 		/**
 		 * Used for updating the number of coins Mario has collected.
 		 * @param coins the total number of coins Mario has collected so far.
-		 * @see ch.idsia.agents.controllers.kbarrett.LevelSceneInvestigator.numberOfCollectedCoins
+		 * @see #numberOfCollectedCoins
 		 */
 		public void updateCoins(int coins)
 		{
@@ -149,7 +148,7 @@ public class LevelSceneInvestigator
 			//TODO: To be used to see if a coin has been achieved by an action in order to give up if impossible 
 		}
 		/**
-		 * If no map has previously been created, creates a map of the given size.
+		 * If no {@link #map} has previously been created, creates a map of the given size.
 		 * @param width of the map
 		 * @param height of the map
 		 */
@@ -222,7 +221,7 @@ public class LevelSceneInvestigator
 			return (marioMapLoc[0] == plan.peek().getMapLocationY() && marioMapLoc[1] == plan.peek().getMapLocationX());
 		}
 		/**
-		 * Gets the next step in the plan (if one exists).
+		 * Gets the next step in the {@link #plan} (if one exists).
 		 * @return int array of size 2 representing the location of the next step of the plan.
 		 */
 		private int[] getNextPlanStep()
@@ -262,8 +261,8 @@ public class LevelSceneInvestigator
 			return nextStep;
 		}
 		/**
-		 * Attempts to find a way for Mario to get back on track with the old plan.
-		 * If no way is found, the old plan will be removed.
+		 * Attempts to find a way for Mario to get back on track with {@link #plan}.
+		 * If no way is found, {@link #plan} will be removed.
 		 */
 		private void replan()
 		{
@@ -320,7 +319,7 @@ public class LevelSceneInvestigator
 			}
 		}
 		/**
-		 * Makes a plan from the current position to the desiredPosition
+		 * Makes a plan from the current position ({@link #marioMapLoc} to the desiredPosition and stores it in {@link #plan}.
 		 * @param desiredPosition - a int array of size 2 representing the location that the plan should head towards
 		 */
 		private void makePlan(int[] desiredPosition)
@@ -405,6 +404,37 @@ public class LevelSceneInvestigator
 		
 		//DEBUG
 		boolean debug = FirstAgent.debug;
+		float[] startloc = new float[2];
+		int y = -1;
+		int x = -1;
+		private void findSquareSize(float[] marioScreenPos)
+		{
+			if(y >= -1)
+			for(int i = 0; i < map.length; ++i)
+			{
+				for(int j = 0; j < map[i].length; ++j)
+				{
+					if(map[i][j] != null && map[i][j].getEncoding() == -90)
+					{
+						if(y == -1)
+						{
+							y = i;
+							x = j;
+							startloc[0] = marioScreenPos[0];
+							startloc[1] = marioScreenPos[1];
+							break;
+						}
+						else if(y != i || x != j)
+						{
+							debugPrint("SQUARESIZE IS " + Math.max(
+									(marioScreenPos[0] - startloc[0]), (marioScreenPos[1] - startloc[1]) ));
+							y = -2;
+							break;
+						}
+					}
+				}
+			}
+		}
 		private void printLevelSceneLoc(byte[][] levelScene, byte i, byte j)
 		{
 			System.out.print(levelScene[i][j]);
