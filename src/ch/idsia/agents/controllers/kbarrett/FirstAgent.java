@@ -61,8 +61,9 @@ public class FirstAgent implements Agent {
 				int[] marioLoc = environment.getMarioEgoPos();
 				levelSceneInvestigator.setMarioLoc(environment.getMarioEgoPos(), movement);
 			
-			//Give LevelSceneInvestigator the new LevelScene
-				levelSceneInvestigator.setLevelScene(environment.getMergedObservationZZ(0, 0), environment.getMarioFloatPos());
+			//Give LevelSceneInvestigator the new LevelScene & Mario's new screen position
+				levelSceneInvestigator.updateMapFromLevelScene(environment.getMergedObservationZZ(0, 0));
+				levelSceneInvestigator.setMarioScreenPos(environment.getMarioFloatPos());
 		
 			//Update knowledge of how many coins Mario has collected
 				levelSceneInvestigator.updateCoins(Mario.coins);
@@ -77,7 +78,7 @@ public class FirstAgent implements Agent {
 			else
 			{
 				movement.moveTowards(
-						levelSceneInvestigator.decideLocation(movement.isFacingRight()));
+						levelSceneInvestigator.getNextLocation(movement.isFacingRight()));
 			}
 	}
 
