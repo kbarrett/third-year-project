@@ -75,7 +75,7 @@ public class FirstAgent implements Agent {
 			else
 			{
 				movement.moveTowards(
-						levelSceneInvestigator.getNextLocation(movement.isFacingRight()));
+						levelSceneInvestigator.getNextLocation(movement.isFacingRight(), movement.isJumping()));
 			}
 	}
 

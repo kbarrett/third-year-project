@@ -10,8 +10,9 @@ public class MapSquareWrapper {
 	private int g = -1;
 	private int h = -1;
 	private int levelInJump = 0;
+	private int widthOfJump = 0;
 	
-	public MapSquareWrapper(MapSquare mapSquare, MapSquareWrapper parent, int levelInJump)
+	public MapSquareWrapper(MapSquare mapSquare, MapSquareWrapper parent, int levelInJump, int widthOfJump)
 	{
 		this.mapSquare = mapSquare;
 		this.parent = parent;
@@ -31,6 +32,11 @@ public class MapSquareWrapper {
 	public int getLevelInJump()
 	{
 		return levelInJump;
+	}
+
+	public int getWidthOfJump()
+	{
+		return widthOfJump;
 	}
 	
 	public boolean checkParentTreeFor(MapSquare s)

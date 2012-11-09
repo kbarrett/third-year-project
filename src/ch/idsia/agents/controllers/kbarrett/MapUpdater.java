@@ -61,12 +61,12 @@ public class MapUpdater {
 	}
 	private static void workOutReachableSquares()
 	{
+		int levelSceneMidPoint0 = (levelScene.length / 2);
 		for(int i = 0; i < levelScene.length; ++i)
 		{
-			int levelSceneMidPoint0 = (levelScene.length / 2);
+			int levelSceneMidPoint1 = (levelScene[i].length / 2);
 			for(int j = 0; j < levelScene[i].length; ++j)
 			{
-				int levelSceneMidPoint1 = (levelScene[i].length / 2);
 				MapSquare square = map[getMapYCoordinate(i,  marioMapLoc[0], levelSceneMidPoint0)][getMapXCoordinate(j,  marioMapLoc[1], levelSceneMidPoint1)];
 				square.workOutReachableSquares();
 			}

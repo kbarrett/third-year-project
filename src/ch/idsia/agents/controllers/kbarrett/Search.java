@@ -5,6 +5,8 @@ import java.util.LinkedList;
 import java.util.Stack;
 import java.util.TreeSet;
 
+import ch.idsia.agents.controllers.kbarrett.MapSquare.Direction;
+
 public class Search {
 	
 	private static final int DIVISOR = 3;
@@ -34,7 +36,7 @@ public class Search {
 		
 		LinkedList<MapSquareWrapper> expandedSquares = new LinkedList<MapSquareWrapper>();
 		
-		MapSquareWrapper initialSquare = new MapSquareWrapper(start, null, 0);
+		MapSquareWrapper initialSquare = new MapSquareWrapper(start, null, 0, 0);
 		initialSquare.setG(0);
 		exploredSquares.add(initialSquare);
 		
@@ -54,16 +56,42 @@ public class Search {
 				}
 				return currentSquare.backtrackRouteFromHere();
 			}
+			MapSquare.Direction enteredFrom = Direction.None;
+			if(currentSquare.getParent() !=null)
+			{
+				if(currentSquare.equals(currentSquare.getParent().getMapSquare().getSquareBelow()))
+				{
+					enteredFrom = Direction.Below;
+				}
+				else if(currentSquare.equals(currentSquare.getParent().getMapSquare().getSquareAbove()))
+				{
+					enteredFrom = Direction.Above;
+				}
+				else if(currentSquare.equals(currentSquare.getParent().getMapSquare().getSquareLeft()))
+				{
+					enteredFrom = Direction.Left;
+				}
+				else if(currentSquare.equals(currentSquare.getParent().getMapSquare().getSquareRight()))
+				{
+					enteredFrom = Direction.Right;
+				}
+			}
+			
 			for(MapSquare s : currentSquare.getMapSquare().getReachableSquares(
-					currentSquare.getLevelInJump(), 
-					currentSquare.getParent()==null || currentSquare.equals(currentSquare.getParent().getMapSquare().getSquareBelow())))
+					currentSquare.getLevelInJump(), currentSquare.getWidthOfJump(),
+					enteredFrom))
 			{
 				int levelInJump = 0;
+				int widthOfJump = 0;
 				if(currentSquare.getMapSquare().getSquareAbove() == s)
 				{
 					levelInJump = currentSquare.getLevelInJump() + 1;
 				}
-				MapSquareWrapper msw = new MapSquareWrapper(s, currentSquare, levelInJump);
+				if(currentSquare.getLevelInJump() > 0 && (currentSquare.getMapSquare().getSquareLeft() == s || currentSquare.getMapSquare().getSquareRight() == s))
+				{
+					widthOfJump = currentSquare.getWidthOfJump() + 1;
+				}
+				MapSquareWrapper msw = new MapSquareWrapper(s, currentSquare, levelInJump, widthOfJump);
 				if(s == null || expandedSquares.contains(s) || msw.checkParentTreeFor(s))
 				{
 					continue;

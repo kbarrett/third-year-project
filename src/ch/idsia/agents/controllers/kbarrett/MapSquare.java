@@ -1,6 +1,7 @@
 package ch.idsia.agents.controllers.kbarrett;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
 public class MapSquare {
 
@@ -54,12 +55,12 @@ public class MapSquare {
 		if(locationInMapY >= map.length - 1) {return null;}
 		return map[locationInMapY + 1][locationInMapX];
 	}
-	private MapSquare getSquareLeft()
+	public MapSquare getSquareLeft()
 	{
 		if(locationInMapX <= 0) {return null;}
 		return map[locationInMapY][locationInMapX - 1];
 	}
-	private MapSquare getSquareRight()
+	public MapSquare getSquareRight()
 	{
 		if(locationInMapX >= map[0].length - 1) {return null;}
 		return map[locationInMapY][locationInMapX + 1];
@@ -82,78 +83,34 @@ public class MapSquare {
 		{
 			reachableSquares.clear();
 		}
-			//Vertical
-				
-				if(canJump(map))
-				{
-					//He can reach the square above
-					addToReachableSquares(getSquareAbove());
-				}
-				if (locationInMapY < map.length - 1 && !Encoding.isEnvironment(getSquareBelow()))
-				{
-					//He can reach the square below, because it is empty
-					addToReachableSquares(getSquareBelow());
-				}
-			//Horizontal
+		//Vertical
+			
+			if(!Encoding.isEnvironment(getSquareAbove()))
+			{
+				//He can reach the square above
+				addToReachableSquares(getSquareAbove());
+			}
+			if (!Encoding.isEnvironment(getSquareBelow()))
+			{
+				//He can reach the square below, because it is empty
+				addToReachableSquares(getSquareBelow());
+			}
+		//Horizontal
+			else //can only move left/right if there's ground below us
+			{
 				//If the square to the left is empty
-				if(locationInMapX > 0 && !Encoding.isEnvironment(getSquareLeft()))
+				if(!Encoding.isEnvironment(getSquareLeft()))
 				{
 					//He can reach the square to the left
 					addToReachableSquares(getSquareLeft());
 				}
 				//If the square to the right is empty
-				if(locationInMapX < map[0].length - 1 && !Encoding.isEnvironment(getSquareRight()))
+				if(!Encoding.isEnvironment(getSquareRight()))
 				{
 					//He can reach the square to the right
 					addToReachableSquares(getSquareRight());
 				}
-	}
-	
-	private boolean canJump(MapSquare[][] map)
-	{
-		/*//If the square below isn't empty, then Mario can jump
-		(locationInMapY != 0 && locationInMapY != map.length - 1 && Encoding.isEnvironment(map[locationInMapY + 1][locationInMapX])) ||
-		//Or if the squares below him mean this one is jumpable to
-		(false)*/
-		
-		//If the location above isn't empty, then we can't jump
-		if(locationInMapY > 0)
-		{
-			if(getSquareAbove()==null || getSquareAbove().getEncoding()!= Encoding.NOTHING) {return false;}
-			if(getSquareBelow()==null || getSquareBelow().getEncoding()== Encoding.NOTHING) {return false;}
-			return true;
-		}
-		return false;
-		
-	}
-	private boolean checkCanJumpHigher(int currentHeight)
-	{
-		if(currentHeight == 0) {return false;}
-		//If there isn't a floor within MAXJUMPHEIGHT of this square, we can't jump
-		if(currentHeight<Movement.MAX_JUMP_HEIGHT)
-		{
-			return getSquareAbove()==null || 
-					getSquareAbove().getEncoding()== Encoding.NOTHING;
-		}
-		return false;
-	}
-	private ArrayList<MapSquare> checkCanMoveDirection(ArrayList<MapSquare> newList)
-	{
-		if(getSquareRight() != null && !Encoding.isEnvironment(getSquareRight().getEncoding()))
-		{
-			if(!newList.contains(getSquareRight()))
-			{
-				newList.add(getSquareRight());
 			}
-		}
-		if(getSquareLeft() != null && !Encoding.isEnvironment(getSquareLeft().getEncoding()))
-		{
-			if(!newList.contains(getSquareLeft()))
-			{
-				newList.add(getSquareLeft());
-			}
-		}
-		return newList;
 	}
 	
 	public byte getEncoding() {
@@ -170,23 +127,51 @@ public class MapSquare {
 	 * @param enteredFromAbove - whether or not this square was entered from above (i.e. whilst falling)
 	 * @return list of all MapSquares that can be entered from this one in the current circumstances
 	 */
-	public ArrayList<MapSquare> getReachableSquares(int currentJumpHeight, boolean enteredFromAbove)
+	public ArrayList<MapSquare> getReachableSquares(int currentJumpHeight, int currentJumpWidth, Direction enteredFrom)
 	{
-		ArrayList<MapSquare> newList = (ArrayList<MapSquare>)reachableSquares.clone();
-		if(getSquareAbove() != null && checkCanJumpHigher(currentJumpHeight))
-		{ 
-			newList.add(getSquareAbove());
-		}
-		if(enteredFromAbove)
-		{
-			newList = checkCanMoveDirection(newList);
-		}
-		
-		return newList;
+		HashSet<MapSquare> newList = new HashSet<MapSquare>(reachableSquares);
+		newList.addAll(getAppropriateSquares(currentJumpHeight, currentJumpWidth, enteredFrom));
+		return new ArrayList<MapSquare>(newList);
 	}
 	public boolean isReachable(MapSquare square)
 	{
 		return reachableSquares.contains(square);
+	}
+	private ArrayList<MapSquare> getAppropriateSquares(int currentJumpHeight, int currentJumpWidth, Direction enteredFrom)
+	{
+		ArrayList<MapSquare> squares = new ArrayList<MapSquare>();
+		//if falling, add left & right
+		if(enteredFrom == Direction.Above)
+		{
+			if(getSquareLeft()!=null && !Encoding.isEnvironment(getSquareLeft()))
+			{
+				squares.add(getSquareLeft());
+			}
+			if(getSquareRight()!=null && !Encoding.isEnvironment(getSquareRight()))
+			{
+				squares.add(getSquareRight());
+			}
+		}
+		//if jumping, add above & left & right
+		if(currentJumpHeight > 0)
+		{
+			if(currentJumpHeight < Movement.MAX_JUMP_HEIGHT && getSquareAbove()!=null && !Encoding.isEnvironment(getSquareAbove()))
+			{
+				squares.add(getSquareAbove());
+			}
+			if(enteredFrom == Direction.Below) //can't move left/right indefinitely
+			{
+				if(getSquareLeft()!=null && !Encoding.isEnvironment(getSquareLeft()))
+				{
+					squares.add(getSquareLeft());
+				}
+				if(getSquareRight()!=null && !Encoding.isEnvironment(getSquareRight()))
+				{
+					squares.add(getSquareRight());
+				}
+			}
+		}
+		return squares;
 	}
 	
 	@Override
@@ -207,5 +192,14 @@ public class MapSquare {
 		{
 			return false;
 		}
+	}
+	
+	public enum Direction
+	{
+		Above,
+		Below,
+		Left,
+		Right,
+		None
 	}
 }

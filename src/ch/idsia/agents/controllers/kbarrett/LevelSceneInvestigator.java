@@ -167,7 +167,7 @@ public class LevelSceneInvestigator
 		 * @return byte array of size 2 denoting the location that has been decided to move towards. 
 		 * Returns null if no location has been chosen.
 		 */
-		public int[] getNextLocation(boolean isFacingRight)
+		public int[] getNextLocation(boolean isFacingRight, boolean isJumping)
 		{
 			//If we don't already have a plan
 			if((plan == null || plan.size() == 0)) 
@@ -186,7 +186,7 @@ public class LevelSceneInvestigator
 				return getNextPlanStep();
 			}
 			//If we have just made a move
-			if(justMoved)
+			if(justMoved || plan.peek().equals(map[marioMapLoc[0]][marioMapLoc[1]]))
 			{
 				//If we're where we expected to be
 				if(isInExpectedSquare())
@@ -196,11 +196,16 @@ public class LevelSceneInvestigator
 					//Return the next move in the plan
 					return getNextPlanStep();
 				}
-				else
+				else if(!isJumping)
 				{
 					//Otherwise make a plan to get back on track
 					replan();
 					return getNextPlanStep();
+				}
+				else
+				{
+					plan.clear();
+					return null;
 				}
 			}
 			else
@@ -231,6 +236,12 @@ public class LevelSceneInvestigator
 			
 			//This is the next step of the plan
 			MapSquare nextLocation = plan.peek();
+			while(Encoding.isEnvironment(nextLocation.getEncoding()) && nextLocation.getEncoding()!= 0)
+			{
+				plan.pop();
+				if(plan.size() == 0) {return null;}
+				nextLocation = plan.peek();
+			}
 			
 			//FIXME: jumping workaround as currently Movement judges size of jump based on distance from current square
 				int i = 1;
@@ -252,7 +263,7 @@ public class LevelSceneInvestigator
 			nextStep[1] = nextLocation.getMapLocationX();
 			
 			//If the next step is the same as this square, something has gone wrong.
-			if(nextStep.equals(marioMapLoc))
+			if(nextStep.toString().equals(marioMapLoc.toString()))
 			{
 				debugPrint("ARGH ERROR");
 			}
@@ -306,8 +317,9 @@ public class LevelSceneInvestigator
 			}
 			else //we have found a new route
 			{
+				debugPrint("Replanning from square " + rejoinSquare);
 				//Remove all steps in the plan before the point at which the new plan joins the old plan
-				for(int i = 0; i < rejoinSquare; ++i)
+				for(int i = 0; i < plan.size() - rejoinSquare; ++i)
 				{
 					plan.pop();
 				}
@@ -316,6 +328,7 @@ public class LevelSceneInvestigator
 				{
 					plan.push(newPlan.elementAt(i));
 				}
+				debugPrint("new plan: " + plan.toString());
 			}
 		}
 		/**
@@ -325,6 +338,7 @@ public class LevelSceneInvestigator
 		private void makePlan(int[] desiredPosition)
 		{
 			plan = Search.aStar(map[desiredPosition[0]][desiredPosition[1]], map[marioMapLoc[0]][marioMapLoc[1]]);
+			if(plan!=null)debugPrint("Made new plan of size " + plan.size());
 		}
 		/**
 		 * Finds a location in the map that Mario should move towards.
