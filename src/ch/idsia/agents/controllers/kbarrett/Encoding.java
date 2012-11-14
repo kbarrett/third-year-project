@@ -87,18 +87,17 @@ public class Encoding
 			static final public byte ENVIRONMENT4 = -126;
 			static final public byte ENVIRONMENT5 = -125;
 			static final public byte ENVIRONMENT6 = -109;
+			static final public byte ENVIRONMENT7 = -76;
 	
 	//Encodings of Sprites : represented by positive integers
 			
 		//Friendly : encodings are numbers between 1 and 5
 			/**
-			 * Note: Encoding same as a mushroom.
-			 * @see ch.idsia.agents.controllers.kbarrett.Encoding#MUSHROOM
+			 * Note: Encoding same as a {@link #MUSHROOM}.
 			 */
 			static final public byte COIN = GeneralizerLevelScene.COIN_ANIM;
 			/**
-			 * Note: Encoding same as a coin.
-			 * @see ch.idsia.agents.controllers.kbarrett.Encoding#COIN
+			 * Note: Encoding same as a {@link #COIN}.
 			 */
 			static final public byte MUSHROOM = Sprite.KIND_MUSHROOM;
 			/**
@@ -127,6 +126,6 @@ public class Encoding
 	
 	//DEBUG:
 	private boolean debug = FirstAgent.debug; 
-	public static int[] knownThings = {0, 2, -60, -112, -128, -90, -62, 61, -22, -20, -82, -80, 5, 3, -110, -96, -94, -126, -125, -109,
+	public static int[] knownThings = {0, 2, -60, -112, -128, -90, -62, 61, -22, -20, -82, -80, 5, 3, -110, -96, -94, -126, -125, -109, -76,
 		/*Enemies from here*/ 25, 84, 80, 95, 81, 96, 82, 97, 13, 98, 93, 91, 99};
 }

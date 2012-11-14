@@ -1,4 +1,4 @@
-package ch.idsia.agents.controllers.kbarrett;
+package ch.idsia.agents.controllers.kbarrett.test;
 
 import java.awt.event.KeyAdapter;
 import java.util.ArrayList;
