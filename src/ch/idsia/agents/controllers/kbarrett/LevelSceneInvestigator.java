@@ -1,5 +1,6 @@
 package ch.idsia.agents.controllers.kbarrett;
 
+import java.util.ArrayList;
 import java.util.Stack;
 
 /**
@@ -25,7 +26,7 @@ public class LevelSceneInvestigator
 		/**
 		 * Stores Mario's knowledge about the environment.
 		 */
-		private MapSquare[][] map;
+		private ArrayList<ArrayList<MapSquare>> map;
 		/**
 		 * Stores the current plan of movement that Mario is executing.
 		 */
@@ -44,6 +45,8 @@ public class LevelSceneInvestigator
 		 */
 		private int numberOfCollectedCoins = 0;
 		
+		private boolean enemyFound = false;
+		
 	//Methods for updating the data
 		/**
 		 * Used for updating the {@link #map} from a newly acquired levelScene.
@@ -60,7 +63,7 @@ public class LevelSceneInvestigator
 			//Updates map using this levelScene
 			map = MapUpdater.updateMap(map, levelScene, marioMapLoc);
 			
-			if(debug && false)
+			if(debug && true)
 			{
 				printMap();
 			}
@@ -156,8 +159,21 @@ public class LevelSceneInvestigator
 		{
 			if(map==null)
 			{
-				map = new MapSquare[width][height];
+				map = new ArrayList<ArrayList<MapSquare>>(height);
+				for(int i = 0; i < height; ++i)
+				{
+					map.add(new ArrayList<MapSquare>(width));
+					for(int j = 0; j < width; ++j)
+					{
+						map.get(i).add(null);
+					}
+				}
 			}
+		}
+		
+		public boolean isEnemy()
+		{
+			return enemyFound;
 		}
 		
 	//Methods for analysing the environment
@@ -183,10 +199,15 @@ public class LevelSceneInvestigator
 				//Otherwise, make a plan to get to this location
 				makePlan(location);
 				//Return the first step of this plan
+				if(plan == null || plan.size() == 0)
+				{
+					map.get(location[0]).get(location[1]).setEncoding(Encoding.NOTHING);
+					debugPrint("Resetting " + location[0] + "," + location[1]);
+				}
 				return getNextPlanStep();
 			}
 			//If we have just made a move
-			if(justMoved || plan.peek().equals(map[marioMapLoc[0]][marioMapLoc[1]]))
+			if(justMoved || plan.peek().equals(map.get(marioMapLoc[0]).get(marioMapLoc[1])))
 			{
 				//If we're where we expected to be
 				if(isInExpectedSquare())
@@ -232,20 +253,35 @@ public class LevelSceneInvestigator
 		private int[] getNextPlanStep()
 		{
 			//If we have no plan, we cannot get the next step from it.
-			if(plan == null || plan.size() == 0) {return null;}
+			if(plan == null || plan.size() == 0)
+			{
+				int[] loc = checkForEnemies(4, 4);
+				if(loc!=null)
+				{
+					makePlan(loc);
+					if(plan != null)
+					{
+						return getNextPlanStep();
+					}
+				}
+				return null;
+			}
 			
 			//This is the next step of the plan
 			MapSquare nextLocation = plan.peek();
 			while(Encoding.isEnvironment(nextLocation.getEncoding()) && nextLocation.getEncoding()!= 0)
 			{
 				plan.pop();
-				if(plan.size() == 0) {return null;}
+				if(plan.size() == 0)
+				{
+					return checkForEnemies(4, 4);
+				}
 				nextLocation = plan.peek();
 			}
 			
 			//FIXME: jumping workaround as currently Movement judges size of jump based on distance from current square
 				int i = 1;
-				MapSquare marioMapLocSquare = map[marioMapLoc[0]][marioMapLoc[1]];
+				MapSquare marioMapLocSquare = map.get(marioMapLoc[0]).get(marioMapLoc[1]);
 				//While the next plan square is above this one, get the next one
 				while(marioMapLocSquare!=null && marioMapLocSquare.getSquareAbove() == nextLocation)
 				{
@@ -256,6 +292,13 @@ public class LevelSceneInvestigator
 					//get the next square in the plan
 					nextLocation = plan.elementAt(i++);
 				}
+				
+			int[] enemies = checkForEnemies(nextLocation.getMapLocationX(), nextLocation.getMapLocationY());
+			if(enemies!=null)
+			{
+				plan.push(map.get(enemies[0]).get(enemies[1]));
+				return enemies;
+			}
 			
 			//Put this step into an array
 			int[] nextStep = new int[2];
@@ -265,11 +308,30 @@ public class LevelSceneInvestigator
 			//If the next step is the same as this square, something has gone wrong.
 			if(nextStep.toString().equals(marioMapLoc.toString()))
 			{
-				debugPrint("ARGH ERROR");
+				debugPrint("ARGH ERROR!!!!!!!!!!!!!");
 			}
 			
 			//Return it
 			return nextStep;
+		}
+		private int[] checkForEnemies(int xBound, int yBound)
+		{
+			for(int j = marioMapLoc[0]; j >= Math.max(yBound, 0) ; --j)
+			{
+				for(int k = marioMapLoc[1]; k >= Math.max(xBound, 0) ; --k)
+				{
+					if(Encoding.isSprite(map.get(j).get(k)))
+					{
+						enemyFound = true;
+						int[] result = new int[2];
+						result[0] = j - 1;
+						result[1] = k;
+						return result;
+					}
+				}
+			}
+			enemyFound = false;
+			return null;
 		}
 		/**
 		 * Attempts to find a way for Mario to get back on track with {@link #plan}.
@@ -290,7 +352,7 @@ public class LevelSceneInvestigator
 			for(int i = 0; i<plan.size(); ++i)
 			{
 				//Find a new plan to this square from the current square, using the same number of steps (+ the adjustment value)
-				Stack<MapSquare> thisPlan = Search.aStar(plan.get(i), map[marioMapLoc[0]][marioMapLoc[1]], plan.size() - i + adjustment);
+				Stack<MapSquare> thisPlan = Search.aStar(plan.get(i), map.get(marioMapLoc[0]).get(marioMapLoc[1]), plan.size() - i + adjustment);
 				if(
 						//we have successfully found a route to the required square
 						thisPlan != null &&
@@ -311,7 +373,7 @@ public class LevelSceneInvestigator
 			
 			if(rejoinSquare < 0) //we failed to find a new route
 			{
-				System.err.println("Plan unachievable. Can't reach " + plan.peek() + " from " + map[marioMapLoc[0]][marioMapLoc[1]]);
+				System.err.println("Plan unachievable. Can't reach " + plan.peek() + " from " + map.get(marioMapLoc[0]).get(marioMapLoc[1]));
 				//remove plan as it is unachievable from the current position
 				plan.clear();
 			}
@@ -319,7 +381,7 @@ public class LevelSceneInvestigator
 			{
 				debugPrint("Replanning from square " + rejoinSquare);
 				//Remove all steps in the plan before the point at which the new plan joins the old plan
-				for(int i = 0; i < plan.size() - rejoinSquare; ++i)
+				for(int i = rejoinSquare; i < plan.size(); ++i)
 				{
 					plan.pop();
 				}
@@ -332,12 +394,12 @@ public class LevelSceneInvestigator
 			}
 		}
 		/**
-		 * Makes a plan from the current position ({@link #marioMapLoc} to the desiredPosition and stores it in {@link #plan}.
+		 * Makes a plan from the current position {@link #marioMapLoc} to the desiredPosition and stores it in {@link #plan}.
 		 * @param desiredPosition - a int array of size 2 representing the location that the plan should head towards
 		 */
 		private void makePlan(int[] desiredPosition)
 		{
-			plan = Search.aStar(map[desiredPosition[0]][desiredPosition[1]], map[marioMapLoc[0]][marioMapLoc[1]]);
+			plan = Search.aStar(map.get(desiredPosition[0]).get(desiredPosition[1]), map.get(marioMapLoc[0]).get(marioMapLoc[1]));
 			if(plan!=null)debugPrint("Made new plan of size " + plan.size());
 		}
 		/**
@@ -375,8 +437,8 @@ public class LevelSceneInvestigator
 						++j
 					)
 				{
-					if(map[j][i] == null) {continue;}
-					if(map[j][i].getEncoding() == Encoding.COIN)
+					if(map.get(j).get(i) == null) {continue;}
+					if(map.get(j).get(i).getEncoding() == Encoding.COIN)
 					{
 						int[] result = new int[2];
 						result[0] = j;
@@ -398,14 +460,14 @@ public class LevelSceneInvestigator
 			
 			for(int i = 1; i < Movement.MAX_JUMP_WIDTH; ++i)
 			{
-				byte square = map[marioMapLoc[0]][marioMapLoc[1] + (i * direction)]!= null ? map[marioMapLoc[0]][marioMapLoc[1] + (i * direction)].getEncoding() : 0;
+				byte square = map.get(marioMapLoc[0]).get(marioMapLoc[1] + (i * direction))!= null ? map.get(marioMapLoc[0]).get(marioMapLoc[1] + (i * direction)).getEncoding() : 0;
 				if(Encoding.isEnvironment(square))
 				{
 					int[] result = new int[2];
 	
 					result[1] = marioMapLoc[1] + (i * direction);
 					result[0] = marioMapLoc[0];
-					while(Encoding.isEnvironment(map[result[0]][result[1]]))
+					while(Encoding.isEnvironment(map.get(result[0]).get(result[1])))
 					{
 						result[0] -= 1;
 					}
@@ -424,11 +486,11 @@ public class LevelSceneInvestigator
 		private void findSquareSize(float[] marioScreenPos)
 		{
 			if(y >= -1)
-			for(int i = 0; i < map.length; ++i)
+			for(int i = 0; i < map.size(); ++i)
 			{
-				for(int j = 0; j < map[i].length; ++j)
+				for(int j = 0; j < map.get(i).size(); ++j)
 				{
-					if(map[i][j] != null && map[i][j].getEncoding() == -90)
+					if(map.get(i).get(j) != null && map.get(i).get(j).getEncoding() == -90)
 					{
 						if(y == -1)
 						{
@@ -510,14 +572,14 @@ public class LevelSceneInvestigator
 		}
 		private void printMap()
 		{
-			for(int i = 0; i<map.length; ++i)
+			for(int i = 0; i<map.size(); ++i)
 			{
-				for(int j = 0; j<map[i].length; ++j)
+				for(int j = 0; j<map.get(i).size(); ++j)
 				{
 					String s = "";
 					if(i == marioMapLoc[0] && j == marioMapLoc[1]) {s += "*";}
-					if(map[i][j] == null) {s += ""+map[i][j];}
-					else {s += ""+map[i][j].getEncoding();}
+					if(map.get(i).get(j) == null) {s += ""+map.get(i).get(j);}
+					else {s += ""+map.get(i).get(j).getEncoding();}
 					if(i == marioMapLoc[0] && j == marioMapLoc[1]) {s += "*";}
 					while(s.length()<4)
 					{

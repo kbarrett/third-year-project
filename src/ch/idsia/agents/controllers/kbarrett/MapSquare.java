@@ -9,7 +9,7 @@ public class MapSquare {
 	private ArrayList<MapSquare> reachableSquares;
 	private int locationInMapX;
 	private int locationInMapY;
-	private MapSquare[][] map;
+	private ArrayList<ArrayList<MapSquare>> map;
 	
 	//Data getters & setters
 	public int getMapLocationX() {return locationInMapX;}
@@ -23,7 +23,7 @@ public class MapSquare {
 	}
 	
 	//Constructor
-	public MapSquare(byte encoding, MapSquare[][] map, int locationInMapX, int locationInMapY)
+	public MapSquare(byte encoding, ArrayList<ArrayList<MapSquare>> map, int locationInMapX, int locationInMapY)
 	{
 		this.encoding = encoding;
 		this.locationInMapX = locationInMapX;
@@ -31,10 +31,11 @@ public class MapSquare {
 		this.map = map;
 	}
 	
-	public void setLocInMap(int newX, int newY)
+	public void setLocInMap(int newX, int newY, ArrayList<ArrayList<MapSquare>> map)
 	{
 		locationInMapX = newX;
 		locationInMapY = newY;
+		this.map = map;
 	}
 	
 	private void addToReachableSquares(MapSquare square)
@@ -48,22 +49,22 @@ public class MapSquare {
 	public MapSquare getSquareAbove()
 	{
 		if(locationInMapY <= 0) {return null;}
-		return map[locationInMapY - 1][locationInMapX];
+		return map.get(locationInMapY - 1).get(locationInMapX);
 	}
 	public MapSquare getSquareBelow()
 	{
-		if(locationInMapY >= map.length - 1) {return null;}
-		return map[locationInMapY + 1][locationInMapX];
+		if(locationInMapY >= map.size() - 1) {return null;}
+		return map.get(locationInMapY + 1).get(locationInMapX);
 	}
 	public MapSquare getSquareLeft()
 	{
 		if(locationInMapX <= 0) {return null;}
-		return map[locationInMapY][locationInMapX - 1];
+		return map.get(locationInMapY).get(locationInMapX - 1);
 	}
 	public MapSquare getSquareRight()
 	{
-		if(locationInMapX >= map[0].length - 1) {return null;}
-		return map[locationInMapY][locationInMapX + 1];
+		if(locationInMapX >= map.get(0).size() - 1) {return null;}
+		return map.get(locationInMapY).get(locationInMapX + 1);
 	}
 	
 	public void workOutReachableSquares()
@@ -85,7 +86,7 @@ public class MapSquare {
 		}
 		//Vertical
 			
-			if(!Encoding.isEnvironment(getSquareAbove()))
+			if(!Encoding.isEnvironment(getSquareAbove()) && Encoding.isEnvironment(getSquareBelow()))
 			{
 				//He can reach the square above
 				addToReachableSquares(getSquareAbove());

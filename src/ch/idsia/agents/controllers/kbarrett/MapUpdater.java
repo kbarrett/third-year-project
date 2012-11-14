@@ -1,6 +1,7 @@
 package ch.idsia.agents.controllers.kbarrett;
 
 import java.awt.geom.Point2D;
+import java.util.ArrayList;
 
 /**
  * Used to update the map from a levelScene.
@@ -10,7 +11,7 @@ import java.awt.geom.Point2D;
  */
 public class MapUpdater {
 	
-	private static MapSquare[][] map;
+	private static ArrayList<ArrayList<MapSquare>> map;
 	private static byte[][] levelScene;
 	private static int[] marioMapLoc;
 	
@@ -23,7 +24,7 @@ public class MapUpdater {
 	 * @param marioMapLoc - mario's location in map
 	 * @return
 	 */
-	public static MapSquare[][] updateMap(MapSquare[][] map, byte[][] levelScene, int[] marioMapLoc)
+	public static ArrayList<ArrayList<MapSquare>> updateMap(ArrayList<ArrayList<MapSquare>> map, byte[][] levelScene, int[] marioMapLoc)
 	{
 		MapUpdater.map = map;
 		MapUpdater.levelScene = levelScene;
@@ -45,11 +46,10 @@ public class MapUpdater {
 				int levelSceneMidPoint1 = (levelScene[i].length / 2);
 				int y = getMapYCoordinate(i,  marioMapLoc[0], levelSceneMidPoint0);
 				int x = getMapXCoordinate(j,  marioMapLoc[1], levelSceneMidPoint1);
-				MapSquare square = map[y][x];
+				MapSquare square = map.get(y).get(x);
 				if(square==null)
 				{
-					map[y][x] 
-							= new MapSquare(levelScene[i][j], map, x, y);
+					map.get(y).set(x, new MapSquare(levelScene[i][j], map, x, y));
 				}
 				else
 				{
@@ -67,7 +67,7 @@ public class MapUpdater {
 			int levelSceneMidPoint1 = (levelScene[i].length / 2);
 			for(int j = 0; j < levelScene[i].length; ++j)
 			{
-				MapSquare square = map[getMapYCoordinate(i,  marioMapLoc[0], levelSceneMidPoint0)][getMapXCoordinate(j,  marioMapLoc[1], levelSceneMidPoint1)];
+				MapSquare square = map.get(getMapYCoordinate(i,  marioMapLoc[0], levelSceneMidPoint0)).get(getMapXCoordinate(j,  marioMapLoc[1], levelSceneMidPoint1));
 				square.workOutReachableSquares();
 			}
 		}
@@ -75,88 +75,42 @@ public class MapUpdater {
 	/**
 	 * @return MapSquare[][] of the required size to fit the new levelScene observations into.
 	 */
-	private static MapSquare[][] getNewMapOfCorrectSize()
+	private static ArrayList<ArrayList<MapSquare>> getNewMapOfCorrectSize()
 	{
 		int levelSceneMidPoint0 = (levelScene.length / 2);
 		int levelSceneMidPoint1 = (levelScene[0].length / 2);
 		
-		MapSquare[][] newMap = null;
-		if(marioMapLoc[0] + levelSceneMidPoint0 >= map.length) //if off bottom of map
+		if(marioMapLoc[0] + levelSceneMidPoint0 >= map.size()) //if off bottom of map
 		{
-			if(marioMapLoc[1] + levelSceneMidPoint1 >= map[0].length) //if off right of map
-			{
-				newMap = transferOldMapIntoNewMap(
-						map.length + levelSceneMidPoint0, 
-						map[0].length  + levelSceneMidPoint1, 
-						new Point2D.Float(0,0));
-			}
-			else if(marioMapLoc[1] < levelSceneMidPoint1) //if off left of map
-			{
-				newMap = transferOldMapIntoNewMap(
-						map.length + levelSceneMidPoint0, 
-						map[0].length  + levelSceneMidPoint1, 
-						new Point2D.Float(0,levelSceneMidPoint1));
-				marioMapLoc[1]+=levelSceneMidPoint1;
-			}
-			else
-			{
-				newMap = transferOldMapIntoNewMap(
-						map.length + levelSceneMidPoint0,
-						map[0].length, 
-						new Point2D.Float(0,0));
-			}
+			map = transferOldMapIntoNewMap(
+					map.size() + levelSceneMidPoint0,
+					map.get(0).size(), 
+					new Point2D.Float(0,0));
 		}
-		else if(marioMapLoc[0] < levelSceneMidPoint0) //if off top of map
+		if(marioMapLoc[0] < levelSceneMidPoint0) //if off top of map
 		{
-			if(marioMapLoc[1] + levelSceneMidPoint1 >= map[0].length) //if off right of map
-			{
-				newMap = transferOldMapIntoNewMap(
-						map.length + levelSceneMidPoint0, 
-						map[0].length  + levelSceneMidPoint1, 
-						new Point2D.Float(levelSceneMidPoint0,0));
-				marioMapLoc[0]+=levelSceneMidPoint0;
-			}
-			else if(marioMapLoc[1] < levelSceneMidPoint1) //if off left of map
-			{
-				newMap = transferOldMapIntoNewMap(
-						map.length + levelSceneMidPoint0, 
-						map[0].length  + levelSceneMidPoint1, 
-						new Point2D.Float(levelSceneMidPoint0,levelSceneMidPoint1));
-				marioMapLoc[0]+=levelSceneMidPoint0;
-				marioMapLoc[1]+=levelSceneMidPoint1;
-			}
-			else
-			{
-				newMap = transferOldMapIntoNewMap(
-						map.length + levelSceneMidPoint0, 
-						map[0].length, 
-						new Point2D.Float(levelSceneMidPoint0, 0));
-				marioMapLoc[0]+=levelSceneMidPoint0;
-			}
+			map = transferOldMapIntoNewMap(
+					map.size() + levelSceneMidPoint0, 
+					map.get(0).size(), 
+					new Point2D.Float(levelSceneMidPoint0, 0));
+			marioMapLoc[0]+=levelSceneMidPoint0;
 		}
-		else
+		if(marioMapLoc[1] + levelSceneMidPoint1 >= map.get(0).size()) //if off right of map
 		{
-			if(marioMapLoc[1] + levelSceneMidPoint1 >= map[0].length) //if off right of map
-			{
-				newMap = transferOldMapIntoNewMap(
-						map.length, 
-						map[0].length + levelSceneMidPoint1, 
-						new Point2D.Float(0,0));
-			}
-			else if(marioMapLoc[1] < levelSceneMidPoint1) //if off left of map
-			{
-				newMap = transferOldMapIntoNewMap(
-						map.length, 
-						map[0].length  + levelSceneMidPoint1, 
-						new Point2D.Float(0,levelSceneMidPoint1));
-				marioMapLoc[1]+=levelSceneMidPoint1;
-			}
+			map = transferOldMapIntoNewMap(
+					map.size(), 
+					map.get(0).size()  + levelSceneMidPoint1, 
+					new Point2D.Float(0,0));
 		}
-		if(newMap == null) //if none of those
+		if(marioMapLoc[1] < levelSceneMidPoint1) //if off left of map
 		{
-			return map;
+			map = transferOldMapIntoNewMap(
+					map.size(), 
+					map.get(0).size()  + levelSceneMidPoint1, 
+					new Point2D.Float(0,levelSceneMidPoint1));
+			marioMapLoc[1]+=levelSceneMidPoint1;
 		}
-		return newMap;
+		return map;
 	}
 	/**
 	 * Copies the old map array into the new one in the correct position.
@@ -165,17 +119,21 @@ public class MapUpdater {
 	 * @param newPosOfOrigin - the position the origin of the old map needs to take in the new map
 	 * @return MapSquare[][] with the all the same MapSquares as the old map, but with additional nulls where the map has been enlarged.
 	 */
-	private static MapSquare[][] transferOldMapIntoNewMap(int newHeight, int newWidth, Point2D.Float newPosOfOrigin)
+	private static ArrayList<ArrayList<MapSquare>> transferOldMapIntoNewMap(int newHeight, int newWidth, Point2D.Float newPosOfOrigin)
 	{
-		MapSquare[][] newMap = new MapSquare[newHeight][newWidth];
-		for(int i = (int) newPosOfOrigin.x; i < map.length; ++i)
+		ArrayList<ArrayList<MapSquare>> newMap = new ArrayList<ArrayList<MapSquare>>(newHeight);
+		for(int i = 0; i < newHeight; ++i)
 		{
-			for(int j = (int) newPosOfOrigin.y; j< map[i].length; ++j)
+			newMap.add(new ArrayList<MapSquare>(newWidth));
+		}
+		for(int i = (int) newPosOfOrigin.x; i < map.size(); ++i)
+		{
+			for(int j = (int) newPosOfOrigin.y; j< map.get(i).size(); ++j)
 			{
-				newMap[i][j] = map[i][j];
-				if(newMap[i][j]!=null)
+				newMap.get(i).set(j, map.get(i).get(j));
+				if(newMap.get(i).get(j)!=null)
 				{
-					newMap[i][j].setLocInMap(j, i);
+					newMap.get(i).get(j).setLocInMap(j, i, map);
 				}
 			}
 		}

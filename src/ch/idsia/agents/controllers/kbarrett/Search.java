@@ -10,7 +10,7 @@ import ch.idsia.agents.controllers.kbarrett.MapSquare.Direction;
 public class Search {
 	
 	private static final int DIVISOR = 3;
-	private static final int DEFAULT_CUT_OFF_POINT = 15;
+	private static final int DEFAULT_CUT_OFF_POINT = 10;
 	
 	public static Stack<MapSquare> aStar(MapSquare destination, MapSquare start)
 	{
@@ -38,6 +38,7 @@ public class Search {
 		
 		MapSquareWrapper initialSquare = new MapSquareWrapper(start, null, 0, 0);
 		initialSquare.setG(0);
+		initialSquare.calculateH(destination);
 		exploredSquares.add(initialSquare);
 		
 		while(!exploredSquares.isEmpty())

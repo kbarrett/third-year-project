@@ -110,6 +110,14 @@ public class Movement
 		}
 	
 	//Methods relating to Mario movements - these are involved in actually setting the booleans in the actions array
+		
+		public void isEnemy(boolean wantToShoot)
+		{
+			if(wantToShoot)
+			{
+				actions[Mario.KEY_SPEED] = true;
+			}
+		}
 	
 		/**
 		 * Sets the action array to actions that will move Mario towards the provided location.
@@ -171,6 +179,10 @@ public class Movement
 			 * The princess (end of the level) will be towards the right, so most of the level should be right of 
 			 * Mario, hence the best move when no information has been provided is to move towards the right.
 			 */
+			if(!isJumping() && 10 * Math.random() < 1)
+			{
+				jumpSize = MAX_JUMP_HEIGHT;
+			}
 			goRight();
 		}
 		/**

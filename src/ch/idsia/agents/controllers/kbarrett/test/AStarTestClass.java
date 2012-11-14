@@ -1,5 +1,7 @@
 package ch.idsia.agents.controllers.kbarrett.test;
 
+import java.util.ArrayList;
+
 import ch.idsia.agents.controllers.kbarrett.Encoding;
 import ch.idsia.agents.controllers.kbarrett.FirstAgent;
 import ch.idsia.agents.controllers.kbarrett.MapSquare;
@@ -9,7 +11,7 @@ import ch.idsia.agents.controllers.kbarrett.Search;
 public class AStarTestClass {
 	
 	static boolean debug = FirstAgent.debug;
-	static MapSquare[][] map = new MapSquare[7][7];
+	static ArrayList<ArrayList<MapSquare>> map = new ArrayList<ArrayList<MapSquare>>(7);
 	static int[] marioMapLoc = {5,3};
 	
 	public static void main(String[] args)
@@ -37,7 +39,7 @@ public class AStarTestClass {
 		int[] marioMapLoc = {3,3};
 		map = MapUpdater.updateMap(map, levelScene, marioMapLoc);
 		
-		Search.aStar(map[2][4], map[AStarTestClass.marioMapLoc[0]][AStarTestClass.marioMapLoc[1]]);
+		Search.aStar(map.get(2).get(4), map.get(AStarTestClass.marioMapLoc[0]).get(AStarTestClass.marioMapLoc[1]));
 		
 	}
 

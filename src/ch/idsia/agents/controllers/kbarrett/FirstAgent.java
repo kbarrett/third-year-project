@@ -76,6 +76,7 @@ public class FirstAgent implements Agent {
 			{
 				movement.moveTowards(
 						levelSceneInvestigator.getNextLocation(movement.isFacingRight(), movement.isJumping()));
+				movement.isEnemy(levelSceneInvestigator.isEnemy() && environment.isMarioAbleToShoot());
 			}
 	}
 
