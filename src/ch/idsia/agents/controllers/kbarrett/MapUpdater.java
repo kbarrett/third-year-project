@@ -36,7 +36,7 @@ public class MapUpdater {
 
 	private static void updateMap()
 	{
-		map = getNewMapOfCorrectSize();
+		increaseMapSize();
 		for(int i = 0; i < levelScene.length; ++i)
 		{
 			int levelSceneMidPoint0 = (levelScene.length / 2);
@@ -75,42 +75,45 @@ public class MapUpdater {
 	/**
 	 * @return MapSquare[][] of the required size to fit the new levelScene observations into.
 	 */
-	private static ArrayList<ArrayList<MapSquare>> getNewMapOfCorrectSize()
+	private static void increaseMapSize()
 	{
 		int levelSceneMidPoint0 = (levelScene.length / 2);
 		int levelSceneMidPoint1 = (levelScene[0].length / 2);
+		int[] origin = {0,0};
 		
 		if(marioMapLoc[0] + levelSceneMidPoint0 >= map.size()) //if off bottom of map
 		{
 			map = transferOldMapIntoNewMap(
-					map.size() + levelSceneMidPoint0,
+					levelSceneMidPoint0 + marioMapLoc[0],
 					map.get(0).size(), 
-					new Point2D.Float(0,0));
+					origin);
 		}
 		if(marioMapLoc[0] < levelSceneMidPoint0) //if off top of map
 		{
+			origin[0] = levelSceneMidPoint0;
 			map = transferOldMapIntoNewMap(
-					map.size() + levelSceneMidPoint0, 
+					map.size() + levelSceneMidPoint0 - marioMapLoc[0], 
 					map.get(0).size(), 
-					new Point2D.Float(levelSceneMidPoint0, 0));
-			marioMapLoc[0]+=levelSceneMidPoint0;
+					origin);
+			origin[0] = 0;
+			marioMapLoc[0]+=levelSceneMidPoint0 - marioMapLoc[0];
 		}
 		if(marioMapLoc[1] + levelSceneMidPoint1 >= map.get(0).size()) //if off right of map
 		{
 			map = transferOldMapIntoNewMap(
 					map.size(), 
-					map.get(0).size()  + levelSceneMidPoint1, 
-					new Point2D.Float(0,0));
+					levelSceneMidPoint1 + marioMapLoc[1], 
+					origin);
 		}
 		if(marioMapLoc[1] < levelSceneMidPoint1) //if off left of map
 		{
+			origin[1] = levelSceneMidPoint1;
 			map = transferOldMapIntoNewMap(
 					map.size(), 
-					map.get(0).size()  + levelSceneMidPoint1, 
-					new Point2D.Float(0,levelSceneMidPoint1));
-			marioMapLoc[1]+=levelSceneMidPoint1;
+					map.get(0).size()  + levelSceneMidPoint1 - marioMapLoc[1], 
+					origin);
+			marioMapLoc[1]+=levelSceneMidPoint1 - marioMapLoc[1];
 		}
-		return map;
 	}
 	/**
 	 * Copies the old map array into the new one in the correct position.
@@ -119,25 +122,35 @@ public class MapUpdater {
 	 * @param newPosOfOrigin - the position the origin of the old map needs to take in the new map
 	 * @return MapSquare[][] with the all the same MapSquares as the old map, but with additional nulls where the map has been enlarged.
 	 */
-	private static ArrayList<ArrayList<MapSquare>> transferOldMapIntoNewMap(int newHeight, int newWidth, Point2D.Float newPosOfOrigin)
+	private static ArrayList<ArrayList<MapSquare>> transferOldMapIntoNewMap(int newHeight, int newWidth, int[] newPosOfOrigin)
 	{
-		ArrayList<ArrayList<MapSquare>> newMap = new ArrayList<ArrayList<MapSquare>>(newHeight);
-		for(int i = 0; i < newHeight; ++i)
+		while(map.size() <= newHeight)
 		{
-			newMap.add(new ArrayList<MapSquare>(newWidth));
+			map.add(new ArrayList<MapSquare>(newWidth));
 		}
-		for(int i = (int) newPosOfOrigin.x; i < map.size(); ++i)
+		for(int i = 0; i < map.size(); ++i)
 		{
-			for(int j = (int) newPosOfOrigin.y; j< map.get(i).size(); ++j)
+			while(map.get(i).size() <= newWidth)
 			{
-				newMap.get(i).set(j, map.get(i).get(j));
-				if(newMap.get(i).get(j)!=null)
+				map.get(i).add(null);
+			}
+		}
+		if(newPosOfOrigin[0] != 0 || newPosOfOrigin[1] != 0)
+		{
+			for(int i = map.size() - 1; i >= newPosOfOrigin[0]; --i)
+			{
+				for(int j = map.get(i).size() - 1; j >= newPosOfOrigin[1]; --j)
 				{
-					newMap.get(i).get(j).setLocInMap(j, i, map);
+					map.get(i).set(j, map.get(i - newPosOfOrigin[0]).get(j - newPosOfOrigin[1]));
+					map.get(i - newPosOfOrigin[0]).set(j - newPosOfOrigin[1], null);
+					if(map.get(i)!=null && map.get(i).get(j)!=null)
+					{
+						map.get(i).get(j).setLocInMap(j, i, map);
+					}
 				}
 			}
 		}
-		return newMap;
+		return map;
 	}
 	
 	public static int[] getLevelSceneCoordinates(int[] mapCoords, int[] marioMapLoc, int[] marioLoc)

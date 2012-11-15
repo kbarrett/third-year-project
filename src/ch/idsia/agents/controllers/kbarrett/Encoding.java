@@ -16,9 +16,10 @@ public class Encoding
 	 * If it is > ENVIRONMENTTYPE, it is a Sprite (e.g. enemy/coin).
 	 * Note: if they are equal, the encoding represents nothing.
 	 * @see ch.idsia.agents.controllers.kbarrett.Encoding#isEnvironment(byte)
-	 * @see ch.idsia.agents.controllers.kbarrett.Encoding#isSprite(byte)
+	 * @see ch.idsia.agents.controllers.kbarrett.Encoding#isEnemySprite(byte)
 	 */
-	static final public byte ENVIRONMENTTYPE = 0;
+	static final private byte ENVIRONMENTTYPE = 0;
+	static final private byte ENEMYTYPE = 80; 
 	/**
 	 * Used to check whether a given encoding is an Environment type.
 	 * @param type - the encoding of the piece
@@ -56,6 +57,16 @@ public class Encoding
 	{
 		if(type==null) {return false;}
 		return isSprite(type.getEncoding());
+	}
+	
+	static final public boolean isEnemySprite(byte type)
+	{
+		return type >= ENEMYTYPE;
+	}
+	static final public boolean isEnemySprite(MapSquare type)
+	{
+		if(type==null) {return false;}
+		return isEnemySprite(type.getEncoding());
 	}
 	
 	//Encodings of Environment : represented by negative integers

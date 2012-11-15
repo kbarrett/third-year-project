@@ -90,7 +90,7 @@ public class FirstAgent implements Agent {
 	 */
 	@Override
 	public void giveIntermediateReward(float intermediateReward) {
-		// TODO Auto-generated method stub
+		// FIXME Auto-generated method stub
 
 	}
 

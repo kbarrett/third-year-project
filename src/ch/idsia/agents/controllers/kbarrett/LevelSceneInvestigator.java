@@ -91,35 +91,23 @@ public class LevelSceneInvestigator
 				this.marioScreenPos[1] = marioScreenPos[1];
 			}
 			//Otherwise check it is sufficiently far away from the last known position before updating
-			else if (
-					Math.abs(this.marioScreenPos[0] - marioScreenPos[0]) > SQUARESIZE ||
-					Math.abs(this.marioScreenPos[1] - marioScreenPos[1]) > SQUARESIZE
-				)
+			else if (Math.abs(this.marioScreenPos[0] - marioScreenPos[0]) > SQUARESIZE || Math.abs(this.marioScreenPos[1] - marioScreenPos[1]) > SQUARESIZE) 
 			{
-				//Update Mario's vertical position in the map
-					if(this.marioScreenPos[0] - marioScreenPos[0] > SQUARESIZE) //Mario has moved downwards
-					{
-						++marioMapLoc[0];
-					}
-					else if(marioScreenPos[0] - this.marioScreenPos[0] > SQUARESIZE) //Mario has moved upwards
-					{
-						--marioMapLoc[0];
-					}
-				//Update Mario's horizontal position in the map
-					if(marioScreenPos[1] - this.marioScreenPos[1] > SQUARESIZE) //Mario has moved right
-					{
-						++marioMapLoc[1];
-					}
-					else if(this.marioScreenPos[1] - marioScreenPos[1] > SQUARESIZE) //Mario has moved left
-					{
-						--marioMapLoc[1];
-					}
-					
-					//Update the new current position to be here.
-					this.marioScreenPos[0] = marioScreenPos[0];
-					this.marioScreenPos[1] = marioScreenPos[1];
-					justMoved = true;
-					
+				if (Math.abs(this.marioScreenPos[0] - marioScreenPos[0]) > SQUARESIZE) 
+				{
+					//Update Mario's vertical position in the map
+					marioMapLoc[0] += (int)((marioScreenPos[0] - this.marioScreenPos[0])/SQUARESIZE);
+				}
+				if(Math.abs(this.marioScreenPos[1] - marioScreenPos[1]) > SQUARESIZE)
+				{
+					//Update Mario's horizontal position in the map
+					marioMapLoc[1] += (int)((marioScreenPos[1] - this.marioScreenPos[1])/SQUARESIZE);
+				}
+				//Update the new current position to be here.
+				this.marioScreenPos[0] = marioScreenPos[0];
+				this.marioScreenPos[1] = marioScreenPos[1];
+				justMoved = true;
+				System.out.println("MOVED TO " + marioMapLoc[0] +"," + marioMapLoc[1]);		
 			}
 			//Otherwise we haven't just updated Mario's position, so he's in the same map square as previously
 			else
@@ -148,7 +136,7 @@ public class LevelSceneInvestigator
 			{
 				numberOfCollectedCoins = coins;
 			}
-			//TODO: To be used to see if a coin has been achieved by an action in order to give up if impossible 
+			//FIXME: To be used to see if a coin has been achieved by an action in order to give up if impossible 
 		}
 		/**
 		 * If no {@link #map} has previously been created, creates a map of the given size.
@@ -157,6 +145,8 @@ public class LevelSceneInvestigator
 		 */
 		public void giveMapSize(int width, int height)
 		{
+			//FIXME: neaten this
+			width = 1; height = 1;
 			if(map==null)
 			{
 				map = new ArrayList<ArrayList<MapSquare>>(height);
@@ -234,7 +224,7 @@ public class LevelSceneInvestigator
 				return getNextPlanStep();
 			}
 			
-			//TODO: check for enemies
+			//FIXME: check for enemies
 		}
 		
 		/**
@@ -320,7 +310,7 @@ public class LevelSceneInvestigator
 			{
 				for(int k = marioMapLoc[1]; k >= Math.max(xBound, 0) ; --k)
 				{
-					if(Encoding.isSprite(map.get(j).get(k)))
+					if(Encoding.isEnemySprite(map.get(j).get(k)))
 					{
 						enemyFound = true;
 						int[] result = new int[2];
@@ -469,7 +459,12 @@ public class LevelSceneInvestigator
 					result[0] = marioMapLoc[0];
 					while(Encoding.isEnvironment(map.get(result[0]).get(result[1])))
 					{
-						result[0] -= 1;
+						--result[0];
+						if(result[0] < 0 || map.get(result[0]).get(result[1]) == null)
+						{
+							return null;
+							//FIXME: deal with inability to jump over
+						}
 					}
 					return result;
 				}

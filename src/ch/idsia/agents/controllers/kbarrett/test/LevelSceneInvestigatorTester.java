@@ -51,7 +51,8 @@ public class LevelSceneInvestigatorTester {
 		}*/
 		
 		ArrayList<ArrayList<MapSquare>> map = new ArrayList<ArrayList<MapSquare>>();
-		map.set(0, new ArrayList<MapSquare>()).set(0,new MapSquare((byte) 0, null, 0, 0));
+		map.add(new ArrayList<MapSquare>());
+		map.get(0).add(new MapSquare((byte) 0, map, 0, 0));
 		byte[][] levelScene = {{1,0,0},{0,1,1},{0,0,1}};
 		byte[][] levelScene2 = {{2,0,0},{0,2,0},{0,0,2}};
 		int[] marioMapLoc = {0,0};
@@ -61,7 +62,7 @@ public class LevelSceneInvestigatorTester {
 			map = (i%2==0 ? MapUpdater.updateMap(map, levelScene, marioMapLoc) : MapUpdater.updateMap(map, levelScene2, marioMapLoc));
 			printMap(map);
 			System.out.println("---------");
-			if(i%3==0){marioMapLoc[1]++;}
+			if(i%2 == 1){marioMapLoc[1]++;}
 			if(i%2 == 0) {marioMapLoc[0]++;}
 		}
 	}

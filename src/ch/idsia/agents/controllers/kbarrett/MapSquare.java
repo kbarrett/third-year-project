@@ -178,7 +178,7 @@ public class MapSquare {
 	@Override
 	public String toString()
 	{
-		return locationInMapY + "," + locationInMapX;
+		return ""+encoding;
 	}
 	
 	@Override
