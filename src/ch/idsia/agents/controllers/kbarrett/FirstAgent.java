@@ -15,7 +15,7 @@ public class FirstAgent implements Agent {
 	/**
 	 * Remove this to find everywhere where a debug instruction has been entered.
 	 */
-	public static boolean debug = true;
+	public static boolean debug = false;
 	
 	String name = "FirstAgent";
 	
@@ -56,14 +56,16 @@ public class FirstAgent implements Agent {
 		
 		//Update other classes with this information
 			//Give Movement & LevelSceneInvestigator Mario's location
-				levelSceneInvestigator.setMarioLoc(environment.getMarioEgoPos(), movement);
+				levelSceneInvestigator.setMarioLoc(environment.getMarioEgoPos());
 			
 			//Give LevelSceneInvestigator the new LevelScene & Mario's new screen position
-				levelSceneInvestigator.updateMapFromLevelScene(environment.getMergedObservationZZ(0, 0));
 				levelSceneInvestigator.setMarioScreenPos(environment.getMarioFloatPos());
-		
+				levelSceneInvestigator.updateMapFromLevelScene(environment.getMergedObservationZZ(0, 0));
+				
 			//Update knowledge of how many coins Mario has collected
 				levelSceneInvestigator.updateCoins(Mario.coins);
+				
+				movement.setMarioMapLoc(levelSceneInvestigator.getMarioMapLoc());
 		
 		//Use provided information to decide on next move
 			//If Mario was jumping but has landed, pass this information to Movement

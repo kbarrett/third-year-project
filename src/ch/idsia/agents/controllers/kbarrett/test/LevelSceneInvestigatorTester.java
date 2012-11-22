@@ -62,8 +62,16 @@ public class LevelSceneInvestigatorTester {
 			map = (i%2==0 ? MapUpdater.updateMap(map, levelScene, marioMapLoc) : MapUpdater.updateMap(map, levelScene2, marioMapLoc));
 			printMap(map);
 			System.out.println("---------");
-			if(i%2 == 1){marioMapLoc[1]++;}
-			if(i%2 == 0) {marioMapLoc[0]++;}
+			if(i%2 == 1){marioMapLoc[1]--;}
+			if(i%2 == 0) {marioMapLoc[0]--;}
+		}
+		for(int i = 0; i<5; ++i)
+		{
+			map = (i%2==0 ? MapUpdater.updateMap(map, levelScene, marioMapLoc) : MapUpdater.updateMap(map, levelScene2, marioMapLoc));
+			printMap(map);
+			System.out.println("---------");
+			if(i%2 == 1){marioMapLoc[1]--;}
+			if(i%2 == 0) {marioMapLoc[0]--;}
 		}
 	}
 	

@@ -50,7 +50,7 @@ public class BasicTask implements Task
 protected final static Environment environment = MarioEnvironment.getInstance();
 private Agent agent;
 protected MarioAIOptions options;
-private long COMPUTATION_TIME_BOUND = 500;//42; // stands for prescribed  FPS 24.
+private long COMPUTATION_TIME_BOUND = Long.MAX_VALUE;//500;//42; // stands for prescribed  FPS 24.
 private String name = getClass().getSimpleName();
 private EvaluationInfo evaluationInfo;
 

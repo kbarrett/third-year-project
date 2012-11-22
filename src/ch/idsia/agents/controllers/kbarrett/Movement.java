@@ -40,12 +40,12 @@ public class Movement
 				 * The approximate number of squares (in terms of amount of space each element in the matrix levelScene corresponds to) high that Mario can jump.
 				 * @see ch.idsia.agents.controllers.kbarrett.Movement#MAX_JUMP_WIDTH
 				 */
-				public static int MAX_JUMP_HEIGHT = 5;
+				public static int MAX_JUMP_HEIGHT = 4;
 				/**
 				 * The approximate number of squares (in terms of amount of space each element in the matrix levelScene corresponds to) across that Mario can jump.
 				 * @see ch.idsia.agents.controllers.kbarrett.Movement#MAX_JUMP_HEIGHT
 				 */
-				public static int MAX_JUMP_WIDTH = 5;
+				public static int MAX_JUMP_WIDTH = 4;
 
 	//Methods relating to checking Mario Movements
 		/**
@@ -151,7 +151,14 @@ public class Movement
 					if(!isJumping())
 					{
 						//Is he is not currently jumping, set the required jumpSize based on the height he needs to reach.
-						jumpSize = Math.max(1, (int)(1.6 * (marioMapLoc[0] - location[0])));
+						switch(marioMapLoc[0] - location[0])
+						{
+						case 0 : jumpSize = 0; break;
+						case 1 :
+						case 2 : jumpSize = 2; break;
+						case 3 : jumpSize = 4; break;
+						default : jumpSize = 8; break;
+						}
 						LevelSceneInvestigator.debugPrint("JUMPSIZE: " + jumpSize);
 					}
 				}
@@ -230,6 +237,7 @@ public class Movement
 			 */
 			if(currentJumpPoint>jumpSize)
 			{
+				++currentJumpPoint;
 				return;
 			}
 			/*
@@ -248,6 +256,7 @@ public class Movement
 		 */
 		public void land()
 		{
+			System.out.println("-----------------------------------------------------------" + currentJumpPoint);
 			//Reset the information about the current jump to indicate we are no longer jumping.
 			currentJumpPoint = 0;
 			jumpSize = 0;

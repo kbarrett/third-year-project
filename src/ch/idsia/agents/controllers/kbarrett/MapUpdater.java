@@ -83,36 +83,36 @@ public class MapUpdater {
 		
 		if(marioMapLoc[0] + levelSceneMidPoint0 >= map.size()) //if off bottom of map
 		{
-			map = transferOldMapIntoNewMap(
-					levelSceneMidPoint0 + marioMapLoc[0],
+			map = increaseMapSize(
+					levelSceneMidPoint0 + marioMapLoc[0] + 1,
 					map.get(0).size(), 
 					origin);
 		}
 		if(marioMapLoc[0] < levelSceneMidPoint0) //if off top of map
 		{
 			origin[0] = levelSceneMidPoint0;
-			map = transferOldMapIntoNewMap(
+			map = increaseMapSize(
 					map.size() + levelSceneMidPoint0 - marioMapLoc[0], 
 					map.get(0).size(), 
 					origin);
 			origin[0] = 0;
-			marioMapLoc[0]+=levelSceneMidPoint0 - marioMapLoc[0];
+			marioMapLoc[0] = levelSceneMidPoint0;
 		}
 		if(marioMapLoc[1] + levelSceneMidPoint1 >= map.get(0).size()) //if off right of map
 		{
-			map = transferOldMapIntoNewMap(
+			map = increaseMapSize(
 					map.size(), 
-					levelSceneMidPoint1 + marioMapLoc[1], 
+					levelSceneMidPoint1 + marioMapLoc[1] + 1, 
 					origin);
 		}
 		if(marioMapLoc[1] < levelSceneMidPoint1) //if off left of map
 		{
 			origin[1] = levelSceneMidPoint1;
-			map = transferOldMapIntoNewMap(
+			map = increaseMapSize(
 					map.size(), 
 					map.get(0).size()  + levelSceneMidPoint1 - marioMapLoc[1], 
 					origin);
-			marioMapLoc[1]+=levelSceneMidPoint1 - marioMapLoc[1];
+			marioMapLoc[1] = levelSceneMidPoint1;
 		}
 	}
 	/**
@@ -122,15 +122,15 @@ public class MapUpdater {
 	 * @param newPosOfOrigin - the position the origin of the old map needs to take in the new map
 	 * @return MapSquare[][] with the all the same MapSquares as the old map, but with additional nulls where the map has been enlarged.
 	 */
-	private static ArrayList<ArrayList<MapSquare>> transferOldMapIntoNewMap(int newHeight, int newWidth, int[] newPosOfOrigin)
+	private static ArrayList<ArrayList<MapSquare>> increaseMapSize(int newHeight, int newWidth, int[] newPosOfOrigin)
 	{
-		while(map.size() <= newHeight)
+		while(map.size() < newHeight)
 		{
 			map.add(new ArrayList<MapSquare>(newWidth));
 		}
 		for(int i = 0; i < map.size(); ++i)
 		{
-			while(map.get(i).size() <= newWidth)
+			while(map.get(i).size() < newWidth)
 			{
 				map.get(i).add(null);
 			}

@@ -39,7 +39,7 @@ public class LevelSceneInvestigator
 		 * Stores the physical size of a square in levelScene and map.
 		 * @see ch.idsia.agents.controllers.kbarrett.LevelSceneInvestigator.levelScene
 		 */
-		private static final float SQUARESIZE = 16.062515f;
+		private static final float SQUARESIZE = 16f;
 		/**
 		 * Stores the total number of coins Mario has collected so far.
 		 */
@@ -63,7 +63,7 @@ public class LevelSceneInvestigator
 			//Updates map using this levelScene
 			map = MapUpdater.updateMap(map, levelScene, marioMapLoc);
 			
-			if(debug && true)
+			if(debug && false)
 			{
 				printMap();
 			}
@@ -83,13 +83,16 @@ public class LevelSceneInvestigator
 			marioScreenPos[0] = marioScreenPos[1];
 			marioScreenPos[1] = temp;
 				
-			//If this is the first location we know for Mario, create the array & use the received position as his current position.
+			debugPrint("Current Position: " + marioScreenPos[0] + "," + marioScreenPos[1]);
+			
+			/*//If this is the first location we know for Mario, create the array & use the received position as his current position.
 			if(this.marioScreenPos == null)
 			{
 				this.marioScreenPos = new float[2];
-				this.marioScreenPos[0] = marioScreenPos[0];
-				this.marioScreenPos[1] = marioScreenPos[1];
+				this.marioScreenPos[0] = marioScreenPos[0] - SQUARESIZE/2;
+				this.marioScreenPos[1] = marioScreenPos[1] - SQUARESIZE/2;
 			}
+				
 			//Otherwise check it is sufficiently far away from the last known position before updating
 			else if (Math.abs(this.marioScreenPos[0] - marioScreenPos[0]) > SQUARESIZE || Math.abs(this.marioScreenPos[1] - marioScreenPos[1]) > SQUARESIZE) 
 			{
@@ -97,33 +100,58 @@ public class LevelSceneInvestigator
 				{
 					//Update Mario's vertical position in the map
 					marioMapLoc[0] += (int)((marioScreenPos[0] - this.marioScreenPos[0])/SQUARESIZE);
+					debugPrint("Moved down :" + (int)((marioScreenPos[0] - this.marioScreenPos[0])/SQUARESIZE) + "squares");
 				}
 				if(Math.abs(this.marioScreenPos[1] - marioScreenPos[1]) > SQUARESIZE)
 				{
 					//Update Mario's horizontal position in the map
 					marioMapLoc[1] += (int)((marioScreenPos[1] - this.marioScreenPos[1])/SQUARESIZE);
+					debugPrint("Moved right :" + (int)((marioScreenPos[1] - this.marioScreenPos[1])/SQUARESIZE) + "squares");
 				}
 				//Update the new current position to be here.
 				this.marioScreenPos[0] = marioScreenPos[0];
 				this.marioScreenPos[1] = marioScreenPos[1];
 				justMoved = true;
-				System.out.println("MOVED TO " + marioMapLoc[0] +"," + marioMapLoc[1]);		
+				System.out.println("MOVED TO " + marioMapLoc[0] +"," + marioMapLoc[1]);
 			}
 			//Otherwise we haven't just updated Mario's position, so he's in the same map square as previously
 			else
 			{
 				justMoved = false;
+			}*/
+			
+			if(this.marioScreenPos == null)
+			{
+				this.marioScreenPos = new float[2];
+				this.marioScreenPos[0] = marioScreenPos[0] - SQUARESIZE/2;
+				this.marioScreenPos[1] = marioScreenPos[1] - SQUARESIZE/2;
 			}
 			
+			int[] prevMapLoc = new int[] {marioMapLoc[0], marioMapLoc[1]};
+			marioMapLoc[0] = (int)((marioScreenPos[0] - this.marioScreenPos[0]) / SQUARESIZE) + 9;
+			marioMapLoc[1] = (int)((marioScreenPos[1] - this.marioScreenPos[1]) / SQUARESIZE) + 9;
+			if(prevMapLoc[0]!=marioMapLoc[0] || prevMapLoc[1]!=prevMapLoc[1])
+			{
+				debugPrint("Just moved from " + prevMapLoc[0] + "," + prevMapLoc[1] + " to " + marioMapLoc[0] + "," + marioMapLoc[1]);
+				justMoved = true;
+			}
+			else
+			{
+				justMoved = false;
+			}
 		}
 		/**
 		 * Used for updating {@link #marioLoc}.
 		 * @param marioLoc int array of size 2 representing the position of Mario in levelScene.
 		 */
-		public void setMarioLoc(int[] marioLoc, Movement movement)
+		public void setMarioLoc(int[] marioLoc)
 		{
 			this.marioLoc = marioLoc;
-			movement.setMarioMapLoc(marioMapLoc);
+		}
+		
+		public int[] getMarioMapLoc()
+		{
+			return marioMapLoc;
 		}
 		/**
 		 * Used for updating the number of coins Mario has collected.
@@ -178,49 +206,111 @@ public class LevelSceneInvestigator
 			//If we don't already have a plan
 			if((plan == null || plan.size() == 0)) 
 			{
+				if(justify)
+				{
+					System.out.println("We have no plan.");
+				}
 				//Find a good location to move towards
 				int[] location = findLocation(isFacingRight);
-				//If there isn't one
-				if(location == null)
+				if(location != null)
 				{
-					//return null, which will cause a default behaviour
-					return null;
+					if(justify)
+					{
+						System.out.println("We found a good location.");
+					}
+					makePlan(location);
+					if(justify && plan!=null)
+					{
+						System.out.println("plan is now: " + plan.toString());
+					}
 				}
-				//Otherwise, make a plan to get to this location
-				makePlan(location);
-				//Return the first step of this plan
 				if(plan == null || plan.size() == 0)
 				{
-					map.get(location[0]).get(location[1]).setEncoding(Encoding.NOTHING);
-					debugPrint("Resetting " + location[0] + "," + location[1]);
+					if(justify)
+					{
+						System.out.println("There's no plan there.");
+					}
+					makePlan(getBestRightHandSide());
+					if(justify && plan!=null)
+					{
+						System.out.println("Aiming at the RHS, so plan is now: " + plan.toString());
+					}
 				}
+				
 				return getNextPlanStep();
 			}
 			//If we have just made a move
-			if(justMoved || plan.peek().equals(map.get(marioMapLoc[0]).get(marioMapLoc[1])))
+			if(justMoved 
+					//or we are in the square we wanted to head to
+					|| plan.peek().equals(map.get(marioMapLoc[0]).get(marioMapLoc[1])) 
+					|| !(
+							//or the plan is not accessible in one turn - then something has gone wrong
+							plan.peek().equals(map.get(marioMapLoc[0]+1).get(marioMapLoc[1]))
+							|| plan.peek().equals(map.get(marioMapLoc[0]+1).get(marioMapLoc[1]+1))
+							|| plan.peek().equals(map.get(marioMapLoc[0]+1).get(marioMapLoc[1]-1))
+							|| plan.peek().equals(map.get(marioMapLoc[0]).get(marioMapLoc[1]+1))
+							|| plan.peek().equals(map.get(marioMapLoc[0]).get(marioMapLoc[1]-1))
+							|| plan.peek().equals(map.get(marioMapLoc[0]-1).get(marioMapLoc[1]+1))
+							|| plan.peek().equals(map.get(marioMapLoc[0]-1).get(marioMapLoc[1]))
+							|| plan.peek().equals(map.get(marioMapLoc[0]-1).get(marioMapLoc[1]-1))
+							)
+					)
 			{
+				if(justify)
+				{
+					System.out.println("We have just moved or we can't get to the right square - all has gone wrong!");
+				}
 				//If we're where we expected to be
 				if(isInExpectedSquare())
 				{
+					if(justify)
+					{
+						System.out.println("Oo it's OK - we expected to be here.");
+					}
 					//Remove the move we have just made from the stack
 					plan.pop();
+					if(justify)
+					{
+						System.out.println("Now the plan is: " + plan.toString());
+					}
 					//Return the next move in the plan
 					return getNextPlanStep();
 				}
 				else if(!isJumping)
 				{
+					if(justify)
+					{
+						System.out.println("We're not where we expected to be & are not jumping.");
+					}
 					//Otherwise make a plan to get back on track
 					replan();
+					if(justify)
+					{
+						System.out.println("Plan is: " + plan.toString());
+					}
 					return getNextPlanStep();
 				}
 				else
 				{
+					if(justify)
+					{
+						System.out.println("We were lost & jumping - aim at the RHS.");
+					}
 					plan.clear();
+					makePlan(getBestRightHandSide());
+					if(justify && plan!=null)
+					{
+						System.out.println("Plan is: " + plan.toString());
+					}
 					return null;
 				}
 			}
 			else
 			{
+				if(justify)
+				{
+					System.out.println("We haven't moved far enough yet.");
+				}
 				return getNextPlanStep();
 			}
 			
@@ -249,7 +339,7 @@ public class LevelSceneInvestigator
 				if(loc!=null)
 				{
 					makePlan(loc);
-					if(plan != null)
+					if(plan != null && plan.size() > 0)
 					{
 						return getNextPlanStep();
 					}
@@ -416,14 +506,14 @@ public class LevelSceneInvestigator
 		public int[] getRewardLocation()
 		{
 			for(
-					int i = MapUpdater.getMapXCoordinate(marioLoc[1] - Movement.MAX_JUMP_WIDTH / 2, marioMapLoc[1], marioLoc[1]);
-					    i <  MapUpdater.getMapXCoordinate(marioLoc[1] + Movement.MAX_JUMP_WIDTH / 2, marioMapLoc[1], marioLoc[1]);
+					int i = Math.max(0, marioMapLoc[1] - Movement.MAX_JUMP_WIDTH / 2);
+					    i < Math.min(map.size(), marioMapLoc[1] + Movement.MAX_JUMP_WIDTH / 2);
 					++i
 				)
 			{
 				for(
-						int j =  MapUpdater.getMapYCoordinate(marioLoc[0] - Movement.MAX_JUMP_HEIGHT / 2, marioMapLoc[0], marioLoc[0]);
-						j <	MapUpdater.getMapYCoordinate(marioLoc[1] + Movement.MAX_JUMP_HEIGHT / 2, marioMapLoc[0], marioLoc[0]);
+						int j =  0;
+						j <	map.size();
 						++j
 					)
 				{
@@ -435,6 +525,24 @@ public class LevelSceneInvestigator
 						result[1] = i;
 						return result;
 					}
+				}
+			}
+			return null;
+		}
+		
+		public int[] getBestRightHandSide()
+		{
+			for(int i = map.size() - 1; i>=0; --i)
+			{
+				MapSquare rightHandSquare = map.get(i).get(map.get(i).size() - 1);
+				if(rightHandSquare!=null && !Encoding.isEnvironment(rightHandSquare))
+				{
+					if(justify)
+					{
+						System.out.println("We found RHS at " + rightHandSquare);
+						System.out.println("Mario is at " + marioMapLoc[0] + "," + marioMapLoc[1]);
+					}
+					return rightHandSquare.getMapLocation();
 				}
 			}
 			return null;
@@ -558,6 +666,7 @@ public class LevelSceneInvestigator
 				}
 			}
 		}
+		private boolean justify = true;
 		public static void debugPrint(String s)
 		{
 			if(FirstAgent.debug)
