@@ -66,6 +66,8 @@ public class LevelSceneInvestigator
 			//Updates map using this levelScene
 			map = MapUpdater.updateMap(map, levelScene, marioMapLoc);
 			
+			planStorer.checkPlan();
+			
 			if(debug && true)
 			{
 				printMap();

@@ -35,6 +35,20 @@ public class PlanStorer {
 		
 		if(plan!=null) LevelSceneInvestigator.debugPrint("Made new plan of size " + plan.size());
 	}
+	public void checkPlan()
+	{
+		if(havePlan())
+		{
+			for(int i = 0; i < plan.size(); ++i)
+			{
+				if(Encoding.isEnvironment(plan.get(i)))
+				{
+					plan.clear();
+					return;
+				}
+			}
+		}
+	}
 	/**
 	 * Gets the next step in the {@link #plan} (if one exists).
 	 * @return int array of size 2 representing the location of the next step of the plan.
@@ -60,8 +74,8 @@ public class PlanStorer {
 		
 		//This is the next step of the plan
 		MapSquare nextLocation = plan.peek();
-		//while(Encoding.isEnvironment(nextLocation.getEncoding()) && nextLocation.getEncoding()!= 0)
-		/*if(marioCurrentLocation.equals(nextLocation))
+		while(Encoding.isEnvironment(nextLocation.getEncoding()))
+		/*if(marioCurrentLocation.equals(nextLocation))*/
 		{
 			plan.pop();
 			if(plan.size() == 0)
@@ -69,21 +83,7 @@ public class PlanStorer {
 				return levelSceneInvestigator.checkForEnemies(4, 4);
 			}
 			nextLocation = plan.peek();
-		}*/
-		
-		//FIXME: jumping workaround as currently Movement judges size of jump based on distance from current square
-			int i = plan.lastIndexOf(nextLocation);
-			MapSquare marioMapLocSquare = marioCurrentLocation.clone();
-			//While the next plan square is above this one, get the next one
-			while(marioMapLocSquare!=null && marioMapLocSquare.getSquareAbove() == nextLocation)
-			{
-				//If we get to the end of the plan, stop looking
-				if(i < 0) {break;}
-				//Replace the current square with the next plan square
-				marioMapLocSquare = nextLocation;
-				//get the next square in the plan
-				nextLocation = plan.elementAt(i--);
-			}
+		}
 			
 		MapSquare enemies = levelSceneInvestigator.checkForEnemies(nextLocation.getMapLocationX(), nextLocation.getMapLocationY());
 		if(enemies!=null)
@@ -157,6 +157,7 @@ public class PlanStorer {
 
 	/**
 	 * After a move has been made, decides whether we're in the square we thought we would be after that move.
+	 * If true, we remove that step from the plan.
 	 * @return boolean indicating whether we're in the expected square or not.
 	 */
 	public boolean isPlanStepAchieved(MapSquare marioCurrentLocation)

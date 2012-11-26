@@ -20,12 +20,12 @@ public class FirstAgent implements Agent {
 	String name = "FirstAgent";
 	
 	//Classes for storing knowledge & making decisions
-	Movement movement;
+	ManualJumpMovement movement;
 	LevelSceneInvestigator levelSceneInvestigator;
 
 	public FirstAgent()
 	{
-		movement = new Movement();
+		movement = new ManualJumpMovement();
 		levelSceneInvestigator = new LevelSceneInvestigator();
 	}
 	
@@ -68,14 +68,10 @@ public class FirstAgent implements Agent {
 				movement.setMarioMapLoc(levelSceneInvestigator.getMarioMapLoc());
 		
 		//Use provided information to decide on next move
-			//If Mario was jumping but has landed, pass this information to Movement
-			if(movement.isJumping() && environment.isMarioOnGround())
-			{
-				movement.land();
-			}
-			//Decide next movement and pass this to Movement to be acted upon
-			else
-			{
+				if(movement.isJumping() && environment.isMarioOnGround())
+				{
+					movement.land();
+				}
 				MapSquare nextLoc = levelSceneInvestigator.getNextLocation(movement.isFacingRight(), movement.isJumping());
 				if(nextLoc == null)
 				{
@@ -87,7 +83,6 @@ public class FirstAgent implements Agent {
 					movement.moveTowards(nextLoc.getMapLocation());
 				}
 				movement.isEnemy(levelSceneInvestigator.isEnemy() && environment.isMarioAbleToShoot());
-			}
 	}
 
 	/**
