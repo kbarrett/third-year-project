@@ -76,8 +76,16 @@ public class FirstAgent implements Agent {
 			//Decide next movement and pass this to Movement to be acted upon
 			else
 			{
-				movement.moveTowards(
-						levelSceneInvestigator.getNextLocation(movement.isFacingRight(), movement.isJumping()));
+				MapSquare nextLoc = levelSceneInvestigator.getNextLocation(movement.isFacingRight(), movement.isJumping());
+				if(nextLoc == null)
+				{
+					movement.moveTowards(null);
+				}
+				else
+				{
+
+					movement.moveTowards(nextLoc.getMapLocation());
+				}
 				movement.isEnemy(levelSceneInvestigator.isEnemy() && environment.isMarioAbleToShoot());
 			}
 	}

@@ -195,6 +195,13 @@ public class MapSquare {
 		}
 	}
 	
+	@Override
+	public MapSquare clone()
+	{
+		MapSquare newSquare = new MapSquare(encoding, map, locationInMapX, locationInMapY);
+		return newSquare;
+	}
+	
 	public enum Direction
 	{
 		Above,
