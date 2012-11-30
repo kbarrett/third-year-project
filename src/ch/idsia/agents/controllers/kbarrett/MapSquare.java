@@ -88,28 +88,30 @@ public class MapSquare {
 			
 			if(!Encoding.isEnvironment(getSquareAbove()) && Encoding.isEnvironment(getSquareBelow()))
 			{
-				//He can reach the square above
+				//If the square below is "Environment" then he can reach the square above
 				addToReachableSquares(getSquareAbove());
 			}
-			if (!Encoding.isEnvironment(getSquareBelow()))
 			{
-				//He can reach the square below, because it is empty
-				addToReachableSquares(getSquareBelow());
-			}
-		//Horizontal
-			else //can only move left/right if there's ground below us
-			{
-				//If the square to the left is empty
-				if(!Encoding.isEnvironment(getSquareLeft()))
+				if (!Encoding.isEnvironment(getSquareBelow()))
 				{
-					//He can reach the square to the left
-					addToReachableSquares(getSquareLeft());
+					//He can reach the square below, because it is empty
+					addToReachableSquares(getSquareBelow());
 				}
-				//If the square to the right is empty
-				if(!Encoding.isEnvironment(getSquareRight()))
+		//Horizontal
+				else //can only move left/right if there's ground below us
 				{
-					//He can reach the square to the right
-					addToReachableSquares(getSquareRight());
+					//If the square to the left is empty
+					if(!Encoding.isEnvironment(getSquareLeft()))
+					{
+						//He can reach the square to the left
+						addToReachableSquares(getSquareLeft());
+					}
+					//If the square to the right is empty
+					if(!Encoding.isEnvironment(getSquareRight()))
+					{
+						//He can reach the square to the right
+						addToReachableSquares(getSquareRight());
+					}
 				}
 			}
 	}
@@ -134,7 +136,7 @@ public class MapSquare {
 		newList.addAll(getAppropriateSquares(currentJumpHeight, currentJumpWidth, enteredFrom));
 		return new ArrayList<MapSquare>(newList);
 	}
-	public boolean isReachable(MapSquare square)
+	public boolean isAlwaysReachable(MapSquare square)
 	{
 		return reachableSquares.contains(square);
 	}
@@ -200,6 +202,12 @@ public class MapSquare {
 	{
 		MapSquare newSquare = new MapSquare(encoding, map, locationInMapX, locationInMapY);
 		return newSquare;
+	}
+	
+	@Override
+	public int hashCode()
+	{
+		return (int) (Math.pow(2, getMapLocationX()) * Math.pow(3, getMapLocationY()));
 	}
 	
 	public enum Direction

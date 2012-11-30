@@ -1,5 +1,6 @@
 package ch.idsia.agents.controllers.kbarrett;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.Stack;
@@ -36,7 +37,7 @@ public class Search {
 		
 		LinkedList<MapSquareWrapper> expandedSquares = new LinkedList<MapSquareWrapper>();
 		
-		MapSquareWrapper initialSquare = new MapSquareWrapper(start, null, 0, 0);
+		MapSquareWrapper initialSquare = new MapSquareWrapper(start, null, 0, 0, Direction.Above);
 		initialSquare.setG(0);
 		initialSquare.calculateH(destination);
 		exploredSquares.add(initialSquare);
@@ -46,41 +47,14 @@ public class Search {
 			MapSquareWrapper currentSquare = exploredSquares.pollFirst();
 			if(currentSquare.equals(destination))
 			{
-				if(FirstAgent.debug)
-				{
-					LevelSceneInvestigator.debugPrint("We fucking found " + destination + " with G : " + currentSquare.getG() + " with route: ");
-					Stack<MapSquare> result = currentSquare.backtrackRouteFromHere();
-					for(int i = result.size() - 1; i>=0; --i)
-					{
-						LevelSceneInvestigator.debugPrint(""+result.get(i));
-					}
-				}
 				return currentSquare.backtrackRouteFromHere();
 			}
-			MapSquare.Direction enteredFrom = Direction.None;
-			if(currentSquare.getParent() !=null)
-			{
-				if(currentSquare.equals(currentSquare.getParent().getMapSquare().getSquareBelow()))
-				{
-					enteredFrom = Direction.Below;
-				}
-				else if(currentSquare.equals(currentSquare.getParent().getMapSquare().getSquareAbove()))
-				{
-					enteredFrom = Direction.Above;
-				}
-				else if(currentSquare.equals(currentSquare.getParent().getMapSquare().getSquareLeft()))
-				{
-					enteredFrom = Direction.Left;
-				}
-				else if(currentSquare.equals(currentSquare.getParent().getMapSquare().getSquareRight()))
-				{
-					enteredFrom = Direction.Right;
-				}
-			}
 			
-			for(MapSquare s : currentSquare.getMapSquare().getReachableSquares(
+			ArrayList<MapSquare> reachableSquares = currentSquare.getMapSquare().getReachableSquares(
 					currentSquare.getLevelInJump(), currentSquare.getWidthOfJump(),
-					enteredFrom))
+					currentSquare.getDirection());
+			
+			for(MapSquare s : reachableSquares)
 			{
 				int levelInJump = 0;
 				int widthOfJump = 0;
@@ -92,7 +66,26 @@ public class Search {
 				{
 					widthOfJump = currentSquare.getWidthOfJump() + 1;
 				}
-				MapSquareWrapper msw = new MapSquareWrapper(s, currentSquare, levelInJump, widthOfJump);
+				
+				Direction enteredFrom = Direction.None;
+				if(s.equals(currentSquare.getMapSquare().getSquareBelow()))
+				{
+					enteredFrom = Direction.Below;
+				}
+				else if(s.equals(currentSquare.getMapSquare().getSquareAbove()))
+				{
+					enteredFrom = Direction.Above;
+				}
+				else if(s.equals(currentSquare.getMapSquare().getSquareLeft()))
+				{
+					enteredFrom = Direction.Left;
+				}
+				else if(s.equals(currentSquare.getMapSquare().getSquareRight()))
+				{
+					enteredFrom = Direction.Right;
+				}
+				MapSquareWrapper msw = new MapSquareWrapper(s, currentSquare, levelInJump, widthOfJump, enteredFrom);
+				
 				if(s == null || expandedSquares.contains(s) || msw.checkParentTreeFor(s))
 				{
 					continue;
@@ -110,7 +103,7 @@ public class Search {
 			expandedSquares.add(currentSquare);
 		}
 		if(FirstAgent.debug)
-			System.err.println("Oh shit. We didn't find " + destination + " ..." + destination.getEncoding());
+			System.err.println("Oh shit. We didn't find " + destination + " ..." + " from " + start);
 		return null;
 	}
 }

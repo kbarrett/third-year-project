@@ -15,7 +15,7 @@ public class FirstAgent implements Agent {
 	/**
 	 * Remove this to find everywhere where a debug instruction has been entered.
 	 */
-	public static boolean debug = false;
+	public static boolean debug = true;
 	
 	String name = "FirstAgent";
 	
@@ -61,10 +61,7 @@ public class FirstAgent implements Agent {
 			//Give LevelSceneInvestigator the new LevelScene & Mario's new screen position
 				levelSceneInvestigator.setMarioScreenPos(environment.getMarioFloatPos());
 				levelSceneInvestigator.updateMapFromLevelScene(environment.getMergedObservationZZ(0, 0));
-				
-			//Update knowledge of how many coins Mario has collected
-				levelSceneInvestigator.updateCoins(Mario.coins);
-				
+		
 				movement.setMarioMapLoc(levelSceneInvestigator.getMarioMapLoc());
 		
 		//Use provided information to decide on next move
@@ -72,7 +69,7 @@ public class FirstAgent implements Agent {
 				{
 					movement.land();
 				}
-				MapSquare nextLoc = levelSceneInvestigator.getNextLocation(movement.isFacingRight(), movement.isJumping());
+				MapSquare nextLoc = levelSceneInvestigator.getNextLocation();
 				if(nextLoc == null)
 				{
 					movement.moveTowards(null);
@@ -109,13 +106,18 @@ public class FirstAgent implements Agent {
 	}
 
 	/**
-	 * Used to pass information about how large the area is that Mario can perceive.
-	 * @see ch.idsia.agents.Agent#setObservationDetails(int, int, int, int)
+	 *  Tells {@link #levelSceneInvestigator} to create a new empty map.
+	 *  This method is used to tell us how big the area Mario can "see" in the 
+	 *  Environment & where initially he is within this area. However we 
+	 *  dynamically increase the size of our map of the world, so no benefit is
+	 *  gained by doing this before we have any data to put in it. We also get
+	 *  the egoRow/egoCol every time we get a new LevelScene, so we don't need 
+	 *  to store this initial one.
 	 */
 	@Override
-	public void setObservationDetails(int rfWidth, int rfHeight, int egoRow, int egoCol) {
-		//Pass this information to the levelSceneInvestigator, so it can create an initial map of the correct size.
-		levelSceneInvestigator.giveMapSize(rfWidth, rfHeight);
+	public void setObservationDetails(int rfWidth, int rfHeight, int egoRow, int egoCol)
+	{
+		levelSceneInvestigator.createEmptyMap();
 	}
 
 	/**

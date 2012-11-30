@@ -7,34 +7,53 @@ public class PlanStorer {
 	
 	/**
 	 * Stores the current plan of movement that Mario is executing.
+	 * FIXME: should be private!!!!!!!!!
 	 */
-	private Stack<MapSquare> plan;
-
+	public Stack<MapSquare> plan;
 	
+	private boolean importantPlan = true;
+
+	public boolean isImportant()
+	{
+		return importantPlan;
+	}
 	public boolean havePlan()
 	{
 		return plan!=null && !plan.isEmpty();
 	}
 	public MapSquare getNextPlanLocation()
 	{
+		if(plan == null || plan.size() == 0) {return null;}
 		return plan.peek();
 	}
 	/**
 	 * Makes a plan from the current position {@link #marioMapLoc} to the desiredPosition and stores it in {@link #plan}.
 	 * @param desiredPosition - a int array of size 2 representing the location that the plan should head towards
 	 */
-	public void makePlan(MapSquare desiredPosition, MapSquare startLocation)
-	{
+	public void makePlan(MapSquare desiredPosition, MapSquare startLocation, boolean important)
+	{	
 		if(plan!=null)
 		{
 			plan.clear();
 		}
 		if(desiredPosition == null) {return;}
-		//plan = Search.aStar(map.get(desiredPosition[0]).get(desiredPosition[1]), map.get(marioMapLoc[0]).get(marioMapLoc[1]));
-		plan = Search.aStar(desiredPosition, startLocation);
+
+		Stack<MapSquare> newPlan = Search.aStar(desiredPosition, startLocation);
 		
-		if(plan!=null) LevelSceneInvestigator.debugPrint("Made new plan of size " + plan.size());
+		if(newPlan != null)
+		{
+			importantPlan = important;
+			plan = newPlan;
+		}
 	}
+	public void makePlan(MapSquare desiredPosition, MapSquare startLocation)
+	{
+		makePlan(desiredPosition, startLocation, true);
+	}
+	/**
+	 * Checks whether any MapSquare in the plan has become an Environment piece.
+	 * If so the plan is invalid, so it removes it.
+	 */
 	public void checkPlan()
 	{
 		if(havePlan())
@@ -58,7 +77,7 @@ public class PlanStorer {
 		//If we have no plan, we cannot get the next step from it.
 		if(plan == null || plan.size() == 0)
 		{
-			MapSquare loc = levelSceneInvestigator.checkForEnemies(4, 4);
+			/*MapSquare loc = levelSceneInvestigator.checkForEnemies(4, 4);
 			if(loc!=null)
 			{
 				makePlan(loc, marioCurrentLocation);
@@ -66,23 +85,15 @@ public class PlanStorer {
 				{
 					return getLocationToMoveTo(marioCurrentLocation, levelSceneInvestigator);
 				}
-			}
+			}*/
 			return null;
 		}
 		
-		LevelSceneInvestigator.debugPrint(plan.toString());
-		
 		//This is the next step of the plan
 		MapSquare nextLocation = plan.peek();
-		while(Encoding.isEnvironment(nextLocation.getEncoding()))
-		/*if(marioCurrentLocation.equals(nextLocation))*/
+		/*if(plan.size() == 0)
 		{
-			plan.pop();
-			if(plan.size() == 0)
-			{
-				return levelSceneInvestigator.checkForEnemies(4, 4);
-			}
-			nextLocation = plan.peek();
+			return levelSceneInvestigator.checkForEnemies(4, 4);
 		}
 			
 		MapSquare enemies = levelSceneInvestigator.checkForEnemies(nextLocation.getMapLocationX(), nextLocation.getMapLocationY());
@@ -90,9 +101,31 @@ public class PlanStorer {
 		{
 			plan.push(levelSceneInvestigator.getMapSquare(enemies.getMapLocationY(),enemies.getMapLocationX()));
 			return enemies;
-		}
+		}*/
 		
 		//Return it
+		return shiftLoc(nextLocation);
+	}
+	private MapSquare shiftLoc(MapSquare nextLocation)
+	{
+		if(Encoding.isEnvironment(nextLocation.getSquareRight()) && Encoding.isEnvironment(nextLocation.getSquareLeft()))
+		{
+			if(plan.size() > 2)
+			{
+				int i = plan.size() - 2;
+				int distance = 0;
+				while(i >= 0)
+				{
+					distance = nextLocation.getMapLocationX() - plan.get(i).getMapLocationX();
+					if(distance != 0)
+					{
+						MapSquare shiftedSquare = new MapSquare(nextLocation.getEncoding(), null, nextLocation.getMapLocationX() + distance, nextLocation.getMapLocationY());
+						return shiftedSquare;
+					}
+					--i;
+				}
+			}
+		}
 		return nextLocation;
 	}
 	/**
@@ -102,22 +135,24 @@ public class PlanStorer {
 	public void replan(MapSquare marioCurrentLocation)
 	{
 		//How much longer the new plans are allowed to be than the previous plan
-		int adjustment = 0;	
+		int adjustment = 5;	
 		//Stores the best plan to rejoin the previous plan
 		Vector<MapSquare> newPlan = new Vector<MapSquare>();
 		//Stores the square at which the best plan joins the previous plan
 		int rejoinSquare = -1;
 		
-		FirstAgent.debug = false;
 		//For each step in the plan
-		for(int i = 0; i<plan.size(); ++i)
+		for(int i = 0; i < plan.size(); ++i)
 		{
 			//Find a new plan to this square from the current square, using the same number of steps (+ the adjustment value)
 			Stack<MapSquare> thisPlan = Search.aStar(plan.get(i), marioCurrentLocation, plan.size() - i + adjustment);
+			if(thisPlan!=null)
+			{
+				}
 			if(
 					//we have successfully found a route to the required square
 					thisPlan != null &&
-					(
+					(		
 							//we haven't already made a new plan
 							rejoinSquare < 0 || 
 							//this plan is shorter than the previous plan
@@ -130,7 +165,6 @@ public class PlanStorer {
 				newPlan = thisPlan;
 			}
 		}
-		FirstAgent.debug = true;
 		
 		if(rejoinSquare < 0) //we failed to find a new route
 		{
@@ -140,18 +174,21 @@ public class PlanStorer {
 		}
 		else //we have found a new route
 		{
-			LevelSceneInvestigator.debugPrint("Replanning from square " + rejoinSquare);
+			//LevelSceneInvestigator.debugPrint("Replanning from square " + rejoinSquare);
 			//Remove all steps in the plan before the point at which the new plan joins the old plan
-			for(int i = rejoinSquare; i < plan.size(); ++i)
+
+			boolean d = FirstAgent.debug;
+			int i0=0;
+			while(plan.size() > rejoinSquare)
 			{
 				plan.pop();
 			}
 			//Add the steps of the new plan to the old plan
-			for(int i = newPlan.size() - 1; i >= 0; --i)
+			for(int i = 0; i < newPlan.size(); ++i)
 			{
 				plan.push(newPlan.elementAt(i));
 			}
-			LevelSceneInvestigator.debugPrint("new plan: " + plan.toString());
+			//LevelSceneInvestigator.debugPrint("new plan: " + plan.toString());
 		}
 	}
 
@@ -162,8 +199,13 @@ public class PlanStorer {
 	 */
 	public boolean isPlanStepAchieved(MapSquare marioCurrentLocation)
 	{
+		if(!havePlan())
+		{
+			return true;
+		}
+		MapSquare nextPlanSquare = plan.peek();
 		//If we're in the square of the next step in the plan, then we're in the expected square
-		if(marioCurrentLocation.getMapLocationX() == plan.peek().getMapLocationY() && marioCurrentLocation.getMapLocationY() == plan.peek().getMapLocationX())
+		if(marioCurrentLocation.getMapLocationX() == nextPlanSquare.getMapLocationX() && marioCurrentLocation.getMapLocationY() == nextPlanSquare.getMapLocationY())
 		{
 			//Remove the move we have just made from the stack
 			plan.pop();

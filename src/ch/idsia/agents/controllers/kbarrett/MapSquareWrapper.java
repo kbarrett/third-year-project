@@ -3,20 +3,24 @@ package ch.idsia.agents.controllers.kbarrett;
 import java.awt.geom.Point2D;
 import java.util.Stack;
 
+import ch.idsia.agents.controllers.kbarrett.MapSquare.Direction;
+
 public class MapSquareWrapper {
 	
 	private MapSquare mapSquare;
 	private MapSquareWrapper parent;
+	private Direction direction;
 	private int g = -1;
 	private int h = -1;
 	private int levelInJump = 0;
 	private int widthOfJump = 0;
 	
-	public MapSquareWrapper(MapSquare mapSquare, MapSquareWrapper parent, int levelInJump, int widthOfJump)
+	public MapSquareWrapper(MapSquare mapSquare, MapSquareWrapper parent, int levelInJump, int widthOfJump, Direction direction)
 	{
 		this.mapSquare = mapSquare;
 		this.parent = parent;
 		this.levelInJump = levelInJump;
+		this.direction = direction;
 	}
 	
 	public MapSquare getMapSquare()
@@ -39,12 +43,22 @@ public class MapSquareWrapper {
 		return widthOfJump;
 	}
 	
+	public boolean wasFalling()
+	{
+		return direction == Direction.Above;
+	}
+	
+	public Direction getDirection()
+	{
+		return direction;
+	}
+	
 	public boolean checkParentTreeFor(MapSquare s)
 	{
 		MapSquareWrapper parent = this.parent;
 		while(parent != null)
 		{
-			if(parent.getMapSquare().equals(s))
+			if(parent.getMapSquare().equals(s) && !wasFalling())
 			{
 				return true;
 			}
@@ -77,6 +91,7 @@ public class MapSquareWrapper {
 				&&  (parent == null || parent.equals(mapSquareWrapper.getParent().getMapSquare()))
 				&&	g == mapSquareWrapper.getG()
 				&&	h == mapSquareWrapper.getH()
+				&&  wasFalling() == mapSquareWrapper.wasFalling()
 			);
 		}
 		if(other instanceof MapSquare)

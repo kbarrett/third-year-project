@@ -36,10 +36,6 @@ public class LevelSceneInvestigator
 		 * @see ch.idsia.agents.controllers.kbarrett.LevelSceneInvestigator.levelScene
 		 */
 		private static final float SQUARESIZE = 16f;
-		/**
-		 * Stores the total number of coins Mario has collected so far.
-		 */
-		private int numberOfCollectedCoins = 0;
 		
 		private boolean enemyFound = false;
 		
@@ -51,6 +47,14 @@ public class LevelSceneInvestigator
 		}
 		
 	//Methods for updating the data
+		/**
+		 * Create a new (empty) map
+		 */
+		public void createEmptyMap()
+		{
+			map = new ArrayList<ArrayList<MapSquare>>();
+			map.add(new ArrayList<MapSquare>());
+		}
 		/**
 		 * Used for updating the {@link #map} from a newly acquired levelScene.
 		 * @param levelScene a 2D array representing the current environment of Mario encoded as integers.
@@ -64,11 +68,11 @@ public class LevelSceneInvestigator
 			}
 			
 			//Updates map using this levelScene
-			map = MapUpdater.updateMap(map, levelScene, marioMapLoc);
-			
+			MapUpdater.updateMap(map, levelScene, marioMapLoc);
+			//Checks whether any step of the plan has become an Environment piece by this update.
 			planStorer.checkPlan();
 			
-			if(debug && true)
+			if(debug && printMap)
 			{
 				printMap();
 			}
@@ -80,38 +84,39 @@ public class LevelSceneInvestigator
 		 * @param marioScreenPos a float array of size 2 containing Mario's actual position on the screen. Note: this is as an (x,y) coordinate.
 		 */
 		public void setMarioScreenPos(float[] marioScreenPos)
-		{
-			if(debug){findSquareSize(marioScreenPos);}
-			
+		{	
 			/*Swap the terms in marioScreenPos, so they match the y-x orientation of the map.*/
 			float temp = marioScreenPos[0];
 			marioScreenPos[0] = marioScreenPos[1];
 			marioScreenPos[1] = temp;
 			
-			boolean firstRun = false;
-			
+			//On the first run through, store the top-left (physical) location of the square we're in as our current position
 			if(this.marioScreenPos == null)
 			{
 				this.marioScreenPos = new float[2];
 				this.marioScreenPos[0] = marioScreenPos[0] - SQUARESIZE/2;
 				this.marioScreenPos[1] = marioScreenPos[1] - SQUARESIZE/2;
-				
-				firstRun = true;
 			}
-			
-			int[] prevMapLoc = new int[] {marioMapLoc[0], marioMapLoc[1]};
-			marioMapLoc[0] = (int)((marioScreenPos[0] - this.marioScreenPos[0]) / SQUARESIZE) + marioLoc[0];
-			marioMapLoc[1] = (int)((marioScreenPos[1] - this.marioScreenPos[1]) / SQUARESIZE) + marioLoc[1];
-			if(prevMapLoc[0] != marioMapLoc[0] || prevMapLoc[1] != prevMapLoc[1] && !firstRun)
-			{
-				debugPrint("Just moved from " + prevMapLoc[0] + "," + prevMapLoc[1] + " to " + marioMapLoc[0] + "," + marioMapLoc[1]);
-				justMoved = true;
-				
-				//FIXME: wnats to not be true on first turn!!!!!
-			}
+			//On all subsequent runs, use the initial position to calculate our current position in the map
 			else
 			{
-				justMoved = false;
+				//Store the previous location in the map
+				int[] prevMapLoc = new int[] {marioMapLoc[0], marioMapLoc[1]};
+				
+				//Calculate new positions
+				marioMapLoc[0] = (int)((marioScreenPos[0] - this.marioScreenPos[0]) / SQUARESIZE) + marioLoc[0];
+				marioMapLoc[1] = (int)((marioScreenPos[1] - this.marioScreenPos[1]) / SQUARESIZE) + marioLoc[1];
+				
+				//If previous and new differ, then we have moved
+				if(prevMapLoc[0] != marioMapLoc[0] || prevMapLoc[1] != prevMapLoc[1])
+				{
+					//debugPrint("Just moved from " + prevMapLoc[0] + "," + prevMapLoc[1] + " to " + marioMapLoc[0] + "," + marioMapLoc[1]);
+					justMoved = true;
+				}
+				else
+				{
+					justMoved = false;
+				}
 			}
 		}
 		/**
@@ -127,101 +132,54 @@ public class LevelSceneInvestigator
 		{
 			return marioMapLoc;
 		}
-		/**
-		 * Used for updating the number of coins Mario has collected.
-		 * @param coins the total number of coins Mario has collected so far.
-		 * @see #numberOfCollectedCoins
-		 */
-		public void updateCoins(int coins)
-		{
-			if(numberOfCollectedCoins != coins) //do something if the # of coins changes
-			{
-				numberOfCollectedCoins = coins;
-			}
-			//FIXME: To be used to see if a coin has been achieved by an action in order to give up if impossible 
-		}
-		/**
-		 * If no {@link #map} has previously been created, creates a map of the given size.
-		 * @param width of the map
-		 * @param height of the map
-		 */
-		public void giveMapSize(int width, int height)
-		{
-			//FIXME: neaten this
-			width = 1; height = 1;
-			if(map==null)
-			{
-				map = new ArrayList<ArrayList<MapSquare>>(height);
-				for(int i = 0; i < height; ++i)
-				{
-					map.add(new ArrayList<MapSquare>(width));
-					for(int j = 0; j < width; ++j)
-					{
-						map.get(i).add(null);
-					}
-				}
-			}
-		}
 		
 		public boolean isEnemy()
 		{
 			return enemyFound;
 		}
 		
-	//Methods for analysing the environment
-		
 		public MapSquare getMapSquare(int y, int x)
 		{
 			return map.get(y).get(x);
 		}
+	
+	//Methods for analysing the environment
+		
 		/**
 		 * Used to make a decision based on the environment about which location Mario needs to move to.
 		 * @param isFacingRight indicating whether Mario is facing right or not.
 		 * @return byte array of size 2 denoting the location that has been decided to move towards. 
 		 * Returns null if no location has been chosen.
 		 */
-		public MapSquare getNextLocation(boolean isFacingRight, boolean isJumping)
+		public MapSquare getNextLocation()
 		{
-			//If we don't already have a plan
-			if(!planStorer.havePlan()) 
+			boolean lastStepAchieved = planStorer.isPlanStepAchieved(getMarioMapSquare());
+			
+			//If we don't already have a plan or we have an unimportant plan (i.e. one that just moves us across the board)
+			if(!planStorer.havePlan() || !planStorer.isImportant()) 
 			{
-				//Find a good location to move towards
-				MapSquare location = findLocation(isFacingRight);
-				if(location != null)
-				{
-					planStorer.makePlan(location, getMarioMapSquare());
-				}
-				if(!planStorer.havePlan())
-				{
-					planStorer.makePlan(getBestRightHandSide(), getMarioMapSquare());
-				}
-				
+				makeNewPlan();
 			}
 			
-			//If we have just made a move
-			else if((justMoved && !planStorer.isPlanStepAchieved(getMarioMapSquare())) || !nextPlanStepAdjacent()) 
-				{
-					/*if(!isJumping)
-					{*/
-						//Return the next move in the plan
-	
-						planStorer.replan(getMarioMapSquare());
-						return planStorer.getLocationToMoveTo(getMarioMapSquare(), this);
-					/*}
-					else
-					{
-						return null;
-					}*/
-				}
-			
+			//If we have just made a move & are not where we expected to be
+			if(justMoved && !lastStepAchieved) 
+			{
+				planStorer.replan(getMarioMapSquare());
+			}
 			
 			return planStorer.getLocationToMoveTo(getMarioMapSquare(), this);
 		}
 		
+		/**
+		 * @return boolean saying whether the next step of the plan is adjacent to our current position
+		 */
 		private boolean nextPlanStepAdjacent()
 		{
-			//checks whether the plan is accessible in one turn
 			MapSquare nextLocation = planStorer.getNextPlanLocation();
+			if(nextLocation == null)
+			{
+				return false;
+			}
 			
 			return
 					   nextLocation.equals(map.get(marioMapLoc[0]+1).get(marioMapLoc[1]))
@@ -233,55 +191,61 @@ public class LevelSceneInvestigator
 					|| nextLocation.equals(map.get(marioMapLoc[0]-1).get(marioMapLoc[1]))
 					|| nextLocation.equals(map.get(marioMapLoc[0]-1).get(marioMapLoc[1]-1));
 		}
+		/**
+		 * @return MapSquare that Mario is currently occupying
+		 */
 		private MapSquare getMarioMapSquare()
 		{
 			return map.get(marioMapLoc[0]).get(marioMapLoc[1]);
 		}
 		
-		
-		/**
-		 * Finds a location in the map that Mario should move towards.
-		 * @param isFacingRight - whether or not Mario is currently facing right
-		 * @return int array of size 2 representing a desirable location on the map for Mario to move towards
-		 */
-		private MapSquare findLocation(boolean isFacingRight)
+		private boolean makeNewPlan()
 		{
-			MapSquare locationOfReward = getRewardLocation();
-			if(locationOfReward != null)
+			ArrayList<MapSquare> allRewards = getAllRewards();
+			for(MapSquare square : allRewards)
 			{
-				return locationOfReward;
-			}	
-			
-			/*int[] requiredlocationForBlockage = getBlockageLocation(isFacingRight);
-			if(requiredlocationForBlockage != null)
+				//Find a good location to move towards
+				planStorer.makePlan(square, getMarioMapSquare());
+				//If this succeeded, then use this plan
+				if(planStorer.havePlan())
+				{
+					return true;
+				}
+			}
+			if(!planStorer.havePlan())
 			{
-				return requiredlocationForBlockage;
-			}*/
-			
-			return null;
+				//if we still don't have a plan, plan to move to the RHS of the screen
+				planStorer.makePlan(getBestRightHandSide(), getMarioMapSquare(), false);
+			}
+			return planStorer.havePlan();
 		}
-		public MapSquare getRewardLocation()
+		
+		private ArrayList<MapSquare> getAllRewards()
 		{
+			ArrayList<MapSquare> rewardsFound = new ArrayList<MapSquare>(2 * Movement.MAX_JUMP_WIDTH);
 			for(
-					int i = Math.max(0, marioMapLoc[1] - Movement.MAX_JUMP_WIDTH / 2);
-					    i < Math.min(map.size(), marioMapLoc[1] + Movement.MAX_JUMP_WIDTH / 2);
+					int i = Math.max(0, marioMapLoc[1] - Movement.MAX_JUMP_WIDTH);
+					    i < Math.min(map.get(0).size(), marioMapLoc[1] + Movement.MAX_JUMP_WIDTH);
 					++i
 				)
 			{
-				for(
+				innerloop : for(
 						int j =  0;
 						j <	map.size();
 						++j
 					)
 				{
-					if(map.get(j).get(i) == null) {continue;}
+					if(map.get(j).get(i) == null)
+					{
+						continue innerloop;
+					}
 					if(map.get(j).get(i).getEncoding() == Encoding.COIN)
 					{
-						return map.get(j).get(i);
+						rewardsFound.add(map.get(j).get(i));
 					}
 				}
 			}
-			return null;
+			return rewardsFound;
 		}
 		
 		public MapSquare getBestRightHandSide()
@@ -309,6 +273,7 @@ public class LevelSceneInvestigator
 					else if (found)
 					{
 						//then this is the square we want to move towards
+						debugPrint("Found a RHS square to move towards " + map.get(y).get(x));
 						return map.get(y).get(x);
 					}
 				}
@@ -321,42 +286,10 @@ public class LevelSceneInvestigator
 			return null;
 		}
 		
-		/*public int[] getBlockageLocation(boolean facingRight)
-		{
-			int direction = 1;
-			if(!facingRight)
-			{
-				direction = -1;
-			}
-			
-			for(int i = 1; i < Movement.MAX_JUMP_WIDTH; ++i)
-			{
-				byte square = map.get(marioMapLoc[0]).get(marioMapLoc[1] + (i * direction))!= null ? map.get(marioMapLoc[0]).get(marioMapLoc[1] + (i * direction)).getEncoding() : 0;
-				if(Encoding.isEnvironment(square))
-				{
-					int[] result = new int[2];
-	
-					result[1] = marioMapLoc[1] + (i * direction);
-					result[0] = marioMapLoc[0];
-					while(Encoding.isEnvironment(map.get(result[0]).get(result[1])))
-					{
-						--result[0];
-						if(result[0] < 0 || map.get(result[0]).get(result[1]) == null)
-						{
-							return null;
-							//FIXME: deal with inability to jump over
-						}
-					}
-					return result;
-				}
-			}
-			
-			return null;
-		}*/
-		
 		public MapSquare checkForEnemies(int xBound, int yBound)
 		{
-			for(int j = marioMapLoc[0]; j >= Math.max(yBound, 0) ; --j)
+			return null;
+			/*for(int j = marioMapLoc[0]; j >= Math.max(yBound, 0) ; --j)
 			{
 				for(int k = marioMapLoc[1]; k >= Math.max(xBound, 0) ; --k)
 				{
@@ -369,10 +302,11 @@ public class LevelSceneInvestigator
 			}
 			enemyFound = false;
 			return null;
-		}
+		*/}
 		
 		//DEBUG
 		boolean debug = FirstAgent.debug;
+		boolean printMap = false;
 		float[] startloc = new float[2];
 		int y = -1;
 		int x = -1;
