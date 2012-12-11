@@ -30,7 +30,7 @@ public class PlanStorer {
 	 * Makes a plan from the current position {@link #marioMapLoc} to the desiredPosition and stores it in {@link #plan}.
 	 * @param desiredPosition - a int array of size 2 representing the location that the plan should head towards
 	 */
-	public void makePlan(MapSquare desiredPosition, MapSquare startLocation, boolean important)
+	public void makePlan(MapSquare desiredPosition, MapSquare startLocation, boolean important, int marioMode)
 	{	
 		if(plan!=null)
 		{
@@ -38,7 +38,7 @@ public class PlanStorer {
 		}
 		if(desiredPosition == null) {return;}
 
-		Stack<MapSquare> newPlan = Search.aStar(desiredPosition, startLocation);
+		Stack<MapSquare> newPlan = Search.aStar(desiredPosition, startLocation, marioMode);
 		
 		if(newPlan != null)
 		{
@@ -46,9 +46,9 @@ public class PlanStorer {
 			plan = newPlan;
 		}
 	}
-	public void makePlan(MapSquare desiredPosition, MapSquare startLocation)
+	public void makePlan(MapSquare desiredPosition, MapSquare startLocation, int marioMode)
 	{
-		makePlan(desiredPosition, startLocation, true);
+		makePlan(desiredPosition, startLocation, true, marioMode);
 	}
 	/**
 	 * Checks whether any MapSquare in the plan has become an Environment piece.
@@ -108,7 +108,7 @@ public class PlanStorer {
 	}
 	private MapSquare shiftLoc(MapSquare nextLocation)
 	{
-		if(Encoding.isEnvironment(nextLocation.getSquareRight()) && Encoding.isEnvironment(nextLocation.getSquareLeft()))
+		if(false && Encoding.isEnvironment(nextLocation.getSquareRight()) && Encoding.isEnvironment(nextLocation.getSquareLeft()))
 		{
 			if(plan.size() > 2)
 			{
@@ -116,6 +116,10 @@ public class PlanStorer {
 				int distance = 0;
 				while(i >= 0)
 				{
+					if(!Encoding.isEnvironment(plan.get(i).getSquareRight()) && Encoding.isEnvironment(plan.get(i).getSquareLeft()))
+					{
+						break;
+					}
 					distance = nextLocation.getMapLocationX() - plan.get(i).getMapLocationX();
 					if(distance != 0)
 					{
@@ -132,7 +136,7 @@ public class PlanStorer {
 	 * Attempts to find a way for Mario to get back on track with {@link #plan}.
 	 * If no way is found, {@link #plan} will be removed.
 	 */
-	public void replan(MapSquare marioCurrentLocation)
+	public void replan(MapSquare marioCurrentLocation, int marioMode)
 	{
 		//How much longer the new plans are allowed to be than the previous plan
 		int adjustment = 5;	
@@ -145,7 +149,7 @@ public class PlanStorer {
 		for(int i = 0; i < plan.size(); ++i)
 		{
 			//Find a new plan to this square from the current square, using the same number of steps (+ the adjustment value)
-			Stack<MapSquare> thisPlan = Search.aStar(plan.get(i), marioCurrentLocation, plan.size() - i + adjustment);
+			Stack<MapSquare> thisPlan = Search.aStar(plan.get(i), marioCurrentLocation, plan.size() - i + adjustment, marioMode);
 			if(thisPlan!=null)
 			{
 				}

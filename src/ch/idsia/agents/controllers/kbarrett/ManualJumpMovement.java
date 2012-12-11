@@ -22,6 +22,8 @@ public class ManualJumpMovement extends Movement {
 			}
 			else
 			{
+				System.out.println("LOCATION TO MOVE TO: " + location[0] + "," + location[1]);
+				
 				//If the location provided is invalid, print out an error
 				if(location.length != 2)
 				{

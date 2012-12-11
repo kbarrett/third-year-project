@@ -31,12 +31,12 @@ public abstract class Movement
 				 * The approximate number of squares (in terms of amount of space each element in the matrix levelScene corresponds to) high that Mario can jump.
 				 * @see ch.idsia.agents.controllers.kbarrett.Movement#MAX_JUMP_WIDTH
 				 */
-				public static int MAX_JUMP_HEIGHT = 4;
+				public static int MAX_JUMP_HEIGHT = 3;
 				/**
 				 * The approximate number of squares (in terms of amount of space each element in the matrix levelScene corresponds to) across that Mario can jump.
 				 * @see ch.idsia.agents.controllers.kbarrett.Movement#MAX_JUMP_HEIGHT
 				 */
-				public static int MAX_JUMP_WIDTH = 4;
+				public static int MAX_JUMP_WIDTH = 3;
 
 	//Methods relating to checking Mario Movements
 

@@ -16,6 +16,7 @@ public class AStarTestClass {
 	
 	public static void main(String[] args)
 	{
+		map.add(new ArrayList<MapSquare>());
 		/*byte[][] levelScene = {
 				{Encoding.NOTHING,	Encoding.NOTHING,	Encoding.NOTHING,	Encoding.NOTHING, 	Encoding.NOTHING, Encoding.NOTHING, Encoding.NOTHING,	Encoding.NOTHING, Encoding.NOTHING},
 				{Encoding.WALL,		Encoding.NOTHING,	Encoding.NOTHING,	Encoding.NOTHING,	Encoding.NOTHING,Encoding.NOTHING,Encoding.NOTHING,	Encoding.WALL,	 Encoding.NOTHING},
@@ -39,7 +40,7 @@ public class AStarTestClass {
 		int[] marioMapLoc = {3,3};
 		map = MapUpdater.updateMap(map, levelScene, marioMapLoc);
 		
-		Search.aStar(map.get(2).get(4), map.get(AStarTestClass.marioMapLoc[0]).get(AStarTestClass.marioMapLoc[1]));
+		Search.aStar(map.get(2).get(4), map.get(AStarTestClass.marioMapLoc[0]).get(AStarTestClass.marioMapLoc[1]), 2);
 		
 	}
 

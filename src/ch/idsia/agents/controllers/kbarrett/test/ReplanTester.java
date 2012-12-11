@@ -43,7 +43,7 @@ public class ReplanTester {
 		for(int i = 0; i<points.length; ++i)
 		{
 			marioMapLoc = points[i];
-			planStorer.replan(map.get(marioMapLoc[0]).get(marioMapLoc[1]));
+			planStorer.replan(map.get(marioMapLoc[0]).get(marioMapLoc[1]), 2);
 			System.out.println("On iteration " + i + " when Mario is at" + marioMapLoc[0] + "," + marioMapLoc[1] + " the plan is: " + planStorer.plan);
 			System.out.println("Location to move to: " + planStorer.getLocationToMoveTo(map.get(marioMapLoc[0]).get(marioMapLoc[1]), null));
 		}

@@ -3,6 +3,8 @@ package ch.idsia.agents.controllers.kbarrett;
 import java.util.ArrayList;
 import java.util.Stack;
 
+import ch.idsia.agents.controllers.kbarrett.MapSquare.Direction;
+
 /**
  * This class is responsible for seeing what is in the vicinity of Mario.
  * @author Kim Barrett
@@ -16,9 +18,10 @@ public class LevelSceneInvestigator
 		 */
 		private int[] marioLoc;
 		/**
-		 * Stores the float position of Mario on the screen.
+		 * Stores the float position of Mario on the screen during the initial frame.
 		 */
-		private float[] marioScreenPos;
+		private float[] marioInitialScreenPos;
+		private float[] marioLastScreenPos;
 		/**
 		 * Stores whether Mario has moved to a different position within the map (i.e. whether marioMapLoc has changed) on this iteration.
 		 */
@@ -41,9 +44,23 @@ public class LevelSceneInvestigator
 		
 		private PlanStorer planStorer;
 		
+		private int marioMode;
+		
+		private boolean stayStationary = false;
+		/**
+		 * Direction Mario is currently moving in, where -1 is left, 0 is not moving & 1 is right.
+		 */
+		private byte directionOfMovement = 0;
+		
 		public LevelSceneInvestigator()
 		{
 			planStorer = new PlanStorer();
+		}
+		
+		private boolean isStationary()
+		{
+			System.out.println("dOM: " + directionOfMovement + " so " + (directionOfMovement == 0));
+			return directionOfMovement == 0;
 		}
 		
 	//Methods for updating the data
@@ -91,11 +108,15 @@ public class LevelSceneInvestigator
 			marioScreenPos[1] = temp;
 			
 			//On the first run through, store the top-left (physical) location of the square we're in as our current position
-			if(this.marioScreenPos == null)
+			if(this.marioInitialScreenPos == null || this.marioLastScreenPos == null)
 			{
-				this.marioScreenPos = new float[2];
-				this.marioScreenPos[0] = marioScreenPos[0] - SQUARESIZE/2;
-				this.marioScreenPos[1] = marioScreenPos[1] - SQUARESIZE/2;
+				this.marioInitialScreenPos = new float[2];
+				this.marioInitialScreenPos[0] = marioScreenPos[0] - SQUARESIZE/2;
+				this.marioInitialScreenPos[1] = marioScreenPos[1] - SQUARESIZE/2;
+				
+				this.marioLastScreenPos = new float[2];
+				this.marioLastScreenPos[0] = marioScreenPos[0];
+				this.marioLastScreenPos[1] = marioScreenPos[1];
 			}
 			//On all subsequent runs, use the initial position to calculate our current position in the map
 			else
@@ -104,8 +125,8 @@ public class LevelSceneInvestigator
 				int[] prevMapLoc = new int[] {marioMapLoc[0], marioMapLoc[1]};
 				
 				//Calculate new positions
-				marioMapLoc[0] = (int)((marioScreenPos[0] - this.marioScreenPos[0]) / SQUARESIZE) + marioLoc[0];
-				marioMapLoc[1] = (int)((marioScreenPos[1] - this.marioScreenPos[1]) / SQUARESIZE) + marioLoc[1];
+				marioMapLoc[0] = (int)((marioScreenPos[0] - this.marioInitialScreenPos[0]) / SQUARESIZE) + marioLoc[0];
+				marioMapLoc[1] = (int)((marioScreenPos[1] - this.marioInitialScreenPos[1]) / SQUARESIZE) + marioLoc[1];
 				
 				//If previous and new differ, then we have moved
 				if(prevMapLoc[0] != marioMapLoc[0] || prevMapLoc[1] != prevMapLoc[1])
@@ -117,6 +138,24 @@ public class LevelSceneInvestigator
 				{
 					justMoved = false;
 				}
+				
+				//If old & new screen positions are equals then we are stationary
+				float diff = marioScreenPos[0] - this.marioLastScreenPos[0];
+				if(diff < 0)
+				{
+					directionOfMovement = -1;
+				}
+				else if (diff == 0)
+				{
+					directionOfMovement = 0;
+				}
+				else
+				{
+					directionOfMovement = 1;
+				}
+				//set previous position to be the current position
+				marioLastScreenPos[0] = marioScreenPos[0];
+				marioLastScreenPos[1] = marioScreenPos[1];
 			}
 		}
 		/**
@@ -131,6 +170,15 @@ public class LevelSceneInvestigator
 		public int[] getMarioMapLoc()
 		{
 			return marioMapLoc;
+		}
+		
+		public void setMarioMode(int marioMode)
+		{
+			this.marioMode = marioMode;
+		}
+		public int getMarioMode()
+		{
+			return marioMode;
 		}
 		
 		public boolean isEnemy()
@@ -151,7 +199,7 @@ public class LevelSceneInvestigator
 		 * @return byte array of size 2 denoting the location that has been decided to move towards. 
 		 * Returns null if no location has been chosen.
 		 */
-		public MapSquare getNextLocation()
+		public MapSquare getNextLocation(boolean isJumping)
 		{
 			boolean lastStepAchieved = planStorer.isPlanStepAchieved(getMarioMapSquare());
 			
@@ -161,13 +209,49 @@ public class LevelSceneInvestigator
 				makeNewPlan();
 			}
 			
-			//If we have just made a move & are not where we expected to be
-			if(justMoved && !lastStepAchieved) 
+			//If we have just made a move
+			if(justMoved)
 			{
-				planStorer.replan(getMarioMapSquare());
+				stayStationary = false;
+				
+				//if we are not where we expected to be
+				if(!lastStepAchieved)
+				{
+					planStorer.replan(getMarioMapSquare(), getMarioMode());
+				}
 			}
 			
-			return planStorer.getLocationToMoveTo(getMarioMapSquare(), this);
+			System.out.println("MARIO AT: " + marioMapLoc[0] + "," + marioMapLoc[1]);
+			System.out.println("PLAN: " + planStorer.plan);
+			
+			MapSquare s = getLocationToMoveTo(isJumping);
+			System.out.println("Square to move to " + s);
+			return s;
+		}
+		
+		private MapSquare getLocationToMoveTo(boolean isJumping)
+		{
+			if(false && !isStationary() && !isJumping && stayStationary)
+			{
+				System.out.println("NOT MOVING - NEED TO BE STATIONARY");
+				MapSquare newSquare = getMapSquare(getMarioMapSquare().getMapLocationY(), getMarioMapSquare().getMapLocationX() - directionOfMovement);
+				
+				return newSquare;
+				//FIXME: warning - below line is bullshit place-holding
+				//return new MovementInstruction(Direction.Above, null);
+			}
+			else
+			{
+				MapSquare s =  planStorer.getLocationToMoveTo(getMarioMapSquare(), this);
+				if(!isStationary() && !isJumping && getMarioMapSquare().getSquareAbove().equals(s))
+				{
+					stayStationary = true;
+					return getMarioMapSquare();
+					//FIXME: warning - below line is bullshit place-holding
+					//return new MovementInstruction(Direction.Above, null);
+				}
+				return s;
+			}
 		}
 		
 		/**
@@ -205,7 +289,7 @@ public class LevelSceneInvestigator
 			for(MapSquare square : allRewards)
 			{
 				//Find a good location to move towards
-				planStorer.makePlan(square, getMarioMapSquare());
+				planStorer.makePlan(square, getMarioMapSquare(), getMarioMode());
 				//If this succeeded, then use this plan
 				if(planStorer.havePlan())
 				{
@@ -215,7 +299,7 @@ public class LevelSceneInvestigator
 			if(!planStorer.havePlan())
 			{
 				//if we still don't have a plan, plan to move to the RHS of the screen
-				planStorer.makePlan(getBestRightHandSide(), getMarioMapSquare(), false);
+				planStorer.makePlan(getBestRightHandSide(), getMarioMapSquare(), false, getMarioMode());
 			}
 			return planStorer.havePlan();
 		}
@@ -239,7 +323,7 @@ public class LevelSceneInvestigator
 					{
 						continue innerloop;
 					}
-					if(map.get(j).get(i).getEncoding() == Encoding.COIN)
+					if(map.get(j).get(i).getEncoding() == Encoding.COIN || map.get(j).get(i).getEncoding() == Encoding.FIRE_FLOWER)
 					{
 						rewardsFound.add(map.get(j).get(i));
 					}

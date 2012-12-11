@@ -10,7 +10,7 @@ public class MapSquareWrapper {
 	private MapSquare mapSquare;
 	private MapSquareWrapper parent;
 	private Direction direction;
-	private int g = -1;
+	private float g = -1;
 	private int h = -1;
 	private int levelInJump = 0;
 	private int widthOfJump = 0;
@@ -122,11 +122,11 @@ public class MapSquareWrapper {
 			{
 				this.h = h;
 			}
-			public void setG(int g)
+			public void setG(float g)
 			{
 				this.g = g;
 			}
-			public int getG()
+			public float getG()
 			{
 				return g;
 			}

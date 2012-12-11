@@ -3,6 +3,8 @@ package ch.idsia.agents.controllers.kbarrett;
 import java.util.ArrayList;
 import java.util.HashSet;
 
+import ch.idsia.benchmark.mario.engine.sprites.Mario;
+
 public class MapSquare {
 
 	private byte encoding;
@@ -130,10 +132,11 @@ public class MapSquare {
 	 * @param enteredFromAbove - whether or not this square was entered from above (i.e. whilst falling)
 	 * @return list of all MapSquares that can be entered from this one in the current circumstances
 	 */
-	public ArrayList<MapSquare> getReachableSquares(int currentJumpHeight, int currentJumpWidth, Direction enteredFrom)
+	public ArrayList<MapSquare> getReachableSquares(int currentJumpHeight, int currentJumpWidth, Direction enteredFrom, int marioMode)
 	{
 		HashSet<MapSquare> newList = new HashSet<MapSquare>(reachableSquares);
 		newList.addAll(getAppropriateSquares(currentJumpHeight, currentJumpWidth, enteredFrom));
+		checkHeadButt(newList, requireHeadButtBuffer(marioMode));
 		return new ArrayList<MapSquare>(newList);
 	}
 	public boolean isAlwaysReachable(MapSquare square)
@@ -175,6 +178,47 @@ public class MapSquare {
 			}
 		}
 		return squares;
+	}
+	
+	private boolean requireHeadButtBuffer(int marioMode)
+	{
+		switch(marioMode)
+		{
+		case 2 ://fire
+		case 1 ://large
+		{
+			return true;
+		}
+		case 0 ://small
+		default :
+		{
+			return false;
+		}
+		}
+	}
+	private void checkHeadButt(HashSet<MapSquare> newList, boolean headButtBuffer)
+	{
+		if(headButtBuffer)
+		{
+			if(getMapLocationY() > 2 && Encoding.isEnvironment(map.get(getMapLocationY() - 2).get(getMapLocationX())))
+			{
+				System.out.println("Removing head-butted square");
+				newList.remove(getSquareAbove());
+			}
+			if(getMapLocationY() > 1)
+			{
+				if(getMapLocationX() > 0 && Encoding.isEnvironment(map.get(getMapLocationY() - 1).get(getMapLocationX() - 1)))
+				{
+					System.out.println("Removing head-butted square to the left");
+					newList.remove(getSquareLeft());
+				}
+				if(getMapLocationX() < map.get(getMapLocationY() - 1).size() - 1 && Encoding.isEnvironment(map.get(getMapLocationY() - 1).get(getMapLocationX() + 1)))
+				{
+					System.out.println("Removing head-butted to the right");
+					newList.remove(getSquareRight());
+				}
+			}
+		}
 	}
 	
 	@Override

@@ -61,6 +61,8 @@ public class FirstAgent implements Agent {
 			//Give LevelSceneInvestigator the new LevelScene & Mario's new screen position
 				levelSceneInvestigator.setMarioScreenPos(environment.getMarioFloatPos());
 				levelSceneInvestigator.updateMapFromLevelScene(environment.getMergedObservationZZ(0, 0));
+				levelSceneInvestigator.setMarioMode(environment.getMarioMode());
+				System.out.println("WHEN SET MARIOMODE IS: " + levelSceneInvestigator.getMarioMode());
 		
 				movement.setMarioMapLoc(levelSceneInvestigator.getMarioMapLoc());
 		
@@ -69,14 +71,13 @@ public class FirstAgent implements Agent {
 				{
 					movement.land();
 				}
-				MapSquare nextLoc = levelSceneInvestigator.getNextLocation();
+				MapSquare nextLoc = levelSceneInvestigator.getNextLocation(movement.isJumping());
 				if(nextLoc == null)
 				{
 					movement.moveTowards(null);
 				}
 				else
 				{
-
 					movement.moveTowards(nextLoc.getMapLocation());
 				}
 				movement.isEnemy(levelSceneInvestigator.isEnemy() && environment.isMarioAbleToShoot());
