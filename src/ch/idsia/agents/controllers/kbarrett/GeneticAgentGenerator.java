@@ -28,23 +28,17 @@ public class GeneticAgentGenerator
 			algorithm.loadThisGeneration(savefilename);
 			population = algorithm.getCurrentGeneration();
 		}
-		catch(JDOMException e)
+		catch(Exception e)
 		{
 			System.out.println("File empty, creating initial population.");
 			
-			population.add(new SecondAgent(0,0.6f,0.6f));
-			population.add(new SecondAgent(1,1f,0.6f));
-			population.add(new SecondAgent(2,1f,0.1f));
-			population.add(new SecondAgent(3,0.1f,1f));
-			population.add(new SecondAgent(4,0.5f,0.5f));
+			population.add(new SecondAgent(0, 0.6f, 0.6f, 0.6f, 0.6f));
+			population.add(new SecondAgent(1, 1f, 0.6f, 0.1f, 0.4f));
+			population.add(new SecondAgent(2, 1f, 0.1f, 0.2f, 0.3f));
+			population.add(new SecondAgent(3, 0.1f, 1f, 1f, 1f));
+			population.add(new SecondAgent(4, 0.5f, 0.5f, 0.5f, 0.5f));
 			
 			algorithm.giveInitialPopulation(population);
-		}
-		catch(Exception e)
-		{
-			e.printStackTrace();
-			System.err.println("Error creating generation");
-			return;
 		}
 		
 		SecondAgentManager.resetNumbers();
@@ -91,9 +85,13 @@ class SecondAgentEvolver implements Evolver<SecondAgent>
 		float probJump2 = (element2.getProbabilityJump() * probability + element1.getProbabilityJump() * (1-probability));
 		float probRight1 = (element1.getProbabilityMoveRight() * probability + element2.getProbabilityMoveRight() * (1-probability));
 		float probRight2 = (element2.getProbabilityMoveRight() * probability + element1.getProbabilityMoveRight() * (1-probability));
+		float probRun1 = (element1.getProbabilityRun() * probability + element2.getProbabilityRun() * (1-probability));
+		float probRun2 = (element2.getProbabilityRun() * probability + element1.getProbabilityRun() * (1-probability));
+		float probShoot1 = (element1.getProbabilityShoot() * probability + element2.getProbabilityShoot() * (1-probability));
+		float probShoot2 = (element2.getProbabilityShoot() * probability + element1.getProbabilityShoot() * (1-probability));
 		
-		SecondAgent newAgent1 = new SecondAgent(currentAgent++, probJump1, probRight1);
-		SecondAgent newAgent2 = new SecondAgent(currentAgent++, probJump2, probRight2);
+		SecondAgent newAgent1 = new SecondAgent(currentAgent++, probJump1, probRight1, probShoot1, probRun1);
+		SecondAgent newAgent2 = new SecondAgent(currentAgent++, probJump2, probRight2, probShoot2, probRun2);
 		
 		if(currentAgent == getSizeOfGeneration())
 		{
@@ -110,9 +108,10 @@ class SecondAgentEvolver implements Evolver<SecondAgent>
 	public void mutate(SecondAgent element)
 	{
 		System.out.println("Mutating " + element);
-		double rand = Math.random();
-		element.setProbabilityJump(element.getProbabilityJump() + (float)rand * 10);
-		element.setProbabilityMoveRight(element.getProbabilityMoveRight() + (float)rand * 10);
+		element.setProbabilityJump(element.getProbabilityJump() + (float)Math.random());
+		element.setProbabilityMoveRight(element.getProbabilityMoveRight() + (float)Math.random());
+		element.setProbabilityShoot(element.getProbabilityShoot() + (float)Math.random());
+		element.setProbabilityRun(element.getProbabilityRun() + (float)Math.random());
 	}
 
 	@Override

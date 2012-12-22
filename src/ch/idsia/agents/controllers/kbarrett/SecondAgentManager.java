@@ -10,16 +10,16 @@ public class SecondAgentManager
 	
 	private static float[] probabilityJump;
 	private static float[] probabilityMoveRight;
-	private static float[] probabilityCoin;
-	private static float[] probabilityAvoidEnemy;
+	private static float[] probabilityShoot;
+	private static float[] probabilityRun;
 	
 	public static void initialise(int size)
 	{
 		fitnesses = new float[size];
 		probabilityJump = new float[size];
 		probabilityMoveRight = new float[size];
-		probabilityCoin = new float[size];
-		probabilityAvoidEnemy = new float[size];
+		probabilityShoot = new float[size];
+		probabilityRun = new float[size];
 	}
 	
 	public static void resetNumbers()
@@ -28,8 +28,8 @@ public class SecondAgentManager
 		fitnesses = new float[getFitnesses().length];
 		probabilityJump = new float[probabilityJump.length];
 		probabilityMoveRight = new float[probabilityMoveRight.length];
-		probabilityCoin = new float[probabilityCoin.length];
-		probabilityAvoidEnemy = new float[probabilityAvoidEnemy.length];
+		probabilityShoot = new float[probabilityShoot.length];
+		probabilityRun = new float[probabilityRun.length];
 	}
 	
 	public static float getFitness(int agentNumber)
@@ -44,13 +44,13 @@ public class SecondAgentManager
 	{
 		return probabilityMoveRight[agentNumber];
 	}
-	public static float getProbabilityCoin(int agentNumber)
+	public static float getProbabilityRun(int agentNumber)
 	{
-		return (int)probabilityCoin[agentNumber];
+		return (int)probabilityRun[agentNumber];
 	}
-	public static float getProbabilityAvoidEnemy(int agentNumber)
+	public static float getProbabilityShoot(int agentNumber)
 	{
-		return probabilityAvoidEnemy[agentNumber];
+		return probabilityShoot[agentNumber];
 	}
 
 	public static float[] getFitnesses() {
@@ -62,18 +62,18 @@ public class SecondAgentManager
 		return currentAgent++;
 	}
 	
-	public static void setValues(int agentNumber, float jump, float right, float coin, float enemy)
+	public static void setValues(int agentNumber, float jump, float right, float run, float shoot)
 	{
 		probabilityJump[agentNumber] = jump;
 		probabilityMoveRight[agentNumber] = right;
-		probabilityCoin[agentNumber] = coin;
-		probabilityAvoidEnemy[agentNumber] = enemy;
+		probabilityRun[agentNumber] = run;
+		probabilityShoot[agentNumber] = shoot;
 	}
 	public static void setValues(LinkedList<SecondAgent> population)
 	{
 		for(SecondAgent agent : population)
 		{
-			setValues(agent.getAgentNumber(), agent.getProbabilityJump(), agent.getProbabilityMoveRight(), 0, 0);
+			setValues(agent.getAgentNumber(), agent.getProbabilityJump(), agent.getProbabilityMoveRight(), agent.getProbabilityRun(), agent.getProbabilityShoot());
 		}
 	}
 

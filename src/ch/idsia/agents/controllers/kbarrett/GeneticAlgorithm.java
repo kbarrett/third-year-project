@@ -27,6 +27,8 @@ public class GeneticAlgorithm<T> {
 	
 	private int leastValueOffSet = 1;
 	
+	private GeneticAlgorithm(){};
+	
 	public GeneticAlgorithm(LinkedList<T> initialPopulation, Evolver<T> evolver)
 	{
 		this.evolver = evolver;
@@ -151,33 +153,16 @@ public class GeneticAlgorithm<T> {
 		}
 		return true;
 	}
-	public boolean loadThisGeneration(String fileName) throws JDOMException
+	public void loadThisGeneration(String fileName) throws JDOMException, IOException
 	{
-		String xmlString;
-		try
+		Document doc = new SAXBuilder().build(new File(fileName));
+		Element root = doc.getRootElement();
+		for(Object o : root.getChildren())
 		{
-			/*xmlString = readInFile(fileName);
-			if(xmlString == "")
-			{
-				throw new EmptyFileException();
-			}
-			Document doc = docFromString(xmlString);*/
-			Document doc = new SAXBuilder().build(new File(fileName));
-			Element root = doc.getRootElement();
-			//Element children = root.getChild(RootElementName);
-			for(Object o : root.getChildren())
-			{
-				Element element = (Element)o;
-				T agent = evolver.fromSaveFormat(element);
-				lastGeneration.add(agent);
-			}
+			Element element = (Element)o;
+			T agent = evolver.fromSaveFormat(element);
+			lastGeneration.add(agent);
 		}
-		catch (IOException e)
-		{
-			e.printStackTrace();
-			return false;
-		}
-		return true;
 	}
 	
 	private String readInFile(String fileName) throws FileNotFoundException

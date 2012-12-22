@@ -13,18 +13,26 @@ public class SecondAgent implements Agent
 	
 	private float probabilityJump;
 	private float probabilityMoveRight;
+	private float probabilityShoot;
+	private float probabilityRun;
+	
+	private boolean marioAbleToShoot = false;
 	
 	public SecondAgent()
 	{	
 		thisAgent = SecondAgentManager.getNextAgentNumber();
 		probabilityJump = SecondAgentManager.getProbabilityJump(thisAgent);
 		probabilityMoveRight = SecondAgentManager.getProbabilityMoveRight(thisAgent);
+		probabilityShoot = SecondAgentManager.getProbabilityShoot(thisAgent);
+		probabilityRun = SecondAgentManager.getProbabilityRun(thisAgent);
 	}
-	public SecondAgent(int agentNumber, float probJump, float probRight)
+	public SecondAgent(int agentNumber, float probJump, float probRight, float probShoot, float probRun)
 	{	
 		thisAgent = agentNumber;
 		probabilityJump = probJump;
 		probabilityMoveRight = probRight;
+		probabilityShoot = probShoot;
+		probabilityRun = probRun;
 	}
 	
 	public SecondAgent(Element string)
@@ -44,18 +52,32 @@ public class SecondAgent implements Agent
 		
 		if(Math.random() < probabilityJump)
 		{
-			actions[Mario.KEY_JUMP] = true;
+			actions[Environment.MARIO_KEY_JUMP] = true;
 		}
 		if(Math.random() < probabilityMoveRight)
 		{
-			actions[Mario.KEY_RIGHT] = true;
+			actions[Environment.MARIO_KEY_RIGHT] = true;
+		}
+		if(marioAbleToShoot)
+		{
+			if(Math.random() < probabilityShoot)
+			{
+				actions[Environment.MARIO_KEY_SPEED] = true;
+			}
+		}
+		else if(Math.random() < probabilityRun)
+		{
+			actions[Environment.MARIO_KEY_SPEED] = true;
 		}
 		
 		return actions;
 	}
 
 	@Override
-	public void integrateObservation(Environment environment){}
+	public void integrateObservation(Environment environment)
+	{
+		marioAbleToShoot = environment.isMarioAbleToShoot();
+	}
 
 	@Override
 	public void giveIntermediateReward(float intermediateReward)
@@ -95,14 +117,30 @@ public class SecondAgent implements Agent
 	{
 		probabilityMoveRight = probRight;
 	}
+	public float getProbabilityRun()
+	{
+		return probabilityRun;
+	}
+	public void setProbabilityRun(float probRun)
+	{
+		probabilityRun = probRun;
+	}
+	public float getProbabilityShoot()
+	{
+		return probabilityShoot;
+	}
+	public void setProbabilityShoot(float probShoot)
+	{
+		probabilityShoot = probShoot;
+	}
 	
 	public Element toSaveFormat()
 	{
 		Element element = new Element("SecondAgent");
 		element.addContent(new Element("probabilityJump").setText(""+probabilityJump));
 		element.addContent(new Element("probabilityMoveRight").setText(""+probabilityMoveRight));
-		element.addContent(new Element("probabilityCoin").setText(""));
-		element.addContent(new Element("probabilityAvoidEnemy").setText(""));
+		element.addContent(new Element("probabilityShoot").setText(""+probabilityShoot));
+		element.addContent(new Element("probabilityRun").setText(""+probabilityRun));
 		return element;
 	}
 	
@@ -110,13 +148,15 @@ public class SecondAgent implements Agent
 	{
 		probabilityJump = Float.parseFloat(savedFormat.getChildText("probabilityJump"));
 		probabilityMoveRight = Float.parseFloat(savedFormat.getChildText("probabilityMoveRight"));
+		probabilityRun = Float.parseFloat(savedFormat.getChildText("probabilityRun"));
+		probabilityShoot = Float.parseFloat(savedFormat.getChildText("probabilityShoot"));
 		thisAgent = SecondAgentManager.getNextAgentNumber();
 	}
 	
 	@Override
 	public String toString()
 	{
-		return "jump: " + probabilityJump + " right: " + probabilityMoveRight;
+		return "jump: " + probabilityJump + " right: " + probabilityMoveRight + " run: " + probabilityRun + " shoot: " + probabilityShoot;
 	}
 
 }
