@@ -19,8 +19,6 @@ import org.jdom.output.XMLOutputter;
 
 public class GeneticAlgorithm<T> {
 	
-	private static String RootElementName = "Root";
-	
 	private Evolver<T> evolver;
 	private LinkedList<T> lastGeneration;
 	private LinkedList<T> thisGeneration;
@@ -46,6 +44,11 @@ public class GeneticAlgorithm<T> {
 	public void giveInitialPopulation(LinkedList<T> initialPopulation)
 	{
 		lastGeneration = initialPopulation;
+	}
+	
+	public Evolver<T> getEvolver()
+	{
+		return evolver;
 	}
 	
 	public LinkedList<T> getCurrentGeneration()
@@ -86,7 +89,7 @@ public class GeneticAlgorithm<T> {
 			{
 				choice2 = (int) Math.floor(sum * Math.random());
 			}
-			while(choice == choice2);
+			while(choice == choice2 && sum > 1);
 			
 			T element1 = chooseElement(fitness, choice);
 			T element2 = chooseElement(fitness, choice2);
@@ -125,44 +128,20 @@ public class GeneticAlgorithm<T> {
 	
 	public boolean saveThisGeneration(String fileName)
 	{
-		PrintStream saveStream;
 		try
 		{
-			saveStream = new PrintStream(fileName);
-			Element root = new Element(RootElementName);
-			for(T element : lastGeneration)
-			{
-				root.addContent(evolver.toSaveFormat(element));
-			}
-			
-			Document doc = new Document();
-			doc.setRootElement(root);
-			StringWriter writer = new StringWriter();
-			XMLOutputter outputter = new XMLOutputter();
-			outputter.output(doc, writer);
-			saveStream.print(writer.toString());
-		} catch (FileNotFoundException e)
-		{
-			e.printStackTrace();
-			return false;
-		}
-		catch (IOException e)
+			LoadSave.saveToFile(fileName, lastGeneration, evolver);
+		} catch (IOException e)
 		{
 			e.printStackTrace();
 			return false;
 		}
 		return true;
 	}
+	
 	public void loadThisGeneration(String fileName) throws JDOMException, IOException
 	{
-		Document doc = new SAXBuilder().build(new File(fileName));
-		Element root = doc.getRootElement();
-		for(Object o : root.getChildren())
-		{
-			Element element = (Element)o;
-			T agent = evolver.fromSaveFormat(element);
-			lastGeneration.add(agent);
-		}
+		LoadSave.loadFromFile(fileName, lastGeneration, evolver);
 	}
 	
 	private String readInFile(String fileName) throws FileNotFoundException
