@@ -11,15 +11,24 @@ import ch.idsia.benchmark.mario.environments.Environment;
 public class LevelSceneMovement
 {
 	public static final int LevelSceneSize = 18;
+	public static final int NO_FITNESS_SET = Integer.MIN_VALUE;
+	
 	private byte[][] levelScene;
+	private final static String LevelSceneName = "LevelScene";
 	private boolean[] actions;
+	private static final String ActionsName = "Actions";
 	private int fitness;
+	private static final String FitnessName= "Fitness";
 	
 	public LevelSceneMovement(byte[][] levelScene, boolean[] actions, int fitness)
 	{
 		this.levelScene = levelScene;
 		this.actions = actions;
 		this.fitness = fitness;
+	}
+	public LevelSceneMovement(Element element)
+	{
+		fromSaveFormat(element);
 	}
 	
 	public void setLevelScene(byte[][] levelScene)
@@ -40,6 +49,10 @@ public class LevelSceneMovement
 	public boolean[] getActions()
 	{
 		return actions;
+	}
+	public void setActions(boolean[] actions)
+	{
+		this.actions = actions;
 	}
 	
 	public void changeAction(int action)
@@ -62,9 +75,9 @@ public class LevelSceneMovement
 		
 		LevelSceneMovement otherLevelSceneMovement = (LevelSceneMovement) otherObject;
 		
-		return sameActions(otherLevelSceneMovement) && sameLevelScene(otherLevelSceneMovement);
+		return sameLevelScene(otherLevelSceneMovement);
 	}
-	public boolean sameLevelScene(LevelSceneMovement otherLevelSceneMovement)
+	private boolean sameLevelScene(LevelSceneMovement otherLevelSceneMovement)
 	{
 		for(int i = 0; i < LevelSceneSize; ++i)
 		{
@@ -79,17 +92,80 @@ public class LevelSceneMovement
 		}
 		return true;
 	}
-	public boolean sameActions(LevelSceneMovement otherLevelSceneMovement)
+	
+	public int checkSimilarity(LevelSceneMovement lsm)
 	{
-		boolean[] otherActions = otherLevelSceneMovement.getActions();
-		for(int i = 0; i < actions.length; ++i)
+		int similarity = 0;
+		for(int i = 0; i < LevelSceneSize; ++i)
 		{
-			if(actions[i] != otherActions[i])
+			for(int j = 0; j < LevelSceneSize; ++j)
 			{
-				return false;
+				if(get(i,j) == lsm.get(i, j))
+				{
+					similarity++;
+				}
+			}
+			
+		}
+		return similarity;
+	}
+	
+	public void fromSaveFormat(Element element)
+	{
+		Element levelSceneElement = element.getChild(LevelSceneName);
+		levelScene = new byte[LevelSceneSize][LevelSceneSize];
+		for(Element iElement : (List<Element>)levelSceneElement.getChildren())
+		{
+			int i = Integer.parseInt(iElement.getName().substring(1));
+			for(Element jElement : (List<Element>)iElement.getChildren())
+			{
+				int j = Integer.parseInt(jElement.getName().substring(1));
+				levelScene[i][j] = Byte.parseByte(jElement.getText());
 			}
 		}
-		return true;
+		
+		Element actionsElement = element.getChild(ActionsName);
+		actions = new boolean[Environment.numberOfKeys];
+		for(Element iElement : (List<Element>)actionsElement.getChildren())
+		{
+			int i = Integer.parseInt(iElement.getName().substring(1));
+			actions[i] = Boolean.parseBoolean(iElement.getText());
+		}
+		
+		fitness = Integer.parseInt(element.getChildText(FitnessName));
+		
+	}
+	public Element toSaveFormat()
+	{
+		Element element = new Element(getClass().getSimpleName());
+		
+		Element levelSceneElement = new Element(LevelSceneName);
+		for(int i = 0; i < levelScene.length; ++i)
+		{
+			Element ithElement = new Element("i" + i);
+			for(int j = 0; j <  levelScene[i].length; ++j)
+			{
+				Element jElement = new Element("j" + j);
+				jElement.setText("" + levelScene[i][j]);
+				ithElement.addContent(jElement);
+			}
+			levelSceneElement.addContent(ithElement);
+		}
+		
+		Element actionsElement = new Element(ActionsName);
+		for(int i = 0; i < actions.length; ++i)
+		{
+			actionsElement.setAttribute("i" + i, "" + actions[i]);
+		}
+		
+		Element fitnessElement = new Element(FitnessName);
+		fitnessElement.setText(""+fitness);
+		
+		element.addContent(levelSceneElement);
+		element.addContent(actionsElement);
+		element.addContent(fitnessElement);
+		
+		return element;
 	}
 	
 }
@@ -178,15 +254,13 @@ class LevelSceneMovementEvolver implements Evolver<LevelSceneMovement>
 	@Override
 	public Element toSaveFormat(LevelSceneMovement element)
 	{
-		// TODO Auto-generated method stub
-		return null;
+		return element.toSaveFormat();
 	}
 
 	@Override
 	public LevelSceneMovement fromSaveFormat(Element element)
 	{
-		// TODO Auto-generated method stub
-		return null;
+		return new LevelSceneMovement(element);
 	}
 	
 }
