@@ -11,20 +11,20 @@ import ch.idsia.benchmark.mario.environments.Environment;
 public class LevelSceneMovement
 {
 	public static final int LevelSceneSize = 18;
-	public static final int NO_FITNESS_SET = Integer.MIN_VALUE;
+	public static final int NO_REWARD_SET = Integer.MIN_VALUE;
 	
 	private byte[][] levelScene;
 	private final static String LevelSceneName = "LevelScene";
 	private boolean[] actions;
 	private static final String ActionsName = "Actions";
-	private int fitness;
-	private static final String FitnessName= "Fitness";
+	private int reward;
+	private static final String RewardName= "Reward";
 	
-	public LevelSceneMovement(byte[][] levelScene, boolean[] actions, int fitness)
+	public LevelSceneMovement(byte[][] levelScene, boolean[] actions, int reward)
 	{
 		this.levelScene = levelScene;
 		this.actions = actions;
-		this.fitness = fitness;
+		this.reward = reward;
 	}
 	public LevelSceneMovement(Element element)
 	{
@@ -41,28 +41,29 @@ public class LevelSceneMovement
 		return levelScene[y][x];
 	}
 	
-	public int getFitness()
+	public int getFitness(LevelSceneMovement other)
 	{
-		return fitness;
+		return checkSimilarity(other);
 	}
 	
 	public boolean[] getActions()
 	{
 		return actions;
 	}
-	public void setActions(boolean[] actions)
+	public void setActions(boolean[] actions, int reward)
 	{
 		this.actions = actions;
+		this.reward = reward;
 	}
 	
 	public void changeAction(int action)
 	{
 		actions[action] = !actions[action];
 	}
-	
-	public void updateFitness(int fitness)
+
+	public void setReward(int reward)
 	{
-		this.fitness = fitness;
+		this.reward = reward;
 	}
 
 	@Override
@@ -132,7 +133,7 @@ public class LevelSceneMovement
 			actions[i] = Boolean.parseBoolean(iElement.getText());
 		}
 		
-		fitness = Integer.parseInt(element.getChildText(FitnessName));
+		reward = Integer.parseInt(element.getChildText(RewardName));
 		
 	}
 	public Element toSaveFormat()
@@ -158,12 +159,12 @@ public class LevelSceneMovement
 			actionsElement.setAttribute("i" + i, "" + actions[i]);
 		}
 		
-		Element fitnessElement = new Element(FitnessName);
-		fitnessElement.setText(""+fitness);
+		Element rewardElement = new Element(RewardName);
+		rewardElement.setText(""+reward);
 		
 		element.addContent(levelSceneElement);
 		element.addContent(actionsElement);
-		element.addContent(fitnessElement);
+		element.addContent(rewardElement);
 		
 		return element;
 	}
@@ -172,11 +173,17 @@ public class LevelSceneMovement
 
 class LevelSceneMovementEvolver implements Evolver<LevelSceneMovement>
 {
+	private LevelSceneMovement requiredLSM;
+
+	public void giveRequiredLSM(LevelSceneMovement requiredLSM)
+	{
+		this.requiredLSM = requiredLSM;
+	}
 
 	@Override
 	public int fitnessFunction(LevelSceneMovement element)
 	{
-		return element.getFitness();
+		return element.getFitness(requiredLSM);
 	}
 
 	@Override
@@ -223,12 +230,17 @@ class LevelSceneMovementEvolver implements Evolver<LevelSceneMovement>
 		}
 		
 		float probability = crossOver / (float)Environment.numberOfKeys ;
-		int fitness1 = (int)(element1.getFitness() * probability + element2.getFitness() * (1-probability));
-		int fitness2 = (int)(element2.getFitness() * probability + element1.getFitness() * (1-probability));
+		int reward1 = (int)(element1.getReward() * probability + element2.getReward() * (1-probability));
+		int reward2 = (int)(element2.getReward() * probability + element1.getReward() * (1-probability));
+
+		/* 
+		* Note: this reward currently doesn't affect anything as it isn't used in the fitness function and doesn't get saved.
+		* It's left here incase of use in the fitness function in the future.
+		*/
 		
 		LinkedList<LevelSceneMovement> result = new LinkedList<LevelSceneMovement>();
-		result.add(new LevelSceneMovement(levelScene1, actions1, fitness1));
-		result.add(new LevelSceneMovement(levelScene2, actions2, fitness2));
+		result.add(new LevelSceneMovement(levelScene1, actions1, reward1));
+		result.add(new LevelSceneMovement(levelScene2, actions2, reward2));
 		
 		return result;
 	}
