@@ -1,6 +1,7 @@
 package ch.idsia.agents.controllers.kbarrett;
 
 import java.util.LinkedList;
+import java.util.List;
 
 public class SecondAgentManager
 {
@@ -69,7 +70,7 @@ public class SecondAgentManager
 		probabilityRun[agentNumber] = run;
 		probabilityShoot[agentNumber] = shoot;
 	}
-	public static void setValues(LinkedList<SecondAgent> population)
+	public static void setValues(List<SecondAgent> population)
 	{
 		for(SecondAgent agent : population)
 		{

@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.StringWriter;
 import java.util.Collection;
+import java.util.Date;
 
 import org.jdom.Document;
 import org.jdom.Element;
@@ -44,6 +45,8 @@ public class LoadSave
 		XMLOutputter outputter = new XMLOutputter();
 		outputter.output(doc, writer);
 		saveStream.print(writer.toString());
+		
+		System.out.println("The current population (" + list.size() + ") has been saved successfully at " + new Date().toString() + ".");
 	}
 
 }

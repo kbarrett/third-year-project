@@ -5,9 +5,11 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.StringWriter;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Scanner;
 
 import org.jdom.Document;
@@ -20,14 +22,14 @@ import org.jdom.output.XMLOutputter;
 public class GeneticAlgorithm<T> {
 	
 	private Evolver<T> evolver;
-	private LinkedList<T> lastGeneration;
+	private List<T> lastGeneration;
 	private LinkedList<T> thisGeneration;
 	
 	private int leastValueOffSet = 1;
 	
 	private GeneticAlgorithm(){};
 	
-	public GeneticAlgorithm(LinkedList<T> initialPopulation, Evolver<T> evolver)
+	public GeneticAlgorithm(List<T> initialPopulation, Evolver<T> evolver)
 	{
 		this.evolver = evolver;
 		giveInitialPopulation(initialPopulation);
@@ -41,7 +43,7 @@ public class GeneticAlgorithm<T> {
 		thisGeneration = new LinkedList<T>();
 	}
 	
-	public void giveInitialPopulation(LinkedList<T> initialPopulation)
+	public void giveInitialPopulation(List<T> initialPopulation)
 	{
 		lastGeneration = initialPopulation;
 	}
@@ -51,12 +53,12 @@ public class GeneticAlgorithm<T> {
 		return evolver;
 	}
 	
-	public LinkedList<T> getCurrentGeneration()
+	public List<T> getCurrentGeneration()
 	{
 		return lastGeneration;
 	}
 	
-	public LinkedList<T> getNewGeneration()
+	public List<T> getNewGeneration()
 	{
 		int sum = 0;
 		LinkedList<Fitness<T>> fitness = new LinkedList<Fitness<T>>();

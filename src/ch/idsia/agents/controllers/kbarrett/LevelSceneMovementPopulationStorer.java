@@ -1,23 +1,23 @@
 package ch.idsia.agents.controllers.kbarrett;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
-
-import org.jdom.JDOMException;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class LevelSceneMovementPopulationStorer
 {
-	private static final ArrayList<LevelSceneMovement> population = new ArrayList<LevelSceneMovement>();
+	//FIXME: Change me to use synchronized (probably.. who knows?)
+	private static final CopyOnWriteArrayList<LevelSceneMovement> population = new CopyOnWriteArrayList<LevelSceneMovement>();
 	
 	private static Evolver<LevelSceneMovement> evolver;
 	
 	private static final String levelSceneSaveFile = "src/ch/idsia/agents/controllers/kbarrett/level_scene_save_file.txt";
 	
-	public static final ArrayList<LevelSceneMovement> getPopulation()
+	public static final CopyOnWriteArrayList<LevelSceneMovement> getPopulation()
 	{
 		return population;
 	}
@@ -32,15 +32,23 @@ public class LevelSceneMovementPopulationStorer
 	
 	public static final void addNew(LevelSceneMovement newElement)
 	{
-		//removes any other LevelSceneMovements with the same levelScene and actions
-		population.remove(newElement);
-		//adds the new one - with updated fitness value
-		population.add(newElement);
+		int previousInstanceIndex = population.indexOf(newElement);
+		if(previousInstanceIndex < 0) //we haven't had any information relating to this LevelScene yet
+		{
+			population.add(newElement.clone());
+		}
+		else
+		{
+			LevelSceneMovement previousInstance = population.get(previousInstanceIndex);
+			if(previousInstance.getReward() < newElement.getReward())
+			{
+				previousInstance.setActions(newElement.getActions(), newElement.getReward());
+			}
+		}
 	}
 	
 	public static final void save()
 	{
-		final Object lock = new Object();
 		final Thread thread = new Thread(new Runnable(){
 
 			@Override
@@ -53,15 +61,8 @@ public class LevelSceneMovementPopulationStorer
 						{
 							LoadSave.saveToFile(levelSceneSaveFile, population, evolver);
 						}
-						synchronized (lock)
-						{
-							lock.wait(10000);
-						}
-					} catch (IOException e)
-					{
-						System.err.println("Error saving population.");
-						e.printStackTrace();
-					} catch (InterruptedException e)
+						Thread.sleep(10000);
+					} catch (Exception e)
 					{
 						System.err.println("Error saving population.");
 						e.printStackTrace();
@@ -82,10 +83,10 @@ public class LevelSceneMovementPopulationStorer
 				LoadSave.loadFromFile(levelSceneSaveFile, population, evolver);
 			} catch (Exception e)
 			{
-				System.err.println("Error loading population");
-				e.printStackTrace();
+				System.err.println("Error loading population: " + e.getMessage());
 			}
-			save();
 		}
+		
+		save();
 	}
 }

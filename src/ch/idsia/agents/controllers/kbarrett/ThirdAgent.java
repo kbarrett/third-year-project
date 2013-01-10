@@ -1,7 +1,8 @@
 package ch.idsia.agents.controllers.kbarrett;
 
-import java.util.Date;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import ch.idsia.agents.Agent;
 import ch.idsia.benchmark.mario.environments.Environment;
@@ -13,15 +14,18 @@ public class ThirdAgent implements Agent
 	LevelSceneSearchThread levelSceneSearchThread = new LevelSceneSearchThread();
 	
 	LevelSceneMovement lastMovement;
+	int lastReward;
 	
 	@Override
 	public boolean[] getAction()
 	{
 		try
-		{
+		{	
 			levelSceneSearchThread.join();
 			boolean[] actions = levelSceneSearchThread.getNearestMovement().getActions();
-			lastMovement.setActions(actions);
+			
+			lastMovement.setActions(actions, lastReward);
+			LevelSceneMovementPopulationStorer.addNew(lastMovement);
 			return actions;
 			
 		} catch (InterruptedException e)
@@ -36,14 +40,15 @@ public class ThirdAgent implements Agent
 	{
 		byte[][] levelScene = environment.getMergedObservationZZ(0, 0);
 		levelSceneSearchThread.start(levelScene);
-		lastMovement = new LevelSceneMovement(levelScene, null, LevelSceneMovement.NO_FITNESS_SET);
+		lastMovement = new LevelSceneMovement(levelScene, null, LevelSceneMovement.NO_REWARD_SET);
+		
+		lastReward = (int)environment.getMarioFloatPos()[0];
 	}
 
 	@Override
 	public void giveIntermediateReward(float intermediateReward)
 	{
-		lastMovement.updateFitness((int)intermediateReward);
-		LevelSceneMovementPopulationStorer.addNew(lastMovement);
+		lastReward += (int)intermediateReward;
 	}
 
 	@Override
@@ -81,7 +86,7 @@ class LevelSceneSearchThread extends Thread
 	
 	public void start(byte[][] levelScene)
 	{
-		LevelSceneMovement requiredLevelSceneMovement = new LevelSceneMovement(levelScene, null, LevelSceneMovement.NO_FITNESS_SET);
+		LevelSceneMovement requiredLevelSceneMovement = new LevelSceneMovement(levelScene, null, LevelSceneMovement.NO_REWARD_SET);
 		search.giveRequiredLevelSceneMovement(requiredLevelSceneMovement);
 		run();
 	}
@@ -108,6 +113,7 @@ class SearchRunnable implements Runnable
 	public void giveRequiredLevelSceneMovement(LevelSceneMovement required)
 	{
 		this.required = required;
+		evolver.giveRequiredLSM(required);
 	}
 	public LevelSceneMovement getNearestMatch()
 	{
@@ -119,8 +125,8 @@ class SearchRunnable implements Runnable
 	{
 		long startTime = System.currentTimeMillis();
 		
-		LinkedList<LevelSceneMovement> population = new LinkedList<LevelSceneMovement>(LevelSceneMovementPopulationStorer.getPopulation());
-		if(population.isEmpty())
+		List<LevelSceneMovement> population = LevelSceneMovementPopulationStorer.getPopulation();
+		if(population.size() < evolver.getSizeOfGeneration())
 		{
 			nearest = required;
 			boolean[] actions = new boolean[Environment.numberOfKeys];
@@ -128,21 +134,28 @@ class SearchRunnable implements Runnable
 			{
 				actions[i] = (Math.random() < 0.5f);
 			}
-			nearest.setActions(actions);
+			nearest.setActions(actions, LevelSceneMovement.NO_REWARD_SET);
 			return;
 		}
 		GeneticAlgorithm<LevelSceneMovement> algorithm = new GeneticAlgorithm<LevelSceneMovement>(population, evolver);
-		while(startTime + 1000 < System.currentTimeMillis() 
-				&&		(!population.contains(required) 
-						|| population.get(population.indexOf(required)).getFitness() < 0))
+		
+		long now = System.currentTimeMillis();
+		while(startTime + 1000 > now)
 		{
 			population = algorithm.getNewGeneration();
-			
+			now = System.currentTimeMillis();
+		}
+		if(population.contains(required))
+		{
+			nearest = population.get(population.indexOf(required));
+		}
+		else
+		{	
 			int bestMatch = 0;
 			
 			for(LevelSceneMovement lsm : population)
 			{
-				int thisMatch = lsm.checkSimilarity(required);
+				int thisMatch = lsm.getFitness(required);
 				if(thisMatch > bestMatch)
 				{
 					nearest = lsm;
@@ -150,8 +163,6 @@ class SearchRunnable implements Runnable
 				}
 			}
 		}
-		
-		nearest = population.get(population.indexOf(required));
 	}
 	
 }

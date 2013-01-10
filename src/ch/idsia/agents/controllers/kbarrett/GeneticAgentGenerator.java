@@ -19,7 +19,7 @@ public class GeneticAgentGenerator
 	{
 		SecondAgentEvolver evolver = new SecondAgentEvolver(args);
 		SecondAgentManager.initialise(evolver.getSizeOfGeneration());
-		LinkedList<SecondAgent> population = new LinkedList<SecondAgent>();
+		List<SecondAgent> population = new LinkedList<SecondAgent>();
 		
 		GeneticAlgorithm<SecondAgent> algorithm = new GeneticAlgorithm<SecondAgent>(evolver);
 		

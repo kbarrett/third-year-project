@@ -11,7 +11,7 @@ public class GeneticAlgorithmTester
 	public static void main(String[] args)
 	{
 		Evolver<EvolvingObject> evolver = new EvolverTest();
-		LinkedList<EvolvingObject> initialPopulation = new LinkedList<EvolvingObject>();
+		List<EvolvingObject> initialPopulation = new LinkedList<EvolvingObject>();
 		initialPopulation.add(new EvolvingObject(-100, 200));
 		initialPopulation.add(new EvolvingObject(1000, -1));
 		initialPopulation.add(new EvolvingObject(-50, -3));

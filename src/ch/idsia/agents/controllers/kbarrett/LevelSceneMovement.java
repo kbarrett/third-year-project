@@ -5,12 +5,14 @@ import java.util.List;
 
 import org.jdom.Element;
 
+import sun.security.action.GetLongAction;
+
 import ch.idsia.benchmark.mario.engine.sprites.Enemy;
 import ch.idsia.benchmark.mario.environments.Environment;
 
-public class LevelSceneMovement
+public class LevelSceneMovement implements Cloneable
 {
-	public static final int LevelSceneSize = 18;
+	public static final int LevelSceneSize = 19;
 	public static final int NO_REWARD_SET = Integer.MIN_VALUE;
 	
 	private byte[][] levelScene;
@@ -65,6 +67,11 @@ public class LevelSceneMovement
 	{
 		this.reward = reward;
 	}
+	
+	public int getReward()
+	{
+		return reward;
+	}
 
 	@Override
 	public boolean equals(Object otherObject)
@@ -74,9 +81,7 @@ public class LevelSceneMovement
 			return false;
 		}
 		
-		LevelSceneMovement otherLevelSceneMovement = (LevelSceneMovement) otherObject;
-		
-		return sameLevelScene(otherLevelSceneMovement);
+		return sameLevelScene((LevelSceneMovement) otherObject);
 	}
 	private boolean sameLevelScene(LevelSceneMovement otherLevelSceneMovement)
 	{
@@ -109,6 +114,25 @@ public class LevelSceneMovement
 			
 		}
 		return similarity;
+	}
+	
+	@Override
+	public LevelSceneMovement clone()
+	{
+		byte[][] newLevelScene = new byte[LevelSceneSize][LevelSceneSize];
+		for(int i = 0; i < LevelSceneSize; ++i)
+		{
+			for(int j = 0; j < LevelSceneSize; ++j)
+			{
+				newLevelScene[i][j] = levelScene[i][j];
+			}
+		}
+		boolean[] newActions = new boolean[actions.length];
+		for(int i = 0; i < actions.length; ++i)
+		{
+			newActions[i] = actions[i];
+		}
+		return new LevelSceneMovement(newLevelScene, newActions, reward);
 	}
 	
 	public void fromSaveFormat(Element element)
@@ -167,6 +191,26 @@ public class LevelSceneMovement
 		element.addContent(rewardElement);
 		
 		return element;
+	}
+	
+	@Override
+	public String toString()
+	{
+		return "Level Scene: " + printLevelScene() + "Actions: " + actions + " Reward: " + reward + "\n";
+	}
+	
+	private String printLevelScene()
+	{
+		String s = "";
+		for(int i = 0; i < LevelSceneSize; ++i)
+		{
+			for(int j = 0; j < LevelSceneSize; ++j)
+			{
+				s += get(i,j);
+			}
+			s+="\n";
+		}
+		return s;
 	}
 	
 }
