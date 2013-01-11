@@ -11,7 +11,7 @@ import ch.idsia.agents.controllers.kbarrett.GeneticAlgorithm;
 
 public class GeneticAgentGenerator
 {
-	private static final String savefilename = "src/ch/idsia/agents/controllers/kbarrett/savedfile.txt";
+	private static final String savefilename = "src/ch/idsia/agents/controllers/kbarrett/savedfile.saf";
 	
 	public static int currentAgent = 0;
 	

@@ -15,7 +15,9 @@ public class LevelSceneMovementPopulationStorer
 	
 	private static Evolver<LevelSceneMovement> evolver;
 	
-	private static final String levelSceneSaveFile = "src/ch/idsia/agents/controllers/kbarrett/level_scene_save_file.txt";
+	private static final String levelSceneSaveFile = "src/ch/idsia/agents/controllers/kbarrett/level_scene_save_file.lsmpop";
+	
+	public static final int saveInterval = 10000;
 	
 	public static final CopyOnWriteArrayList<LevelSceneMovement> getPopulation()
 	{
@@ -61,7 +63,7 @@ public class LevelSceneMovementPopulationStorer
 						{
 							LoadSave.saveToFile(levelSceneSaveFile, population, evolver);
 						}
-						Thread.sleep(10000);
+						Thread.sleep(saveInterval);
 					} catch (Exception e)
 					{
 						System.err.println("Error saving population.");

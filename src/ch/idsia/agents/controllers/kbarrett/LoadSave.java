@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.StringWriter;
+import java.nio.file.Files;
 import java.util.Collection;
 import java.util.Date;
 
@@ -17,9 +18,10 @@ import org.jdom.output.XMLOutputter;
 public class LoadSave
 {
 	private static final String RootElementName = "Root";
+	public static boolean saving;
 	
 	public static <T> void loadFromFile(String filename, Collection<T> list, Evolver<T> evolver) throws JDOMException, IOException
-	{
+	{	
 		Document doc = new SAXBuilder().build(new File(filename));
 		Element root = doc.getRootElement();
 		for(Object o : root.getChildren())
@@ -32,7 +34,9 @@ public class LoadSave
 	
 	public static <T> void saveToFile(String filename, Collection<T> list, Evolver<T> evolver) throws IOException
 	{
-		PrintStream saveStream = new PrintStream(filename);
+		saving = true;
+		
+		PrintStream saveStream = new PrintStream(filename+".part");
 		Element root = new Element(RootElementName);
 		for(T element : list)
 		{
@@ -45,8 +49,16 @@ public class LoadSave
 		XMLOutputter outputter = new XMLOutputter();
 		outputter.output(doc, writer);
 		saveStream.print(writer.toString());
+		saveStream.close();
+		
+		File newFile = new File(filename+".part");
+		File oldFile = new File(filename);
+		while(!oldFile.delete()){};
+		while(!newFile.renameTo(oldFile)){};
 		
 		System.out.println("The current population (" + list.size() + ") has been saved successfully at " + new Date().toString() + ".");
+		
+		saving = false;
 	}
 
 }

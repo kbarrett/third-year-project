@@ -27,6 +27,9 @@
 
 package ch.idsia.scenarios;
 
+import ch.idsia.agents.controllers.kbarrett.LevelSceneMovement;
+import ch.idsia.agents.controllers.kbarrett.LevelSceneMovementPopulationStorer;
+import ch.idsia.agents.controllers.kbarrett.LoadSave;
 import ch.idsia.benchmark.tasks.BasicTask;
 import ch.idsia.benchmark.tasks.MarioCustomSystemOfValues;
 import ch.idsia.tools.MarioAIOptions; /**
@@ -71,6 +74,10 @@ public static void main(String[] args)
     basicTask.doEpisodes(1, false, 1);
     System.out.println("\nEvaluationInfo: \n" + basicTask.getEnvironment().getEvaluationInfoAsString());
     System.out.println("\nCustom : \n" + basicTask.getEnvironment().getEvaluationInfo().computeWeightedFitness(m));
+    while(LoadSave.saving)
+    {
+    	System.out.println("Waiting for save to finish before exitting.");
+    }
     System.exit(0);
 }
 }

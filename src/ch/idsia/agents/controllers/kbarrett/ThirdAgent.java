@@ -1,8 +1,6 @@
 package ch.idsia.agents.controllers.kbarrett;
 
-import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import ch.idsia.agents.Agent;
 import ch.idsia.benchmark.mario.environments.Environment;
