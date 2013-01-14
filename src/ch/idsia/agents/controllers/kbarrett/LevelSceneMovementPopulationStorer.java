@@ -1,17 +1,12 @@
 package ch.idsia.agents.controllers.kbarrett;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 public class LevelSceneMovementPopulationStorer
 {
-	//FIXME: Change me to use synchronized (probably.. who knows?)
-	private static final CopyOnWriteArrayList<LevelSceneMovement> population = new CopyOnWriteArrayList<LevelSceneMovement>();
+	private static final ArrayList<LevelSceneMovement> population = new ArrayList<LevelSceneMovement>();
+	static Object lock = new Object();
 	
 	private static Evolver<LevelSceneMovement> evolver;
 	
@@ -19,9 +14,25 @@ public class LevelSceneMovementPopulationStorer
 	
 	public static final int saveInterval = 10000;
 	
-	public static final CopyOnWriteArrayList<LevelSceneMovement> getPopulation()
+	public static final ArrayList<LevelSceneMovement> getPopulationCopy()
 	{
-		return population;
+		ArrayList<LevelSceneMovement> copyPop = new ArrayList<LevelSceneMovement>(population.size());
+		synchronized(lock)
+		{
+			for(LevelSceneMovement lsm : population)
+			{
+				copyPop.add(lsm.clone());
+			}
+		}
+		return copyPop;
+	}
+	
+	private static final boolean checkEmpty()
+	{
+		synchronized (lock)
+		{
+			return population.isEmpty();
+		}
 	}
 	
 	public static final void addNew(Collection<LevelSceneMovement> collection)
@@ -34,17 +45,20 @@ public class LevelSceneMovementPopulationStorer
 	
 	public static final void addNew(LevelSceneMovement newElement)
 	{
-		int previousInstanceIndex = population.indexOf(newElement);
-		if(previousInstanceIndex < 0) //we haven't had any information relating to this LevelScene yet
+		synchronized(lock)
 		{
-			population.add(newElement.clone());
-		}
-		else
-		{
-			LevelSceneMovement previousInstance = population.get(previousInstanceIndex);
-			if(previousInstance.getReward() < newElement.getReward())
+			int previousInstanceIndex = population.indexOf(newElement);
+			if(previousInstanceIndex < 0) //we haven't had any information relating to this LevelScene yet
 			{
-				previousInstance.setActions(newElement.getActions(), newElement.getReward());
+				population.add(newElement.clone());
+			}
+			else
+			{
+				LevelSceneMovement previousInstance = population.get(previousInstanceIndex);
+				if(previousInstance.getReward() < newElement.getReward())
+				{
+					previousInstance.setActions(newElement.getActions(), newElement.getReward());
+				}
 			}
 		}
 	}
@@ -59,9 +73,9 @@ public class LevelSceneMovementPopulationStorer
 				{
 					try
 					{
-						if(!population.isEmpty())
+						if(!checkEmpty())
 						{
-							LoadSave.saveToFile(levelSceneSaveFile, population, evolver);
+							LoadSave.saveToFile(levelSceneSaveFile, getPopulationCopy(), evolver);
 						}
 						Thread.sleep(saveInterval);
 					} catch (Exception e)
@@ -77,12 +91,14 @@ public class LevelSceneMovementPopulationStorer
 	
 	public static final void initialise(Evolver<LevelSceneMovement> evolver)
 	{
-		if(population.isEmpty())
+		if(checkEmpty())
 		{
 			LevelSceneMovementPopulationStorer.evolver = evolver;
 			try
 			{
-				LoadSave.loadFromFile(levelSceneSaveFile, population, evolver);
+				ArrayList<LevelSceneMovement> list = new ArrayList<LevelSceneMovement>();
+				LoadSave.loadFromFile(levelSceneSaveFile, list, evolver);
+				addNew(list);
 			} catch (Exception e)
 			{
 				System.err.println("Error loading population: " + e.getMessage());

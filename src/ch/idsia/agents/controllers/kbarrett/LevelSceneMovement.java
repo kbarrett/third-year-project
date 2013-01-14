@@ -45,7 +45,7 @@ public class LevelSceneMovement implements Cloneable
 	
 	public int getFitness(LevelSceneMovement other)
 	{
-		return checkSimilarity(other);
+		return checkWeightedSimilarity(other);
 	}
 	
 	public boolean[] getActions()
@@ -99,7 +99,7 @@ public class LevelSceneMovement implements Cloneable
 		return true;
 	}
 	
-	public int checkSimilarity(LevelSceneMovement lsm)
+	public int checkWeightedSimilarity(LevelSceneMovement lsm)
 	{
 		int similarity = 0;
 		for(int i = 0; i < LevelSceneSize; ++i)
@@ -108,12 +108,25 @@ public class LevelSceneMovement implements Cloneable
 			{
 				if(get(i,j) == lsm.get(i, j))
 				{
-					similarity++;
+					similarity += (getWeighting(i) + getWeighting(j));
 				}
 			}
 			
 		}
 		return similarity;
+	}
+	
+	private int getWeighting(int i)
+	{
+		if(8<=i && i<=10) //8<=i<=10
+		{
+			return 3;
+		}
+		if((4<=i && i<=14)) //4<=i<=7 and 11<=i<=14
+		{
+			return 2;
+		}
+		return 1; //0<=3 and 15<=18
 	}
 	
 	@Override

@@ -77,6 +77,13 @@ public static void main(String[] args)
     while(LoadSave.saving)
     {
     	System.out.println("Waiting for save to finish before exitting.");
+    	try
+    	{
+			Thread.sleep(2000);
+		} catch (InterruptedException e)
+		{
+			e.printStackTrace();
+		}
     }
     System.exit(0);
 }

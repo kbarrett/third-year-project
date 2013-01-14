@@ -9,10 +9,11 @@ public class ThirdAgent implements Agent
 {
 	private static String name = "ThirdAgent";
 	
-	LevelSceneSearchThread levelSceneSearchThread = new LevelSceneSearchThread();
+	private LevelSceneSearchThread levelSceneSearchThread = new LevelSceneSearchThread();
 	
-	LevelSceneMovement lastMovement;
-	int lastReward;
+	private LevelSceneMovement lastMovement;
+	private int lastReward;
+	private float lastIntermediateReward = 0;
 	
 	@Override
 	public boolean[] getAction()
@@ -40,13 +41,14 @@ public class ThirdAgent implements Agent
 		levelSceneSearchThread.start(levelScene);
 		lastMovement = new LevelSceneMovement(levelScene, null, LevelSceneMovement.NO_REWARD_SET);
 		
-		lastReward = (int)environment.getMarioFloatPos()[0];
+		lastReward = (int)environment.getMarioFloatPos()[0]; //Mario's x location
 	}
 
 	@Override
 	public void giveIntermediateReward(float intermediateReward)
 	{
-		lastReward += (int)intermediateReward;
+		lastReward += (int)(intermediateReward - lastIntermediateReward);
+		lastIntermediateReward = intermediateReward;
 	}
 
 	@Override
@@ -123,7 +125,7 @@ class SearchRunnable implements Runnable
 	{
 		long startTime = System.currentTimeMillis();
 		
-		List<LevelSceneMovement> population = LevelSceneMovementPopulationStorer.getPopulation();
+		List<LevelSceneMovement> population = LevelSceneMovementPopulationStorer.getPopulationCopy();
 		if(population.size() < evolver.getSizeOfGeneration())
 		{
 			nearest = required;
