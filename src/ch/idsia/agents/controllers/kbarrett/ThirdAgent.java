@@ -14,6 +14,7 @@ public class ThirdAgent implements Agent
 	private LevelSceneMovement lastMovement;
 	private int lastReward;
 	private float lastIntermediateReward = 0;
+	private float lastMarioLoc = -1;
 	
 	@Override
 	public boolean[] getAction()
@@ -41,7 +42,16 @@ public class ThirdAgent implements Agent
 		levelSceneSearchThread.start(levelScene);
 		lastMovement = new LevelSceneMovement(levelScene, null, LevelSceneMovement.NO_REWARD_SET);
 		
-		lastReward = (int)environment.getMarioFloatPos()[0]; //Mario's x location
+		if(lastMarioLoc == -1)
+		{
+			lastMarioLoc = environment.getMarioFloatPos()[0];
+			lastReward = 0;
+		}
+		else
+		{
+			lastReward = (int) (lastMarioLoc - environment.getMarioFloatPos()[0]); //Mario's x location
+			lastMarioLoc = environment.getMarioFloatPos()[0];
+		}
 	}
 
 	@Override
@@ -129,25 +139,28 @@ class SearchRunnable implements Runnable
 		if(population.size() < evolver.getSizeOfGeneration())
 		{
 			nearest = required;
-			boolean[] actions = new boolean[Environment.numberOfKeys];
-			for(int i = 0; i<actions.length; ++i)
-			{
-				actions[i] = (Math.random() < 0.5f);
-			}
-			nearest.setActions(actions, LevelSceneMovement.NO_REWARD_SET);
+			nearest.changeActions();
 			return;
 		}
 		GeneticAlgorithm<LevelSceneMovement> algorithm = new GeneticAlgorithm<LevelSceneMovement>(population, evolver);
 		
-		long now = System.currentTimeMillis();
-		while(startTime + 1000 > now)
+		if(!population.contains(required))
 		{
-			population = algorithm.getNewGeneration();
-			now = System.currentTimeMillis();
+			long now = System.currentTimeMillis();
+			while(startTime + 1000 > now)
+			{
+				population = algorithm.getNewGeneration();
+				now = System.currentTimeMillis();
+			}
 		}
+		
 		if(population.contains(required))
 		{
-			nearest = population.get(population.indexOf(required));
+			nearest = population.get(population.indexOf(required)).clone();
+			if(Math.random() < evolver.getProbabilityOfMutation())
+			{
+				nearest.changeActions();
+			}
 		}
 		else
 		{	

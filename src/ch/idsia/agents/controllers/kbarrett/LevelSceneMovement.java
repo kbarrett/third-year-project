@@ -1,16 +1,14 @@
 package ch.idsia.agents.controllers.kbarrett;
 
+import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.jdom.Element;
 
-import sun.security.action.GetLongAction;
-
-import ch.idsia.benchmark.mario.engine.sprites.Enemy;
 import ch.idsia.benchmark.mario.environments.Environment;
 
-public class LevelSceneMovement implements Cloneable
+public class LevelSceneMovement implements Cloneable, Serializable
 {
 	public static final int LevelSceneSize = 19;
 	public static final int NO_REWARD_SET = Integer.MIN_VALUE;
@@ -22,11 +20,39 @@ public class LevelSceneMovement implements Cloneable
 	private int reward;
 	private static final String RewardName= "Reward";
 	
+	private boolean[] attemptedActions = new boolean[ActionsIndex.NumberOfArrayPossibilities];
+	private boolean foundBest = false;
+	
+	public LevelSceneMovement(byte[][] levelScene, boolean[] actions, int reward, boolean[] attemptedActions)
+	{
+		this.attemptedActions = attemptedActions;
+		this.levelScene = levelScene;
+		this.actions = actions;
+		this.reward = reward;
+		
+		if(actions!=null)
+		{
+			int match = ActionsIndex.getMatch(actions);
+			if(match > 0)
+			{
+				attemptedActions[match] = true;
+			}
+		}
+	}
 	public LevelSceneMovement(byte[][] levelScene, boolean[] actions, int reward)
 	{
 		this.levelScene = levelScene;
 		this.actions = actions;
 		this.reward = reward;
+		
+		if(actions!=null)
+		{
+			int match = ActionsIndex.getMatch(actions);
+			if(match > 0)
+			{
+				attemptedActions[match] = true;
+			}
+		}
 	}
 	public LevelSceneMovement(Element element)
 	{
@@ -52,15 +78,62 @@ public class LevelSceneMovement implements Cloneable
 	{
 		return actions;
 	}
+	
 	public void setActions(boolean[] actions, int reward)
 	{
 		this.actions = actions;
 		this.reward = reward;
+		
+		if(actions != null)
+		{
+			int match = ActionsIndex.getMatch(actions);
+			if(match > 0)
+			{
+				attemptedActions[match] = true;
+				for(int i = 0; i < attemptedActions.length; ++i)
+				{
+					if(!attemptedActions[i])
+					{
+						return;
+					}
+				}
+				foundBest = true;
+			}
+		}
 	}
 	
-	public void changeAction(int action)
+	public void changeActions()
 	{
-		actions[action] = !actions[action];
+		if(foundBest) { return; }
+		
+		int choice;
+		do
+		{
+			choice = (int) (Math.random() * attemptedActions.length);
+		}
+		while(attemptedActions[choice]);
+		actions = ActionsIndex.getArray(choice);
+	}
+	
+	public void changeAction(int number)
+	{
+		boolean[] array = new boolean[actions.length];
+		for(int i = 0; i < actions.length; ++i)
+		{
+			if(i == number)
+			{
+				array[i] = !actions[i];
+			}
+			else
+			{
+				array[i] = actions[i];
+			}
+		}
+		int arrayNumber = ActionsIndex.getMatch(array);
+		if(arrayNumber > 0 && !attemptedActions[arrayNumber])
+		{
+			actions = array;
+		}
 	}
 
 	public void setReward(int reward)
@@ -140,12 +213,28 @@ public class LevelSceneMovement implements Cloneable
 				newLevelScene[i][j] = levelScene[i][j];
 			}
 		}
-		boolean[] newActions = new boolean[actions.length];
-		for(int i = 0; i < actions.length; ++i)
+		
+		boolean[] newActions;
+		if(actions == null)
 		{
-			newActions[i] = actions[i];
+			newActions = null;
 		}
-		return new LevelSceneMovement(newLevelScene, newActions, reward);
+		else
+		{
+			newActions = new boolean[actions.length];
+			for(int i = 0; i < actions.length; ++i)
+			{
+				newActions[i] = actions[i];
+			}
+		}
+		
+		boolean[] attemptedActions = new boolean[this.attemptedActions.length];
+		for(int i = 0; i < attemptedActions.length; ++i)
+		{
+			attemptedActions[i] = this.attemptedActions[i];
+		}
+		
+		return new LevelSceneMovement(newLevelScene, newActions, reward, attemptedActions);
 	}
 	
 	public void fromSaveFormat(Element element)
@@ -209,7 +298,28 @@ public class LevelSceneMovement implements Cloneable
 	@Override
 	public String toString()
 	{
-		return "Level Scene: " + printLevelScene() + "Actions: " + actions + " Reward: " + reward + "\n";
+		String a;
+		if(actions != null)
+		{ 
+			a ="[";
+			for(int i = 0; i< actions.length; ++i)
+			{
+				if(i == actions.length - 1)
+				{
+					a += actions[i];
+				}
+				else
+				{
+					a += actions[i] + ",";
+				}
+			}
+			a += "]";
+		}
+		else
+		{
+			a = "null";
+		}
+		return "Level Scene: " + printLevelScene() + "Actions: " + a + " Reward: " + reward + "\n";
 	}
 	
 	private String printLevelScene()
@@ -305,7 +415,7 @@ class LevelSceneMovementEvolver implements Evolver<LevelSceneMovement>
 	@Override
 	public void mutate(LevelSceneMovement element)
 	{
-		element.changeAction((int)(element.getActions().length * Math.random()));
+		element.changeAction((int) (Math.random() * element.getActions().length));
 	}
 
 	@Override

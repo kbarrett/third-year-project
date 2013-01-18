@@ -10,9 +10,9 @@ public class LevelSceneMovementPopulationStorer
 	
 	private static Evolver<LevelSceneMovement> evolver;
 	
-	private static final String levelSceneSaveFile = "src/ch/idsia/agents/controllers/kbarrett/level_scene_save_file.lsmpop";
+	private static final String levelSceneSaveFile = "src/ch/idsia/agents/controllers/kbarrett/level_scene_save_file.lsmpop.ser";
 	
-	public static final int saveInterval = 10000;
+	private static final int saveInterval = 10000;
 	
 	public static final ArrayList<LevelSceneMovement> getPopulationCopy()
 	{
@@ -75,7 +75,7 @@ public class LevelSceneMovementPopulationStorer
 					{
 						if(!checkEmpty())
 						{
-							LoadSave.saveToFile(levelSceneSaveFile, getPopulationCopy(), evolver);
+							LSMLoadSave.saveToFile(levelSceneSaveFile, getPopulationCopy(), evolver);
 						}
 						Thread.sleep(saveInterval);
 					} catch (Exception e)
@@ -97,7 +97,7 @@ public class LevelSceneMovementPopulationStorer
 			try
 			{
 				ArrayList<LevelSceneMovement> list = new ArrayList<LevelSceneMovement>();
-				LoadSave.loadFromFile(levelSceneSaveFile, list, evolver);
+				LSMLoadSave.loadFromFile(levelSceneSaveFile, list, evolver);
 				addNew(list);
 			} catch (Exception e)
 			{

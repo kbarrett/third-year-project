@@ -27,6 +27,7 @@
 
 package ch.idsia.scenarios;
 
+import ch.idsia.agents.controllers.kbarrett.LSMLoadSave;
 import ch.idsia.agents.controllers.kbarrett.LevelSceneMovement;
 import ch.idsia.agents.controllers.kbarrett.LevelSceneMovementPopulationStorer;
 import ch.idsia.agents.controllers.kbarrett.LoadSave;
@@ -74,7 +75,7 @@ public static void main(String[] args)
     basicTask.doEpisodes(1, false, 1);
     System.out.println("\nEvaluationInfo: \n" + basicTask.getEnvironment().getEvaluationInfoAsString());
     System.out.println("\nCustom : \n" + basicTask.getEnvironment().getEvaluationInfo().computeWeightedFitness(m));
-    while(LoadSave.saving)
+    while(LSMLoadSave.saving)
     {
     	System.out.println("Waiting for save to finish before exitting.");
     	try

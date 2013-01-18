@@ -145,25 +145,6 @@ public class GeneticAlgorithm<T> {
 	{
 		LoadSave.loadFromFile(fileName, lastGeneration, evolver);
 	}
-	
-	private String readInFile(String fileName) throws FileNotFoundException
-	{
-		String s = "";
-		Scanner scanner = new Scanner(new File(fileName));
-		while(scanner.hasNext())
-		{
-			s += scanner.next() + " ";
-		}
-		return s;
-	}
-	private Document docFromString(String xmlString) throws JDOMException, IOException
-	{
-		SAXBuilder sb = new SAXBuilder();
-
-		Document doc = sb.build(xmlString);
-		
-		return doc;
-    }
 
 }
 
