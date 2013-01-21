@@ -11,8 +11,10 @@ public class ThirdAgent implements Agent
 	
 	private LevelSceneSearchThread levelSceneSearchThread = new LevelSceneSearchThread();
 	
-	private LevelSceneMovement lastMovement;
-	private int lastReward;
+	private LevelSceneMovement thisMovement = null;
+	private LevelSceneMovement lastMovement = null;
+	private boolean[] lastActions = null;
+	private int thisReward = 0;
 	private float lastIntermediateReward = 0;
 	private float lastMarioLoc = -1;
 	
@@ -24,8 +26,8 @@ public class ThirdAgent implements Agent
 			levelSceneSearchThread.join();
 			boolean[] actions = levelSceneSearchThread.getNearestMovement().getActions();
 			
-			lastMovement.setActions(actions, lastReward);
-			LevelSceneMovementPopulationStorer.addNew(lastMovement);
+			lastActions = actions;
+			lastMovement = thisMovement;
 			return actions;
 			
 		} catch (InterruptedException e)
@@ -38,27 +40,44 @@ public class ThirdAgent implements Agent
 	@Override
 	public void integrateObservation(Environment environment)
 	{
+		//Get the current levelscene
 		byte[][] levelScene = environment.getMergedObservationZZ(0, 0);
+		//Give this to the genetic algorithm thread
 		levelSceneSearchThread.start(levelScene);
-		lastMovement = new LevelSceneMovement(levelScene, null, LevelSceneMovement.NO_REWARD_SET);
+		//Store the levelscene as a LevelSceneMovement
+		thisMovement = new LevelSceneMovement(levelScene, null, LevelSceneMovement.NO_REWARD_SET);
 		
-		if(lastMarioLoc == -1)
+		if(lastMarioLoc == -1) //this will only be true on the first iteration
 		{
+			//Initialise the global variables
 			lastMarioLoc = environment.getMarioFloatPos()[0];
-			lastReward = 0;
+			thisReward = 0;
 		}
 		else
 		{
-			lastReward = (int) (lastMarioLoc - environment.getMarioFloatPos()[0]); //Mario's x location
-			lastMarioLoc = environment.getMarioFloatPos()[0];
+			//Update global variables
+				//Use change in position for the reward
+				thisReward = (int) (environment.getMarioFloatPos()[0] - lastMarioLoc); //Mario's x location
+				//Update previous position to be current position
+				lastMarioLoc = environment.getMarioFloatPos()[0];
 		}
 	}
 
 	@Override
 	public void giveIntermediateReward(float intermediateReward)
 	{
-		lastReward += (int)(intermediateReward - lastIntermediateReward);
+		//Add the change in "intermediate reward" to the reward
+		thisReward += (int)(intermediateReward - lastIntermediateReward);
 		lastIntermediateReward = intermediateReward;
+		
+		if(lastMovement != null) //if we aren't on the first iteration
+		{
+			//Store the last set of actions and the given reward
+			lastMovement.setActions(lastActions, thisReward);
+			LevelSceneMovementPopulationStorer.addNew(lastMovement);
+			
+			System.out.println("Storing " + lastMovement);
+		}
 	}
 
 	@Override

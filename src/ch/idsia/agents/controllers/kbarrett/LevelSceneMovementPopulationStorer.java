@@ -78,7 +78,8 @@ public class LevelSceneMovementPopulationStorer
 							LSMLoadSave.saveToFile(levelSceneSaveFile, getPopulationCopy(), evolver);
 						}
 						Thread.sleep(saveInterval);
-					} catch (Exception e)
+					}
+					catch (Exception e)
 					{
 						System.err.println("Error saving population.");
 						e.printStackTrace();
@@ -96,6 +97,7 @@ public class LevelSceneMovementPopulationStorer
 			LevelSceneMovementPopulationStorer.evolver = evolver;
 			try
 			{
+				System.out.println("Loading population...");
 				ArrayList<LevelSceneMovement> list = new ArrayList<LevelSceneMovement>();
 				LSMLoadSave.loadFromFile(levelSceneSaveFile, list, evolver);
 				addNew(list);

@@ -17,7 +17,7 @@ public class LSMLoadSave
 
 	public static void saveToFile(String filename,
 			ArrayList<LevelSceneMovement> list,
-			Evolver<LevelSceneMovement> evolver)
+			Evolver<LevelSceneMovement> evolver) throws IOException
 	{
 		saving = true;
 		try
@@ -36,7 +36,10 @@ public class LSMLoadSave
 			
 			File newFile = new File(filename+".part");
 			File oldFile = new File(filename);
-			while(!oldFile.delete()){};
+			if(oldFile.exists())
+			{
+				while(!oldFile.delete()){};
+			}
 			while(!newFile.renameTo(oldFile)){};
 			
 			System.out.println("The current population (" + list.size() + ") has been saved successfully at " + new Date().toString() + ".");
@@ -44,10 +47,12 @@ public class LSMLoadSave
 		catch (FileNotFoundException e)
 		{
 			e.printStackTrace();
+			throw e;
 		} 
 		catch (IOException e) 
 		{
 			e.printStackTrace();
+			throw e;
 		}
 		finally
 		{
@@ -57,29 +62,15 @@ public class LSMLoadSave
 
 	public static void loadFromFile(String filename,
 			ArrayList<LevelSceneMovement> list,
-			Evolver<LevelSceneMovement> evolver)
+			Evolver<LevelSceneMovement> evolver) throws FileNotFoundException, IOException, ClassNotFoundException
 	{
-		try
+		ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filename));
+		int size = ois.readInt();
+		while(size-- > 0)
 		{
-			ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filename));
-			int size = ois.readInt();
-			while(size-- > 0)
-			{
-				list.add((LevelSceneMovement)ois.readObject());
-			}
-			ois.close();
+			list.add((LevelSceneMovement)ois.readObject());
 		}
-		catch (FileNotFoundException e)
-		{
-			e.printStackTrace();
-		} catch (IOException e)
-		{
-			e.printStackTrace();
-		} 
-		catch (ClassNotFoundException e) 
-		{
-			e.printStackTrace();
-		}
+		ois.close();
 		
 	}
 

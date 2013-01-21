@@ -10,7 +10,7 @@ import ch.idsia.benchmark.mario.environments.Environment;
 
 public class LevelSceneMovement implements Cloneable, Serializable
 {
-	public static final int LevelSceneSize = 19;
+	public static final int LevelSceneSize = 11;
 	public static final int NO_REWARD_SET = Integer.MIN_VALUE;
 	
 	private byte[][] levelScene;
@@ -26,7 +26,7 @@ public class LevelSceneMovement implements Cloneable, Serializable
 	public LevelSceneMovement(byte[][] levelScene, boolean[] actions, int reward, boolean[] attemptedActions)
 	{
 		this.attemptedActions = attemptedActions;
-		this.levelScene = levelScene;
+		this.levelScene = clipLevelScene(levelScene);
 		this.actions = actions;
 		this.reward = reward;
 		
@@ -41,7 +41,7 @@ public class LevelSceneMovement implements Cloneable, Serializable
 	}
 	public LevelSceneMovement(byte[][] levelScene, boolean[] actions, int reward)
 	{
-		this.levelScene = levelScene;
+		this.levelScene = clipLevelScene(levelScene);
 		this.actions = actions;
 		this.reward = reward;
 		
@@ -54,6 +54,28 @@ public class LevelSceneMovement implements Cloneable, Serializable
 			}
 		}
 	}
+	
+	public byte[][] clipLevelScene(byte[][] levelScene)
+	{
+		if(levelScene.length <= LevelSceneSize)
+		{
+			return levelScene;
+		}
+		else
+		{
+			byte[][] clippedLevelScene = new byte[LevelSceneSize][LevelSceneSize];
+			int shift = (int)(levelScene.length/2) - (int)(LevelSceneSize/2);
+			for(int i = 0; i < clippedLevelScene.length; ++i)
+			{
+				for(int j = 0; j < clippedLevelScene[i].length; ++j)
+				{
+					clippedLevelScene[i][j] = levelScene[i + shift][j + shift];
+				}
+			}
+			return clippedLevelScene;
+		}
+	}
+	
 	public LevelSceneMovement(Element element)
 	{
 		fromSaveFormat(element);
@@ -188,18 +210,10 @@ public class LevelSceneMovement implements Cloneable, Serializable
 		}
 		return similarity;
 	}
-	
 	private int getWeighting(int i)
 	{
-		if(8<=i && i<=10) //8<=i<=10
-		{
-			return 3;
-		}
-		if((4<=i && i<=14)) //4<=i<=7 and 11<=i<=14
-		{
-			return 2;
-		}
-		return 1; //0<=3 and 15<=18
+		if(i == 0 || i == LevelSceneSize) {return 1;}
+		return (int) (Math.floor(LevelSceneSize/6) - Math.floor(Math.abs(Math.floor(LevelSceneSize/2) - i)/3));
 	}
 	
 	@Override
