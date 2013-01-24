@@ -42,38 +42,23 @@ public class LevelSceneMovement implements Cloneable, Serializable
 	public LevelSceneMovement(byte[][] levelScene, boolean[] actions, int reward)
 	{
 		this.levelScene = clipLevelScene(levelScene);
-		this.actions = actions;
-		this.reward = reward;
 		
-		if(actions!=null)
-		{
-			int match = ActionsIndex.getMatch(actions);
-			if(match > 0)
-			{
-				attemptedActions[match] = true;
-			}
-		}
+		setActions(actions, reward);
 	}
 	
 	public byte[][] clipLevelScene(byte[][] levelScene)
 	{
-		if(levelScene.length <= LevelSceneSize)
+		
+		byte[][] clippedLevelScene = new byte[LevelSceneSize][LevelSceneSize];
+		int shift = (int)(levelScene.length/2) - (int)(LevelSceneSize/2);
+		for(int i = 0; i < clippedLevelScene.length; ++i)
 		{
-			return levelScene;
-		}
-		else
-		{
-			byte[][] clippedLevelScene = new byte[LevelSceneSize][LevelSceneSize];
-			int shift = (int)(levelScene.length/2) - (int)(LevelSceneSize/2);
-			for(int i = 0; i < clippedLevelScene.length; ++i)
+			for(int j = 0; j < clippedLevelScene[i].length; ++j)
 			{
-				for(int j = 0; j < clippedLevelScene[i].length; ++j)
-				{
-					clippedLevelScene[i][j] = levelScene[i + shift][j + shift];
-				}
+				clippedLevelScene[i][j] = Encoding.simplify(levelScene[i + shift][j + shift]);
 			}
-			return clippedLevelScene;
 		}
+		return clippedLevelScene;
 	}
 	
 	public LevelSceneMovement(Element element)
@@ -109,7 +94,7 @@ public class LevelSceneMovement implements Cloneable, Serializable
 		if(actions != null)
 		{
 			int match = ActionsIndex.getMatch(actions);
-			if(match > 0)
+			if(match >= 0)
 			{
 				attemptedActions[match] = true;
 				for(int i = 0; i < attemptedActions.length; ++i)
@@ -134,7 +119,7 @@ public class LevelSceneMovement implements Cloneable, Serializable
 			choice = (int) (Math.random() * attemptedActions.length);
 		}
 		while(attemptedActions[choice]);
-		actions = ActionsIndex.getArray(choice);
+		setActions(ActionsIndex.getArray(choice), NO_REWARD_SET);
 	}
 	
 	public void changeAction(int number)
@@ -154,7 +139,7 @@ public class LevelSceneMovement implements Cloneable, Serializable
 		int arrayNumber = ActionsIndex.getMatch(array);
 		if(arrayNumber > 0 && !attemptedActions[arrayNumber])
 		{
-			actions = array;
+			setActions(array, NO_REWARD_SET);
 		}
 	}
 

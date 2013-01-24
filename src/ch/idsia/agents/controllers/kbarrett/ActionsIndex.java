@@ -1,5 +1,8 @@
 package ch.idsia.agents.controllers.kbarrett;
 
+import java.lang.reflect.Field;
+import java.util.Arrays;
+
 public class ActionsIndex
 {
 	// Note: left, right, down, jump, speed, up
@@ -41,7 +44,9 @@ public class ActionsIndex
 		{
 			try
 			{
-				if(array.equals(ActionsIndex.class.getField("ai" + i).get(null)))
+				Field f = ActionsIndex.class.getField("ai" + i);
+				boolean[] o = (boolean[])f.get(null);
+				if(Arrays.equals(array,o))
 				{
 					return i;
 				}

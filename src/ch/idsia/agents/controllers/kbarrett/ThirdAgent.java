@@ -42,10 +42,12 @@ public class ThirdAgent implements Agent
 	{
 		//Get the current levelscene
 		byte[][] levelScene = environment.getMergedObservationZZ(0, 0);
-		//Give this to the genetic algorithm thread
-		levelSceneSearchThread.start(levelScene);
+		
 		//Store the levelscene as a LevelSceneMovement
 		thisMovement = new LevelSceneMovement(levelScene, null, LevelSceneMovement.NO_REWARD_SET);
+		
+		//Give this to the genetic algorithm thread
+		levelSceneSearchThread.start(thisMovement);
 		
 		if(lastMarioLoc == -1) //this will only be true on the first iteration
 		{
@@ -113,9 +115,8 @@ class LevelSceneSearchThread extends Thread
 		super(search);
 	}
 	
-	public void start(byte[][] levelScene)
+	public void start(LevelSceneMovement requiredLevelSceneMovement)
 	{
-		LevelSceneMovement requiredLevelSceneMovement = new LevelSceneMovement(levelScene, null, LevelSceneMovement.NO_REWARD_SET);
 		search.giveRequiredLevelSceneMovement(requiredLevelSceneMovement);
 		run();
 	}

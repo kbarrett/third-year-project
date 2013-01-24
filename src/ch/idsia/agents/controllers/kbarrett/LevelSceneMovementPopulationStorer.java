@@ -1,6 +1,7 @@
 package ch.idsia.agents.controllers.kbarrett;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 
 public class LevelSceneMovementPopulationStorer
@@ -55,7 +56,11 @@ public class LevelSceneMovementPopulationStorer
 			else
 			{
 				LevelSceneMovement previousInstance = population.get(previousInstanceIndex);
-				if(previousInstance.getReward() < newElement.getReward())
+				if(
+						Arrays.equals(previousInstance.getActions(),newElement.getActions())			   //If the actions are the same, update the reward
+						|| (previousInstance.getReward() == newElement.getReward() && Math.random() < 0.5) //Take equal rewarded actions with prob 0.5
+						|| (previousInstance.getReward() < newElement.getReward())						   //Always take better rewarded actions
+						)
 				{
 					previousInstance.setActions(newElement.getActions(), newElement.getReward());
 				}

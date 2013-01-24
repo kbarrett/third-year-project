@@ -69,6 +69,18 @@ public class Encoding
 		return isEnemySprite(type.getEncoding());
 	}
 	
+	/* 
+	 * Methods used to simplify the encodings for ThirdAgent
+	 */
+	static final public byte simplify(byte encoding)
+	{
+		if(isEnvironment(encoding))
+		{
+			return -1;
+		}
+		else return encoding;
+	}
+	
 	//Encodings of Environment : represented by negative integers
 			/** 
 			 * If there is nothing in the square.
