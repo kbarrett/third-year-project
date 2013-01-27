@@ -73,5 +73,39 @@ public class ActionsIndex
 		}
 		
 	}
+	
+	public static boolean[] getMutatedArray(int number, float probability)
+	{
+		boolean changeSpeed = Math.random() < probability;
+		boolean changeDirection = Math.random() < probability;
+		boolean changeJumping = Math.random() < probability;
+		
+		if(changeSpeed)
+		{
+			number = (number + 12) % 24;
+		}
+		if(changeDirection)
+		{
+			boolean speed = number >= 12;
+			number = (number + 4) % 12;
+			if(speed)
+			{
+				number += 12;
+			}
+		}
+		if(changeJumping)
+		{
+			boolean speed = number >= 12;
+			int slr = (int) (speed ? (number - 12) / 3.0 : number / 3.0);
+			
+			number = (number + 1) % 4;
+			number += slr;
+			if(speed)
+			{
+				number += 12;
+			}
+		}
+		return getArray(number);
+	}
 
 }

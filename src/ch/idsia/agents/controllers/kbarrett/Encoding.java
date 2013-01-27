@@ -78,6 +78,10 @@ public class Encoding
 		{
 			return -1;
 		}
+		else if (encoding == FIREBALL)
+		{
+			return 0;
+		}
 		else return encoding;
 	}
 	
@@ -114,7 +118,7 @@ public class Encoding
 	
 	//Encodings of Sprites : represented by positive integers
 			
-		//Friendly : encodings are numbers between 1 and 5
+		//Friendly : encodings are numbers between 1 and 25
 			/**
 			 * Note: Encoding same as a {@link #MUSHROOM}.
 			 */
@@ -127,7 +131,14 @@ public class Encoding
 			 * This is a flower that gives you extra life.
 			 */
 			static final public byte FIRE_FLOWER = Sprite.KIND_FIRE_FLOWER;
+			/**
+			 * This is the princess, which signals the end of a level.
+			 */
 			static final public byte PRINCESS = GeneralizerLevelScene.PRINCESS;
+			/**
+			 * This is the fireball, that Mario can shoot when he "presses" run in fire mode.
+			 */
+			static final public byte FIREBALL = Sprite.KIND_FIREBALL;
 			
 		//Enemies : encodings are numbers between 80 and 100
 			static final public byte ENEMY_BULLET = Sprite.KIND_BULLET_BILL;
@@ -142,9 +153,6 @@ public class Encoding
 			static final public byte ENEMY_SPIKY = Sprite.KIND_SPIKY;
 			static final public byte ENEMY_FLOWER = Sprite.KIND_ENEMY_FLOWER;
 			static final public byte ENEMY_SKIPY_WINGED = Sprite.KIND_SPIKY_WINGED;
-			
-		//Other
-			static final public byte ENEMY_FIREBALL = Sprite.KIND_FIREBALL;
 	
 	
 	//DEBUG:

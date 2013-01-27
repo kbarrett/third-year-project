@@ -5,198 +5,179 @@ import java.util.List;
 import ch.idsia.agents.Agent;
 import ch.idsia.benchmark.mario.environments.Environment;
 
-public class ThirdAgent implements Agent
-{
+public class ThirdAgent implements Agent {
 	private static String name = "ThirdAgent";
-	
+
 	private LevelSceneSearchThread levelSceneSearchThread = new LevelSceneSearchThread();
-	
+
 	private LevelSceneMovement thisMovement = null;
 	private LevelSceneMovement lastMovement = null;
 	private boolean[] lastActions = null;
 	private int thisReward = 0;
 	private float lastIntermediateReward = 0;
-	private float lastMarioLoc = -1;
-	
+	private float[] lastMarioLoc = null;
+
 	@Override
-	public boolean[] getAction()
-	{
-		try
-		{	
+	public boolean[] getAction() {
+		try {
 			levelSceneSearchThread.join();
-			boolean[] actions = levelSceneSearchThread.getNearestMovement().getActions();
-			
+			boolean[] actions = levelSceneSearchThread.getNearestMovement()
+					.getActions();
+
 			lastActions = actions;
 			lastMovement = thisMovement;
 			return actions;
-			
-		} catch (InterruptedException e)
-		{
+
+		} catch (InterruptedException e) {
 			e.printStackTrace();
 			return new boolean[Environment.numberOfKeys];
 		}
 	}
 
 	@Override
-	public void integrateObservation(Environment environment)
-	{
-		//Get the current levelscene
+	public void integrateObservation(Environment environment) {
+		// Get the current levelscene
 		byte[][] levelScene = environment.getMergedObservationZZ(0, 0);
-		
-		//Store the levelscene as a LevelSceneMovement
-		thisMovement = new LevelSceneMovement(levelScene, null, LevelSceneMovement.NO_REWARD_SET);
-		
-		//Give this to the genetic algorithm thread
+
+		// Store the levelscene as a LevelSceneMovement
+		thisMovement = new LevelSceneMovement(levelScene, null,
+				LevelSceneMovement.NO_REWARD_SET);
+
+		// Give this to the genetic algorithm thread
 		levelSceneSearchThread.start(thisMovement);
-		
-		if(lastMarioLoc == -1) //this will only be true on the first iteration
+
+		if (lastMarioLoc == null) // this will only be true on the first
+									// iteration
 		{
-			//Initialise the global variables
-			lastMarioLoc = environment.getMarioFloatPos()[0];
+			// Initialise the global variables
+			lastMarioLoc = new float[2];
+			lastMarioLoc[0] = environment.getMarioFloatPos()[0];
+			lastMarioLoc[1] = environment.getMarioFloatPos()[1];
+
 			thisReward = 0;
-		}
-		else
-		{
-			//Update global variables
-				//Use change in position for the reward
-				thisReward = (int) (environment.getMarioFloatPos()[0] - lastMarioLoc); //Mario's x location
-				//Update previous position to be current position
-				lastMarioLoc = environment.getMarioFloatPos()[0];
+		} else {
+			// Update global variables
+			// Use change in position for the reward
+			thisReward = (int) (environment.getMarioFloatPos()[0] - lastMarioLoc[0]); // Mario's
+																						// x
+																						// location
+
+			thisReward += (int) (lastMarioLoc[1] - environment
+					.getMarioFloatPos()[1]); // Mario's y location
+
+			// Update previous position to be current position
+			lastMarioLoc[0] = environment.getMarioFloatPos()[0];
+			lastMarioLoc[1] = environment.getMarioFloatPos()[1];
 		}
 	}
 
 	@Override
-	public void giveIntermediateReward(float intermediateReward)
-	{
-		//Add the change in "intermediate reward" to the reward
-		thisReward += (int)(intermediateReward - lastIntermediateReward);
+	public void giveIntermediateReward(float intermediateReward) {
+		// Add the change in "intermediate reward" to the reward
+		thisReward += (int) (intermediateReward - lastIntermediateReward);
 		lastIntermediateReward = intermediateReward;
-		
-		if(lastMovement != null) //if we aren't on the first iteration
+
+		if (lastMovement != null) // if we aren't on the first iteration
 		{
-			//Store the last set of actions and the given reward
+			// Store the last set of actions and the given reward
 			lastMovement.setActions(lastActions, thisReward);
 			LevelSceneMovementPopulationStorer.addNew(lastMovement);
-			
-			System.out.println("Storing " + lastMovement);
 		}
 	}
 
 	@Override
-	public void reset()
-	{
+	public void reset() {
 	}
 
 	@Override
-	public void setObservationDetails(int rfWidth, int rfHeight, int egoRow, int egoCol)
-	{
+	public void setObservationDetails(int rfWidth, int rfHeight, int egoRow,
+			int egoCol) {
 	}
 
 	@Override
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
 
 	@Override
-	public void setName(String name)
-	{
+	public void setName(String name) {
 		this.name = name;
 	}
 
 }
 
-class LevelSceneSearchThread extends Thread
-{
+class LevelSceneSearchThread extends Thread {
 	private final static SearchRunnable search = new SearchRunnable();
-	
-	public LevelSceneSearchThread()
-	{
+
+	public LevelSceneSearchThread() {
 		super(search);
 	}
-	
-	public void start(LevelSceneMovement requiredLevelSceneMovement)
-	{
+
+	public void start(LevelSceneMovement requiredLevelSceneMovement) {
 		search.giveRequiredLevelSceneMovement(requiredLevelSceneMovement);
 		run();
 	}
-	
-	public static LevelSceneMovement getNearestMovement()
-	{
+
+	public static LevelSceneMovement getNearestMovement() {
 		return search.getNearestMatch();
 	}
 }
 
-class SearchRunnable implements Runnable
-{
-	
+class SearchRunnable implements Runnable {
+
 	private LevelSceneMovement nearest;
 	private LevelSceneMovement required;
 	LevelSceneMovementEvolver evolver;
 
-	public SearchRunnable()
-	{
+	public SearchRunnable() {
 		evolver = new LevelSceneMovementEvolver();
 		LevelSceneMovementPopulationStorer.initialise(evolver);
 	}
-	
-	public void giveRequiredLevelSceneMovement(LevelSceneMovement required)
-	{
+
+	public void giveRequiredLevelSceneMovement(LevelSceneMovement required) {
 		this.required = required;
 		evolver.giveRequiredLSM(required);
 	}
-	public LevelSceneMovement getNearestMatch()
-	{
+
+	public LevelSceneMovement getNearestMatch() {
 		return nearest;
 	}
-	
+
 	@Override
-	public void run()
-	{
+	public void run() {
 		long startTime = System.currentTimeMillis();
-		
-		List<LevelSceneMovement> population = LevelSceneMovementPopulationStorer.getPopulationCopy();
-		if(population.size() < evolver.getSizeOfGeneration())
-		{
+
+		List<LevelSceneMovement> population = LevelSceneMovementPopulationStorer
+				.getPopulationCopy();
+		if (population.size() < evolver.getSizeOfGeneration()) {
 			nearest = required;
 			nearest.changeActions();
 			return;
 		}
-		GeneticAlgorithm<LevelSceneMovement> algorithm = new GeneticAlgorithm<LevelSceneMovement>(population, evolver);
-		
-		if(!population.contains(required))
-		{
-			long now = System.currentTimeMillis();
-			while(startTime + 1000 > now)
-			{
-				population = algorithm.getNewGeneration();
-				now = System.currentTimeMillis();
-			}
+		GeneticAlgorithm<LevelSceneMovement> algorithm = new GeneticAlgorithm<LevelSceneMovement>(
+				population, evolver);
+
+		while (startTime + 1000 > System.currentTimeMillis()
+				&& population.contains(required)) {
+			population = algorithm.getNewGeneration();
 		}
-		
-		if(population.contains(required))
-		{
+
+		if (population.contains(required)) {
 			nearest = population.get(population.indexOf(required)).clone();
-			if(Math.random() < evolver.getProbabilityOfMutation())
-			{
+			if (Math.random() < evolver.getProbabilityOfMutation()) {
 				nearest.changeActions();
 			}
-		}
-		else
-		{	
+		} else {
 			int bestMatch = 0;
-			
-			for(LevelSceneMovement lsm : population)
-			{
+
+			for (LevelSceneMovement lsm : population) {
 				int thisMatch = lsm.getFitness(required);
-				if(thisMatch > bestMatch)
-				{
+				if (thisMatch > bestMatch) {
 					nearest = lsm;
 					bestMatch = thisMatch;
 				}
 			}
 		}
 	}
-	
-}
 
+}
