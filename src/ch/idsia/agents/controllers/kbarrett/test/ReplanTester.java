@@ -5,9 +5,9 @@ import java.util.Stack;
 
 import org.objectweb.asm.tree.IntInsnNode;
 
-import ch.idsia.agents.controllers.kbarrett.MapSquare;
-import ch.idsia.agents.controllers.kbarrett.MapUpdater;
-import ch.idsia.agents.controllers.kbarrett.PlanStorer;
+import ch.idsia.agents.controllers.kbarrett.first.MapSquare;
+import ch.idsia.agents.controllers.kbarrett.first.MapUpdater;
+import ch.idsia.agents.controllers.kbarrett.first.PlanStorer;
 
 public class ReplanTester {
 	

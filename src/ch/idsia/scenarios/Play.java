@@ -27,10 +27,10 @@
 
 package ch.idsia.scenarios;
 
-import ch.idsia.agents.controllers.kbarrett.LSMLoadSave;
-import ch.idsia.agents.controllers.kbarrett.LevelSceneMovement;
-import ch.idsia.agents.controllers.kbarrett.LevelSceneMovementPopulationStorer;
-import ch.idsia.agents.controllers.kbarrett.LoadSave;
+import ch.idsia.agents.controllers.kbarrett.third.LSMLoadSave;
+import ch.idsia.agents.controllers.kbarrett.third.LevelSceneMovement;
+import ch.idsia.agents.controllers.kbarrett.third.LevelSceneMovementPopulationStorer;
+import ch.idsia.agents.controllers.kbarrett.third.LoadSave;
 import ch.idsia.benchmark.tasks.BasicTask;
 import ch.idsia.benchmark.tasks.MarioCustomSystemOfValues;
 import ch.idsia.tools.MarioAIOptions; /**

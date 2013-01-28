@@ -3,10 +3,10 @@ package ch.idsia.agents.controllers.kbarrett.test;
 import java.util.ArrayList;
 
 import ch.idsia.agents.controllers.kbarrett.Encoding;
-import ch.idsia.agents.controllers.kbarrett.FirstAgent;
-import ch.idsia.agents.controllers.kbarrett.MapSquare;
-import ch.idsia.agents.controllers.kbarrett.MapUpdater;
-import ch.idsia.agents.controllers.kbarrett.Search;
+import ch.idsia.agents.controllers.kbarrett.first.FirstAgent;
+import ch.idsia.agents.controllers.kbarrett.first.MapSquare;
+import ch.idsia.agents.controllers.kbarrett.first.MapUpdater;
+import ch.idsia.agents.controllers.kbarrett.first.Search;
 
 public class AStarTestClass {
 	

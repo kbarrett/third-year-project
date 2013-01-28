@@ -2,10 +2,10 @@ package ch.idsia.agents.controllers.kbarrett.test;
 
 import java.util.ArrayList;
 
-import ch.idsia.agents.controllers.kbarrett.LevelSceneInvestigator;
-import ch.idsia.agents.controllers.kbarrett.MapSquare;
-import ch.idsia.agents.controllers.kbarrett.MapUpdater;
-import ch.idsia.agents.controllers.kbarrett.Movement;
+import ch.idsia.agents.controllers.kbarrett.first.LevelSceneInvestigator;
+import ch.idsia.agents.controllers.kbarrett.first.MapSquare;
+import ch.idsia.agents.controllers.kbarrett.first.MapUpdater;
+import ch.idsia.agents.controllers.kbarrett.first.Movement;
 
 public class LevelSceneInvestigatorTester {
 	

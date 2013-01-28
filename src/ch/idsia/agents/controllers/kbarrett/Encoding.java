@@ -1,5 +1,7 @@
 package ch.idsia.agents.controllers.kbarrett;
 
+import ch.idsia.agents.controllers.kbarrett.first.FirstAgent;
+import ch.idsia.agents.controllers.kbarrett.first.MapSquare;
 import ch.idsia.benchmark.mario.engine.GeneralizerLevelScene;
 import ch.idsia.benchmark.mario.engine.sprites.Sprite;
 

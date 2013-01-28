@@ -18,6 +18,8 @@ import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
 import org.jdom.output.XMLOutputter;
 
+import ch.idsia.agents.controllers.kbarrett.third.LoadSave;
+
 
 public class GeneticAlgorithm<T> {
 	
