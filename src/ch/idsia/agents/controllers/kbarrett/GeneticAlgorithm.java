@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -28,6 +29,10 @@ public class GeneticAlgorithm<T> {
 	private LinkedList<T> thisGeneration;
 	
 	private int leastValueOffSet = 1;
+	
+	//Multi-threading Stuff
+		final static int numberOfThreads = 4;
+
 	
 	private GeneticAlgorithm(){};
 	
@@ -60,7 +65,19 @@ public class GeneticAlgorithm<T> {
 		return lastGeneration;
 	}
 	
-	public List<T> getNewGeneration()
+	public List<T> getNewGeneration(boolean multiThread)
+	{
+		if(multiThread)
+		{
+			return getNewGenerationMulti();
+		}
+		else
+		{
+			return getNewGenerationSingle();
+		}
+	}
+	
+	private List<T> getNewGenerationSingle()
 	{
 		int sum = 0;
 		LinkedList<Fitness<T>> fitness = new LinkedList<Fitness<T>>();
@@ -70,8 +87,97 @@ public class GeneticAlgorithm<T> {
 			fitness.add(new Fitness<T>(element, elementFitness));
 			sum += elementFitness;
 		}
+
+		Collections.sort(fitness);
+		//collection should now be in order from greatest fitness to smallest fitness
+
+		int leastValue = fitness.getLast().fitness;
+		if(leastValue <= 0)
+		{
+			for(Fitness<T> element : fitness)
+			{
+				element.fitness += leastValueOffSet - leastValue;
+			}
+
+			sum -= (fitness.size() * (leastValue - leastValueOffSet));
+		}
+
+		for(int i = 0; i < Math.floor((float)evolver.getSizeOfGeneration() / 2.0); ++i)
+		{
+			int choice = (int) Math.floor(sum * Math.random());
+			int choice2;
+			do
+			{
+				choice2 = (int) Math.floor(sum * Math.random());
+			}
+			while(choice == choice2 && sum > 1);
+
+			T element1 = chooseElement(fitness, choice);
+			T element2 = chooseElement(fitness, choice2);
+
+			thisGeneration.addAll(evolver.crossover(element1, element2));
+		}
+
+		for(T element : thisGeneration)
+		{
+			if(Math.random() < evolver.getProbabilityOfMutation())
+			{
+				evolver.mutate(element);
+			}
+		}
+
+		lastGeneration = (LinkedList<T>) thisGeneration.clone();
+		thisGeneration.clear();
+		return lastGeneration;
+	}
+	
+	private List<T> getNewGenerationMulti()
+	{
+		Object sumlock = new Object();
+		int[] sumarray = {0};
+		
+		LinkedList<Fitness<T>> fitness = new LinkedList<Fitness<T>>();
+		
+		int offset = lastGeneration.size() / numberOfThreads;
+
+		ArrayList<FitnessThread> threads = new ArrayList<FitnessThread>(numberOfThreads);
+		
+		for(int threadId = 0; threadId < numberOfThreads; ++threadId)
+		{
+			FitnessThread t = new FitnessThread(lastGeneration.listIterator(threadId * offset), offset, 
+						fitness, sumlock, sumarray);
+			t.start();
+			threads.add(t);
+		}
+
+		for(int cur = 0; cur < threads.size(); ++cur)
+		{
+			FitnessThread t = threads.get(cur);
+			try 
+			{
+				t.join();
+			} 
+			catch (InterruptedException e) 
+			{
+				e.printStackTrace();
+			}
+		}
+		
+		long llTime = System.currentTimeMillis();
+		/*for(final T element : lastGeneration)
+		{
+			
+		}*/
+		long llNewtime = System.currentTimeMillis();
+		//System.out.println("Inital loop: " + (llNewtime - llTime));
+		llTime = llNewtime;
+		int sum = sumarray[0];
 		
 		Collections.sort(fitness);
+		
+		llNewtime = System.currentTimeMillis();
+		//System.out.println("Sort: " + (llNewtime - llTime));
+		llTime = llNewtime;
 		//collection should now be in order from greatest fitness to smallest fitness
 		
 		int leastValue = fitness.getLast().fitness;
@@ -85,21 +191,36 @@ public class GeneticAlgorithm<T> {
 			sum -= (fitness.size() * (leastValue - leastValueOffSet));
 		}
 		
-		for(int i = 0; i < Math.floor((float)evolver.getSizeOfGeneration() / 2.0); ++i)
+		llNewtime = System.currentTimeMillis();
+		//System.out.println("Secondary loop: " + (llNewtime - llTime));
+		llTime = llNewtime;
+		
+		LinkedList<CrossOverThread> threadList = new LinkedList<GeneticAlgorithm<T>.CrossOverThread>();
+		Object listLock = new Object();
+		int size = (int) Math.floor((float)evolver.getSizeOfGeneration() / (numberOfThreads * 2.0));
+		for(int i = 0; i < numberOfThreads; ++i)
 		{
-			int choice = (int) Math.floor(sum * Math.random());
-			int choice2;
-			do
+			if(i == numberOfThreads - 1)
 			{
-				choice2 = (int) Math.floor(sum * Math.random());
+				size = (int) ((evolver.getSizeOfGeneration() / 2.0) - (numberOfThreads - 1) * size);
 			}
-			while(choice == choice2 && sum > 1);
-			
-			T element1 = chooseElement(fitness, choice);
-			T element2 = chooseElement(fitness, choice2);
-			
-			thisGeneration.addAll(evolver.crossover(element1, element2));
+			CrossOverThread cot = new CrossOverThread(sum, listLock, fitness, size);
+			cot.start();
+			threadList.add(cot);
 		}
+		for(CrossOverThread cot : threadList)
+		{
+			try {
+				cot.join();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		llNewtime = System.currentTimeMillis();
+		//System.out.println("Tertiay loop: " + (llNewtime - llTime));
+		llTime = llNewtime;
 		
 		for(T element : thisGeneration)
 		{
@@ -109,11 +230,104 @@ public class GeneticAlgorithm<T> {
 			}
 		}
 		
+		llNewtime = System.currentTimeMillis();
+		//System.out.println("Fianl loop: " + (llNewtime - llTime));
+		llTime = llNewtime;
+		
 		lastGeneration = (LinkedList<T>) thisGeneration.clone();
 		thisGeneration.clear();
+		
+		llNewtime = System.currentTimeMillis();
+		//System.out.println("Clone: " + (llNewtime - llTime));
+		llTime = llNewtime;
+		
 		return lastGeneration;
 	}
+	class FitnessThread extends Thread
+	{
+		LinkedList<Fitness<T>> fitness;
+		Object sumLock;
+		int[] sum;
+		//private Iterator<T> endPoint;
+		int count;
+		private Iterator<T> startingPoint;
+		
+		public FitnessThread(Iterator<T> startingPoint, int count, LinkedList<Fitness<T>> fitness, Object sumLock, int[] sum)
+		{
+			this.startingPoint = startingPoint;
+			this.count = count;
+			this.fitness = fitness;
+			this.sumLock = sumLock;
+			this.sum = sum;
+			
+			//System.out.println("Going from: " + startingPoint.)
+		}
+		public void UpdateData(Iterator<T> startingPoint, int count)
+		{
+			this.startingPoint = startingPoint;
+			this.count = count;
+		}
+		
+		@Override
+		public void run() 
+		{
+			int  i = 0;
+			for(Iterator<T> current = startingPoint; current.hasNext() && i < count; )
+			{
+				T element = current.next();
+				int elementFitness = (int) Math.max(leastValueOffSet, evolver.fitnessFunction(element));
+				synchronized(sumLock)
+				{
+					fitness.add(new Fitness<T>(element, elementFitness));
+					sum[0] += elementFitness;
+				}
+				++i;
+			}
+		}
+		
+		
+	}
 	
+	class CrossOverThread extends Thread
+	{
+		int sum;
+		Object listLock;
+		LinkedList<Fitness<T>> fitness;
+		int size;
+		
+		public CrossOverThread(int sum, Object listLock, LinkedList<Fitness<T>> fitness, int size)
+		{
+			this.sum = sum;
+			this.listLock = listLock;
+			this.fitness = fitness;
+			this.size = size;
+		}
+		
+		@Override
+		public void run()
+		{
+			ArrayList<T> tempList = new ArrayList<T>(size * 2);
+			for(int i = 0; i< size; ++i)
+			{	
+				int choice = (int) Math.floor(sum * Math.random());
+				int choice2;
+				do
+				{
+					choice2 = (int) Math.floor(sum * Math.random());
+				}
+				while(choice == choice2 && sum > 1);
+				
+				T element1 = chooseElement(fitness, choice);
+				T element2 = chooseElement(fitness, choice2);
+				
+				tempList.addAll(evolver.crossover(element1, element2));
+			}
+			synchronized(listLock)
+			{
+				thisGeneration.addAll(tempList);
+			}
+		}
+	}
 	private T chooseElement(LinkedList<Fitness<T>> fitnessList, int randomChoice)
 	{
 		Iterator<Fitness<T>> iterator = fitnessList.iterator();
@@ -170,7 +384,8 @@ class Fitness<T> implements Comparable<Fitness<T>>
 	@Override
 	public int compareTo(Fitness<T> otherObject)
 	{
-		return Integer.compare(otherObject.getFitness(), fitness);
+		return new Integer(fitness).compareTo(otherObject.getFitness());
+		//return Integer.compare(otherObject.getFitness(), fitness);
 	}
 	@Override 
 	public String toString()
