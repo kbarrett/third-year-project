@@ -15,7 +15,7 @@ import ch.idsia.agents.controllers.kbarrett.Evolver;
 
 public class LSMLoadSave
 {
-	public static boolean saving = true;
+	public static boolean saving = false;
 
 	public static void saveToFile(String filename,
 			ArrayList<LevelSceneMovement> list,

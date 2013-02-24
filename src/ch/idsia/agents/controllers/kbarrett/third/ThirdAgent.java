@@ -10,7 +10,7 @@ public class ThirdAgent implements Agent
 {
 	private static String name = "ThirdAgent";
 
-	private LevelSceneSearchThread levelSceneSearchThread = new LevelSceneSearchThread();
+	private LevelSceneSearchThread levelSceneSearchThread;
 
 	private LevelSceneMovement thisMovement = null;
 	private LevelSceneMovement lastMovement = null;
@@ -26,6 +26,12 @@ public class ThirdAgent implements Agent
 	 */
 	private int lastMode = -1;
 
+	public ThirdAgent()
+	{
+		levelSceneSearchThread = new LevelSceneSearchThread();
+		levelSceneSearchThread.setPriority(Thread.MAX_PRIORITY);
+	}
+	
 	@Override
 	public boolean[] getAction()
 	{
@@ -180,13 +186,18 @@ class SearchRunnable implements Runnable
 		}
 		GeneticAlgorithm<LevelSceneMovement> algorithm = new GeneticAlgorithm<LevelSceneMovement>(population, evolver);
 
+		int iteration = 0;
+		//for(int iteration = 0; iteration < 35; ++iteration)
 		while (
-				startTime + 1000 > System.currentTimeMillis()
-				&& !population.contains(required)
+				startTime + 40 > System.currentTimeMillis()
+				//&& population.contains(required)
 				) 
 		{
 			population = algorithm.getNewGeneration();
+			++iteration;
 		}
+		
+		//System.out.println("Ran " + iteration + " iterations.");
 		
 		if (population.contains(required))
 		{

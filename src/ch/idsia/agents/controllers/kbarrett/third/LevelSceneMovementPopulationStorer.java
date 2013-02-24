@@ -10,6 +10,7 @@ public class LevelSceneMovementPopulationStorer
 {
 	private static final ArrayList<LevelSceneMovement> population = new ArrayList<LevelSceneMovement>();
 	static Object lock = new Object();
+	private static final int MaxPopulationSize = 20000;
 	
 	private static Evolver<LevelSceneMovement> evolver;
 	
@@ -57,7 +58,7 @@ public class LevelSceneMovementPopulationStorer
 			}
 			else
 			{
-				LevelSceneMovement previousInstance = population.get(previousInstanceIndex);
+				LevelSceneMovement previousInstance = population.remove(previousInstanceIndex);
 				if(
 						Arrays.equals(previousInstance.getActions(),newElement.getActions())			   //If the actions are the same, update the reward
 						|| (previousInstance.getReward() == newElement.getReward() && Math.random() < 0.5) //Take equal rewarded actions with prob 0.5
@@ -66,6 +67,12 @@ public class LevelSceneMovementPopulationStorer
 				{
 					previousInstance.setActions(newElement.getActions(), newElement.getReward());
 				}
+				population.add(previousInstance);
+			}
+			
+			while(population.size() > MaxPopulationSize)
+			{
+				population.remove(0);
 			}
 		}
 	}
@@ -94,6 +101,7 @@ public class LevelSceneMovementPopulationStorer
 				}
 
 			}});
+		thread.setPriority(Thread.MIN_PRIORITY);
 		thread.start();
 	}
 	

@@ -86,6 +86,6 @@ public static void main(String[] args)
 			e.printStackTrace();
 		}
     }
-    System.exit(0);
+   // System.exit(0);
 }
 }

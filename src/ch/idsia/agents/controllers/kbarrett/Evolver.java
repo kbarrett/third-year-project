@@ -7,7 +7,7 @@ import org.jdom.Element;
 public interface Evolver<T>
 {
 	
-	public int fitnessFunction(T element);
+	int fitnessFunction(T element);
 	public List<T> crossover(T element1, T element2);
 	public void mutate(T element);
 	public float getProbabilityOfMutation();

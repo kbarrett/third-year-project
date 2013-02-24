@@ -1,5 +1,6 @@
 package ch.idsia.agents.controllers.kbarrett.second;
 
+import java.sql.Savepoint;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -56,6 +57,11 @@ public class GeneticAgentGenerator
 
 		System.exit(0);
 	}
+	
+	public static String getSavedLocation()
+	{
+		return savefilename;
+	}
 
 }
 
@@ -109,10 +115,38 @@ class SecondAgentEvolver implements Evolver<SecondAgent>
 	public void mutate(SecondAgent element)
 	{
 		System.out.println("Mutating " + element);
-		element.setProbabilityJump(element.getProbabilityJump() + (float)Math.random());
-		element.setProbabilityMoveRight(element.getProbabilityMoveRight() + (float)Math.random());
-		element.setProbabilityShoot(element.getProbabilityShoot() + (float)Math.random());
-		element.setProbabilityRun(element.getProbabilityRun() + (float)Math.random());
+		if(Math.random() < 0.5)
+		{
+			element.setProbabilityJump(element.getProbabilityJump() + (float)Math.random());
+		}
+		else
+		{
+			element.setProbabilityJump(element.getProbabilityJump() - (float)Math.random());
+		}
+		if(Math.random() < 0.5)
+		{
+			element.setProbabilityMoveRight(element.getProbabilityMoveRight() + (float)Math.random());
+		}
+		else
+		{
+			element.setProbabilityMoveRight(element.getProbabilityMoveRight() - (float)Math.random());
+		}
+		if(Math.random() < 0.5)
+		{
+			element.setProbabilityShoot(element.getProbabilityShoot() + (float)Math.random());
+		}
+		else
+		{
+			element.setProbabilityShoot(element.getProbabilityShoot() - (float)Math.random());
+		}
+		if(Math.random() < 0.5)
+		{
+			element.setProbabilityRun(element.getProbabilityRun() + (float)Math.random());
+		}
+		else
+		{
+			element.setProbabilityShoot(element.getProbabilityRun() - (float)Math.random());
+		}
 	}
 
 	@Override
@@ -138,5 +172,4 @@ class SecondAgentEvolver implements Evolver<SecondAgent>
 	{
 		return new SecondAgent(element);
 	}
-	
 }
