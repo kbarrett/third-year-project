@@ -49,7 +49,7 @@ public class GeneticAgentGenerator
 		{
 			System.out.println("Iteration " + i);
 			SecondAgentManager.setValues(population);
-			population = algorithm.getNewGeneration();
+			population = algorithm.getNewGeneration(false);
 			SecondAgentManager.resetNumbers();
 		}
 		

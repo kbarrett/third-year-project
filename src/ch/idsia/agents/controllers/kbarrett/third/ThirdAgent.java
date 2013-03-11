@@ -186,17 +186,13 @@ class SearchRunnable implements Runnable
 		}
 		GeneticAlgorithm<LevelSceneMovement> algorithm = new GeneticAlgorithm<LevelSceneMovement>(population, evolver);
 
-		int iteration = 0;
 		//for(int iteration = 0; iteration < 35; ++iteration)
 		while (
 				startTime + 40 > System.currentTimeMillis()
-				//&& population.contains(required)
 				) 
 		{
-			population = algorithm.getNewGeneration();
-			++iteration;
+			population = algorithm.getNewGeneration(population.size() > evolver.getSizeOfGeneration());
 		}
-		
 		//System.out.println("Ran " + iteration + " iterations.");
 		
 		if (population.contains(required))
