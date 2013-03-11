@@ -24,7 +24,7 @@ public class GeneticAlgorithmTester
 		
 		for(int  i = 0; i< 1000; ++i)
 		{
-			initialPopulation = algorithm.getNewGeneration();
+			initialPopulation = algorithm.getNewGeneration(false);
 		}
 		
 		System.out.println(initialPopulation);
