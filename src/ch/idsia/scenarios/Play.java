@@ -75,17 +75,37 @@ public static void main(String[] args)
     basicTask.doEpisodes(1, false, 1);
     System.out.println("\nEvaluationInfo: \n" + basicTask.getEnvironment().getEvaluationInfoAsString());
     System.out.println("\nCustom : \n" + basicTask.getEnvironment().getEvaluationInfo().computeWeightedFitness(m));
-    while(LSMLoadSave.saving)
+    
+    String agent = "";
+    for(int i = 0; i < args.length; ++i)
     {
-    	System.out.println("Waiting for save to finish before exitting.");
-    	try
+    	if(args[i].equals("-ag"))
     	{
-			Thread.sleep(2000);
-		} catch (InterruptedException e)
-		{
-			e.printStackTrace();
-		}
+    		agent = args[i + 1];
+    		break;
+    	}
     }
-   // System.exit(0);
+    if(agent.equals("ch.idsia.agents.controllers.kbarrett.third.ThirdAgent"))
+    {
+	    if(!LSMLoadSave.saving)
+	    {
+	    	LevelSceneMovementPopulationStorer.save();
+	    }
+	    while(LSMLoadSave.saving)
+	    {
+	    	System.out.println("Waiting for save to finish before exitting.");
+	    	try
+	    	{
+				Thread.sleep(2000);
+			} catch (InterruptedException e)
+			{
+				e.printStackTrace();
+			}
+	    }
+    }
+    if(!agent.equals("ch.idsia.agents.controllers.kbarrett.second.SecondAgent"))
+    {
+    	System.exit(0);
+    }
 }
 }
