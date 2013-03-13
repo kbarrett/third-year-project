@@ -38,9 +38,11 @@ public class FirstAgent implements Agent {
 	 * @see ch.idsia.agents.Agent#getAction()
 	 */
 	@Override
-	public boolean[] getAction() {
-	
-		return movement.reset();
+	public boolean[] getAction()
+	{
+		boolean[] array = movement.reset();
+		FirstAgentRecorder.getAction(array);
+		return array;
 	}
 
 	/**
@@ -62,7 +64,7 @@ public class FirstAgent implements Agent {
 				levelSceneInvestigator.setMarioScreenPos(environment.getMarioFloatPos());
 				levelSceneInvestigator.updateMapFromLevelScene(environment.getMergedObservationZZ(0, 0));
 				levelSceneInvestigator.setMarioMode(environment.getMarioMode());
-				System.out.println("WHEN SET MARIOMODE IS: " + levelSceneInvestigator.getMarioMode());
+				//System.out.println("WHEN SET MARIOMODE IS: " + levelSceneInvestigator.getMarioMode());
 		
 				movement.setMarioMapLoc(levelSceneInvestigator.getMarioMapLoc());
 		

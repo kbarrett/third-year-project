@@ -203,19 +203,19 @@ public class MapSquare {
 		{
 			if(getMapLocationY() > 2 && Encoding.isEnvironment(map.get(getMapLocationY() - 2).get(getMapLocationX())))
 			{
-				System.out.println("Removing head-butted square");
+				//System.out.println("Removing head-butted square");
 				newList.remove(getSquareAbove());
 			}
 			if(getMapLocationY() > 1)
 			{
 				if(getMapLocationX() > 0 && Encoding.isEnvironment(map.get(getMapLocationY() - 1).get(getMapLocationX() - 1)))
 				{
-					System.out.println("Removing head-butted square to the left");
+					//System.out.println("Removing head-butted square to the left");
 					newList.remove(getSquareLeft());
 				}
 				if(getMapLocationX() < map.get(getMapLocationY() - 1).size() - 1 && Encoding.isEnvironment(map.get(getMapLocationY() - 1).get(getMapLocationX() + 1)))
 				{
-					System.out.println("Removing head-butted to the right");
+					//System.out.println("Removing head-butted to the right");
 					newList.remove(getSquareRight());
 				}
 			}

@@ -1,5 +1,7 @@
 package ch.idsia.agents.controllers.kbarrett.first;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Stack;
 import java.util.Vector;
 
@@ -148,13 +150,10 @@ public class PlanStorer {
 		int rejoinSquare = -1;
 		
 		//For each step in the plan
-		for(int i = 0; i < plan.size(); ++i)
+		for(int i = plan.size() - 1; i >= 0 ; --i)
 		{
 			//Find a new plan to this square from the current square, using the same number of steps (+ the adjustment value)
 			Stack<MapSquare> thisPlan = Search.aStar(plan.get(i), marioCurrentLocation, plan.size() - i + adjustment, marioMode);
-			if(thisPlan!=null)
-			{
-				}
 			if(
 					//we have successfully found a route to the required square
 					thisPlan != null &&
@@ -169,12 +168,13 @@ public class PlanStorer {
 				//Update the best plan
 				rejoinSquare = i;
 				newPlan = thisPlan;
+				break;
 			}
 		}
 		
 		if(rejoinSquare < 0) //we failed to find a new route
 		{
-			System.err.println("Plan unachievable. Can't reach " + plan.peek() + " from " + marioCurrentLocation);
+			//System.err.println("Plan unachievable. Can't reach " + plan.peek() + " from " + marioCurrentLocation);
 			//remove plan as it is unachievable from the current position
 			plan.clear();
 		}
@@ -218,5 +218,38 @@ public class PlanStorer {
 			return true;
 		}
 		return false;
+	}
+	
+	/**
+	 * Avoids the given squares - generally used to avoid squares containing enemies
+	 */
+	public void avoid(List<MapSquare> squares, ArrayList<ArrayList<MapSquare>> map, int marioMode)
+	{
+		for(MapSquare planSquare : plan)
+		{
+			if(squares.contains(planSquare))
+			{
+				MapSquare squaresSquare = squares.get(squares.indexOf(planSquare)); //get the correct square out of squares
+				
+				MapSquare sq = new MapSquare(squaresSquare.getEncoding(), map, squaresSquare.getMapLocationX(), squaresSquare.getMapLocationY() - 1); //square above enemy
+				Stack<MapSquare> newPlan = Search.aStar(sq, plan.peek(), marioMode);
+				if(newPlan != null) //if a plan was found
+				{
+					MapSquare cur;
+					do
+					{
+						cur = plan.pop();
+					}
+					while(!cur.equals(squaresSquare));
+					
+					while(newPlan.size() > 0)
+					{
+						plan.push(newPlan.remove(newPlan.size() - 1));
+					}
+					
+					return;
+				}
+			}
+		}
 	}
 }

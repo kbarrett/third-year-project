@@ -96,14 +96,12 @@ public class Search {
 			}
 			expandedSquares.add(currentSquare);
 		}
-		if(FirstAgent.debug)
-			System.err.println("Oh shit. We didn't find " + destination + " ..." + " from " + start);
 		return null;
 	}
 	
 	private static boolean isAbove(MapSquareWrapper currentSquare, MapSquare s)
 	{
-		return currentSquare.getMapSquare().getSquareAbove().equals(s);
+		return s.equals(currentSquare.getMapSquare().getSquareAbove());
 	}
 	
 	private static Direction getDirection(MapSquare s, MapSquareWrapper currentSquare)

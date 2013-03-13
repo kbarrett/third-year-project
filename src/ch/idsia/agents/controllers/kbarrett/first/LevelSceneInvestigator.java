@@ -1,6 +1,8 @@
 package ch.idsia.agents.controllers.kbarrett.first;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Stack;
 
 import ch.idsia.agents.controllers.kbarrett.Encoding;
@@ -60,7 +62,7 @@ public class LevelSceneInvestigator
 		
 		private boolean isStationary()
 		{
-			System.out.println("dOM: " + directionOfMovement + " so " + (directionOfMovement == 0));
+			//System.out.println("dOM: " + directionOfMovement + " so " + (directionOfMovement == 0));
 			return directionOfMovement == 0;
 		}
 		
@@ -222,37 +224,31 @@ public class LevelSceneInvestigator
 				}
 			}
 			
-			System.out.println("MARIO AT: " + marioMapLoc[0] + "," + marioMapLoc[1]);
-			System.out.println("PLAN: " + planStorer.plan);
+			//System.out.println("MARIO AT: " + marioMapLoc[0] + "," + marioMapLoc[1]);
+			//System.out.println("PLAN: " + planStorer.plan);
 			
 			MapSquare s = getLocationToMoveTo(isJumping);
-			System.out.println("Square to move to " + s);
+			//System.out.println("Square to move to " + s);
 			return s;
 		}
-		
+		//
 		private MapSquare getLocationToMoveTo(boolean isJumping)
 		{
-			if(false && !isStationary() && !isJumping && stayStationary)
+			List<MapSquare> enemy = checkForEnemies(2, 2);
+			if(enemy.size() > 0)
 			{
-				System.out.println("NOT MOVING - NEED TO BE STATIONARY");
-				MapSquare newSquare = getMapSquare(getMarioMapSquare().getMapLocationY(), getMarioMapSquare().getMapLocationX() - directionOfMovement);
-				
-				return newSquare;
+				planStorer.avoid(enemy, map, marioMode);
+			}
+			
+			MapSquare s =  planStorer.getLocationToMoveTo(getMarioMapSquare(), this);
+			if(!isStationary() && !isJumping && getMarioMapSquare().getSquareAbove().equals(s))
+			{
+				stayStationary = true;
+				return getMarioMapSquare();
 				//FIXME: warning - below line is bullshit place-holding
 				//return new MovementInstruction(Direction.Above, null);
 			}
-			else
-			{
-				MapSquare s =  planStorer.getLocationToMoveTo(getMarioMapSquare(), this);
-				if(!isStationary() && !isJumping && getMarioMapSquare().getSquareAbove().equals(s))
-				{
-					stayStationary = true;
-					return getMarioMapSquare();
-					//FIXME: warning - below line is bullshit place-holding
-					//return new MovementInstruction(Direction.Above, null);
-				}
-				return s;
-			}
+			return s;
 		}
 		
 		/**
@@ -358,7 +354,7 @@ public class LevelSceneInvestigator
 					else if (found)
 					{
 						//then this is the square we want to move towards
-						debugPrint("Found a RHS square to move towards " + map.get(y).get(x));
+						//debugPrint("Found a RHS square to move towards " + map.get(y).get(x));
 						return map.get(y).get(x);
 					}
 				}
@@ -371,23 +367,23 @@ public class LevelSceneInvestigator
 			return null;
 		}
 		
-		public MapSquare checkForEnemies(int xBound, int yBound)
+		public LinkedList<MapSquare> checkForEnemies(int xBound, int yBound)
 		{
-			return null;
-			/*for(int j = marioMapLoc[0]; j >= Math.max(yBound, 0) ; --j)
+			enemyFound = false;
+			LinkedList<MapSquare> enemies = new LinkedList<MapSquare>();
+			for(int j = marioMapLoc[0] + yBound; j >= marioMapLoc[0] - yBound; --j)
 			{
-				for(int k = marioMapLoc[1]; k >= Math.max(xBound, 0) ; --k)
+				for(int k = marioMapLoc[1] + xBound; k >= marioMapLoc[1] - xBound ; --k)
 				{
 					if(Encoding.isEnemySprite(map.get(j).get(k)))
 					{
 						enemyFound = true;
-						return map.get(j).get(k);
+						enemies.add(map.get(j).get(k));
 					}
 				}
 			}
-			enemyFound = false;
-			return null;
-		*/}
+			return enemies;
+		}
 		
 		//DEBUG
 		boolean debug = FirstAgent.debug;

@@ -87,10 +87,10 @@ public static void main(String[] args)
     }
     if(agent.equals("ch.idsia.agents.controllers.kbarrett.third.ThirdAgent"))
     {
-	    if(!LSMLoadSave.saving)
+	    /*if(!LSMLoadSave.saving)
 	    {
 	    	LevelSceneMovementPopulationStorer.save();
-	    }
+	    }*/
 	    while(LSMLoadSave.saving)
 	    {
 	    	System.out.println("Waiting for save to finish before exitting.");

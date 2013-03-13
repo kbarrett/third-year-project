@@ -87,10 +87,7 @@ public abstract class Movement
 		
 		public void isEnemy(boolean wantToShoot)
 		{
-			if(wantToShoot)
-			{
-				actions[Mario.KEY_SPEED] = true;
-			}
+			actions[Mario.KEY_SPEED] = wantToShoot;
 		}
 	
 		/**
