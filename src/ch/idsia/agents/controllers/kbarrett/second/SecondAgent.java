@@ -79,6 +79,13 @@ public class SecondAgent implements Agent
 		marioAbleToShoot = environment.isMarioAbleToShoot();
 	}
 
+	/**
+	 * Used to tell Mario when he has done a good move & when he hasn't.
+	 * Examples:
+	 * Increases if coins, mushrooms or hidden blocks are collected; or if 
+	 * enemies are stomped on. Decreases if you collide with an enemy.
+	 * @param intermediateReward gives the new value of the reward
+	 */
 	@Override
 	public void giveIntermediateReward(float intermediateReward)
 	{

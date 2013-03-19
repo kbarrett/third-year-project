@@ -182,9 +182,6 @@ public class PlanStorer {
 		{
 			//LevelSceneInvestigator.debugPrint("Replanning from square " + rejoinSquare);
 			//Remove all steps in the plan before the point at which the new plan joins the old plan
-
-			boolean d = FirstAgent.debug;
-			int i0=0;
 			while(plan.size() > rejoinSquare)
 			{
 				plan.pop();

@@ -144,38 +144,4 @@ public abstract class Movement
 		 * Used to update Mario's knowledge about how far through a jump at the point when he lands.
 		 */
 		public abstract void land();
-		
-		//DEBUG
-		boolean debug = FirstAgent.debug;
-		private String toStringActions()
-		{
-			boolean d = FirstAgent.debug;
-			String s = "{";
-			if(actions[Mario.KEY_DOWN])
-			{
-				s += "DOWN, ";
-			}
-			if(actions[Mario.KEY_UP])
-			{
-				s += "UP, ";
-			}
-			if(actions[Mario.KEY_JUMP])
-			{
-				s += "JUMP, ";
-			}
-			if(actions[Mario.KEY_LEFT])
-			{
-				s += "LEFT, ";
-			}
-			if(actions[Mario.KEY_RIGHT])
-			{
-				s += "RIGHT, ";
-			}
-			if(actions[Mario.KEY_SPEED])
-			{
-				s += "SPEED, ";
-			}
-			s+= "}";
-			return s;
-		}
 }

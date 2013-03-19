@@ -2,6 +2,13 @@ package ch.idsia.agents.controllers.kbarrett.first;
 
 import ch.idsia.benchmark.mario.engine.sprites.Mario;
 
+/**
+ * @deprecated
+ * Use {@link ManualJumpMovement}.
+ * Performs a jump by being given the peak of the jump & it automatically calculates how long to "hold" jump for.
+ * @author Kim Barrett
+ *
+ */
 public class AutoJumpMovement extends Movement {
 	/**
 	 * The required size of a jump (in terms of consecutive jump requests). 
@@ -137,7 +144,6 @@ public class AutoJumpMovement extends Movement {
 	@Override
 	public void land()
 	{
-		System.out.println("-----------------------------------------------------------" + currentJumpPoint);
 		//Reset the information about the current jump to indicate we are no longer jumping.
 		currentJumpPoint = 0;
 		jumpSize = 0;

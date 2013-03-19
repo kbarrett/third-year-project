@@ -3,10 +3,8 @@ package ch.idsia.agents.controllers.kbarrett.first;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Stack;
 
 import ch.idsia.agents.controllers.kbarrett.Encoding;
-import ch.idsia.agents.controllers.kbarrett.first.MapSquare.Direction;
 
 /**
  * This class is responsible for seeing what is in the vicinity of Mario.
@@ -24,6 +22,9 @@ public class LevelSceneInvestigator
 		 * Stores the float position of Mario on the screen during the initial frame.
 		 */
 		private float[] marioInitialScreenPos;
+		/**
+		 * Stores the float position of Mario on the screen during the last frame.
+		 */
 		private float[] marioLastScreenPos;
 		/**
 		 * Stores whether Mario has moved to a different position within the map (i.e. whether marioMapLoc has changed) on this iteration.
@@ -42,14 +43,23 @@ public class LevelSceneInvestigator
 		 * @see ch.idsia.agents.controllers.kbarrett.LevelSceneInvestigator.levelScene
 		 */
 		private static final float SQUARESIZE = 16f;
-		
+		/**
+		 * Stores whether there is an enemy within {@link #enemybound} of Mario.
+		 */
 		private boolean enemyFound = false;
-		
+		/**
+		 * The maximum distance an enemy can be away for Mario to attempt to deal with it.
+		 */
+		private int enemybound = 2;
+		/**
+		 * Stores the current plan Mario is executing and is also responsible for making new plans.
+		 */
 		private PlanStorer planStorer;
-		
+		/**
+		 * Mario's current mode.
+		 * 2 = fire mode; 1 = large mode; 0 = small mode.
+		 */
 		private int marioMode;
-		
-		private boolean stayStationary = false;
 		/**
 		 * Direction Mario is currently moving in, where -1 is left, 0 is not moving & 1 is right.
 		 */
@@ -60,9 +70,11 @@ public class LevelSceneInvestigator
 			planStorer = new PlanStorer();
 		}
 		
+		/**
+		 * @return true if Mario isn't currently moving in the x direction and false if he is.
+		 */
 		private boolean isStationary()
 		{
-			//System.out.println("dOM: " + directionOfMovement + " so " + (directionOfMovement == 0));
 			return directionOfMovement == 0;
 		}
 		
@@ -81,21 +93,10 @@ public class LevelSceneInvestigator
 		 */
 		public void updateMapFromLevelScene(byte[][] levelScene)
 		{
-			if(FirstAgent.debug)
-			{
-				//checks for any previously unencountered encodings
-				checkLevelScene(levelScene);
-			}
-			
 			//Updates map using this levelScene
 			MapUpdater.updateMap(map, levelScene, marioMapLoc);
 			//Checks whether any step of the plan has become an Environment piece by this update.
 			planStorer.checkPlan();
-			
-			if(debug && printMap)
-			{
-				printMap();
-			}
 		}
 		/**
 		 * Used for updating Mario's screen position.
@@ -134,7 +135,6 @@ public class LevelSceneInvestigator
 				//If previous and new differ, then we have moved
 				if(prevMapLoc[0] != marioMapLoc[0] || prevMapLoc[1] != prevMapLoc[1])
 				{
-					//debugPrint("Just moved from " + prevMapLoc[0] + "," + prevMapLoc[1] + " to " + marioMapLoc[0] + "," + marioMapLoc[1]);
 					justMoved = true;
 				}
 				else
@@ -169,26 +169,39 @@ public class LevelSceneInvestigator
 		{
 			this.marioLoc = marioLoc;
 		}
-		
+		/**
+		 * @return the indices of Mario's current location within {@link #map}.
+		 */
 		public int[] getMarioMapLoc()
 		{
 			return marioMapLoc;
 		}
-		
+		/**
+		 * @param marioMode = 0, 1 or 2 representing small, large, fire (respectively).
+		 */
 		public void setMarioMode(int marioMode)
 		{
 			this.marioMode = marioMode;
 		}
+		/**
+		 * @return 0 if Mario is small, 1 if Mario is large or 2 if Mario is fire.
+		 */
 		public int getMarioMode()
 		{
 			return marioMode;
 		}
-		
+		/**
+		 * @return boolean representing whether there's an enemy within {@link #enemybound} of Mario.
+		 */
 		public boolean isEnemy()
 		{
 			return enemyFound;
 		}
-		
+		/**
+		 * @param y - y index in map
+		 * @param x - x index in map
+		 * @return location in {@link #map} corresponding to [y,x]
+		 */
 		public MapSquare getMapSquare(int y, int x)
 		{
 			return map.get(y).get(x);
@@ -204,6 +217,7 @@ public class LevelSceneInvestigator
 		 */
 		public MapSquare getNextLocation(boolean isJumping)
 		{
+			//Check if we have achieved the goal of our last plan step & remove it from the plan
 			boolean lastStepAchieved = planStorer.isPlanStepAchieved(getMarioMapSquare());
 			
 			//If we don't already have a plan or we have an unimportant plan (i.e. one that just moves us across the board)
@@ -215,62 +229,41 @@ public class LevelSceneInvestigator
 			//If we have just made a move
 			if(justMoved)
 			{
-				stayStationary = false;
-				
-				//if we are not where we expected to be
+				//If we are not where we expected to be
 				if(!lastStepAchieved)
 				{
 					planStorer.replan(getMarioMapSquare(), getMarioMode());
 				}
 			}
 			
-			//System.out.println("MARIO AT: " + marioMapLoc[0] + "," + marioMapLoc[1]);
-			//System.out.println("PLAN: " + planStorer.plan);
-			
-			MapSquare s = getLocationToMoveTo(isJumping);
-			//System.out.println("Square to move to " + s);
-			return s;
+			return getLocationToMoveTo(isJumping);
 		}
-		//
+		/**
+		 * Used to get the location Mario wants to move towards.
+		 * Generally corresponds to the next stage in the plan, though sometimes different if 
+		 * there are enemies to deal with or Mario needs to be stationary for the next move.
+		 * @param isJumping - whether Mario is currently jumping
+		 * @return a MapSquare that Mario should move towards
+		 */
 		private MapSquare getLocationToMoveTo(boolean isJumping)
 		{
-			List<MapSquare> enemy = checkForEnemies(2, 2);
+			//Find nearby enemies
+			List<MapSquare> enemy = checkForEnemies(enemybound, enemybound);
 			if(enemy.size() > 0)
 			{
+				//Adapt plan to avoid them
 				planStorer.avoid(enemy, map, marioMode);
 			}
 			
+			//Get next stage in the plan
 			MapSquare s =  planStorer.getLocationToMoveTo(getMarioMapSquare(), this);
+			//If our next step is to jump upwards we need to be stationary (relative to the x axis) first.
 			if(!isStationary() && !isJumping && getMarioMapSquare().getSquareAbove().equals(s))
 			{
-				stayStationary = true;
 				return getMarioMapSquare();
-				//FIXME: warning - below line is bullshit place-holding
-				//return new MovementInstruction(Direction.Above, null);
 			}
+			//Otherwise return the next stage in the plan
 			return s;
-		}
-		
-		/**
-		 * @return boolean saying whether the next step of the plan is adjacent to our current position
-		 */
-		private boolean nextPlanStepAdjacent()
-		{
-			MapSquare nextLocation = planStorer.getNextPlanLocation();
-			if(nextLocation == null)
-			{
-				return false;
-			}
-			
-			return
-					   nextLocation.equals(map.get(marioMapLoc[0]+1).get(marioMapLoc[1]))
-					|| nextLocation.equals(map.get(marioMapLoc[0]+1).get(marioMapLoc[1]+1))
-					|| nextLocation.equals(map.get(marioMapLoc[0]+1).get(marioMapLoc[1]-1))
-					|| nextLocation.equals(map.get(marioMapLoc[0])  .get(marioMapLoc[1]+1))
-					|| nextLocation.equals(map.get(marioMapLoc[0])  .get(marioMapLoc[1]-1))
-					|| nextLocation.equals(map.get(marioMapLoc[0]-1).get(marioMapLoc[1]+1))
-					|| nextLocation.equals(map.get(marioMapLoc[0]-1).get(marioMapLoc[1]))
-					|| nextLocation.equals(map.get(marioMapLoc[0]-1).get(marioMapLoc[1]-1));
 		}
 		/**
 		 * @return MapSquare that Mario is currently occupying
@@ -280,6 +273,10 @@ public class LevelSceneInvestigator
 			return map.get(marioMapLoc[0]).get(marioMapLoc[1]);
 		}
 		
+		/**
+		 * Finds a location that would be good for Mario to move towards and makes a plan to get there.
+		 * @return true if we succeeded in making a plan
+		 */
 		private boolean makeNewPlan()
 		{
 			ArrayList<MapSquare> allRewards = getAllRewards();
@@ -301,6 +298,9 @@ public class LevelSceneInvestigator
 			return planStorer.havePlan();
 		}
 		
+		/**
+		 * @return list of all MapSquares (within jumping reach of Mario in the x-direction) containing "reward" types (i.e. {@link Encoding#COIN} or {@link Encoding#FIRE_FLOWER}.)
+		 */
 		private ArrayList<MapSquare> getAllRewards()
 		{
 			ArrayList<MapSquare> rewardsFound = new ArrayList<MapSquare>(2 * Movement.MAX_JUMP_WIDTH);
@@ -310,14 +310,11 @@ public class LevelSceneInvestigator
 					++i
 				)
 			{
-				innerloop : for(
-						int j =  0;
-						j <	map.size();
-						++j
-					)
+				innerloop : for(int j =  0; j <	map.size(); ++j)
 				{
 					if(map.get(j).get(i) == null)
 					{
+						//It doesn't have an encoding, so can't contain a reward type.
 						continue innerloop;
 					}
 					if(map.get(j).get(i).getEncoding() == Encoding.COIN || map.get(j).get(i).getEncoding() == Encoding.FIRE_FLOWER)
@@ -328,13 +325,17 @@ public class LevelSceneInvestigator
 			}
 			return rewardsFound;
 		}
-		
+		/**
+		 * Gets an empty square close to the RHS of the screen
+		 * @return MapSquare corresponding to this empty square
+		 */
 		public MapSquare getBestRightHandSide()
 		{
 			//whether we have found an environment piece in this column or not
 			boolean found = false;
 			
-			//iterate from the bottom right of the map, up each column towards Mario
+			//Iterate from the bottom right of the map, up each column towards Mario
+			//Note: we have to be above the ground for Mario to be able to move towards it, so we look for the first non-Environment piece above an Environment piece.
 			for(int x = map.get(0).size() - 1; x >= marioMapLoc[1]; --x)
 			{
 				innerloop : for(int y = map.size() - 1; y >= 0 ; --y)
@@ -359,14 +360,19 @@ public class LevelSceneInvestigator
 					}
 				}
 				/*
-				 * if we haven't found a non-Environment square in this column (above an Environment piece)
+				 * If we haven't found a non-Environment square in this column (above an Environment piece)
 				 * then move to next column & look again
 				 */
 				found = false;
 			}
 			return null;
 		}
-		
+		/**
+		 * Searches the immediate vicinity of Mario for enemies.
+		 * @param xBound - how far in each direction along the x-axis we want to look
+		 * @param yBound - how far in each direction along the y-axis we want to look
+		 * @return list of MapSquares that contains enemies.
+		 */
 		public LinkedList<MapSquare> checkForEnemies(int xBound, int yBound)
 		{
 			enemyFound = false;
@@ -385,72 +391,8 @@ public class LevelSceneInvestigator
 			return enemies;
 		}
 		
-		//DEBUG
-		boolean debug = FirstAgent.debug;
-		boolean printMap = false;
-		float[] startloc = new float[2];
-		int y = -1;
-		int x = -1;
-		private void findSquareSize(float[] marioScreenPos)
-		{
-			if(y >= -1)
-			for(int i = 0; i < map.size(); ++i)
-			{
-				for(int j = 0; j < map.get(i).size(); ++j)
-				{
-					if(map.get(i).get(j) != null && map.get(i).get(j).getEncoding() == -90)
-					{
-						if(y == -1)
-						{
-							y = i;
-							x = j;
-							startloc[0] = marioScreenPos[0];
-							startloc[1] = marioScreenPos[1];
-							break;
-						}
-						else if(y != i || x != j)
-						{
-							debugPrint("SQUARESIZE IS " + Math.max(
-									(marioScreenPos[0] - startloc[0]), (marioScreenPos[1] - startloc[1]) ));
-							y = -2;
-							break;
-						}
-					}
-				}
-			}
-		}
-		private void printLevelSceneLoc(byte[][] levelScene, byte i, byte j)
-		{
-			System.out.print(levelScene[i][j]);
-			if(j == levelScene[i].length - 1)
-			{
-				System.out.println("");
-			}
-			else
-			{
-				System.out.print(",");
-				if(levelScene[i][j] >= 0){System.out.print(" ");
-				if(levelScene[i][j] <  9){System.out.print(" ");}}
-				else if(levelScene[i][j] >  -9){System.out.print(" ");}
-			}
-		}
-		public void printLevelScene(byte[][] levelScene, byte[] marioLoc)
-		{
-			for(byte i = 0; i < levelScene.length ; ++i)
-			{
-				for(byte j = 0; j < levelScene[i].length; j++)
-				{
-					if(i == marioLoc[0] && j == marioLoc[1]) System.out.print("[[");
-					else if(i == marioLoc[0] || j == marioLoc[1]) System.out.print("[");
-					System.out.print(levelScene[i][j] + " ");
-					if(i == marioLoc[0] && j == marioLoc[1]) System.out.print("]]");
-					else if(i == marioLoc[0] || j == marioLoc[1]) System.out.print("]");
-				}
-				System.out.println(" ");
-			}
-			System.out.println(" ");
-			
-		}
+		
+		//The following are methods that can be used while debugging
 		/**
 		 * Makes sure all encodings in the levelScene have been encountered before.
 		 */
@@ -471,13 +413,9 @@ public class LevelSceneInvestigator
 				}
 			}
 		}
-		public static void debugPrint(String s)
-		{
-			if(FirstAgent.debug)
-			{
-				System.out.println(s);
-			}
-		}
+		/**
+		 * Prints out the current map in the agent's memory
+		 */
 		private void printMap()
 		{
 			for(int i = 0; i<map.size(); ++i)

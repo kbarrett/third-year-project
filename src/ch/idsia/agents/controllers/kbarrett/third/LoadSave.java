@@ -16,6 +16,11 @@ import org.jdom.output.XMLOutputter;
 
 import ch.idsia.agents.controllers.kbarrett.Evolver;
 
+/**
+ * @deprecated
+ * @author Kim
+ *
+ */
 public class LoadSave
 {
 	private static final String RootElementName = "Root";

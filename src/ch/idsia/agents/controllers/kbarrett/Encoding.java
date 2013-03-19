@@ -158,7 +158,9 @@ public class Encoding
 	
 	
 	//DEBUG:
-	private boolean debug = FirstAgent.debug; 
-	public static int[] knownThings = {0, 2, -60, -112, -128, -90, -62, 61, -22, -20, -82, -80, 5, 3, -110, -96, -94, -126, -125, -109, -76,
-		/*Enemies from here*/ 25, 84, 80, 95, 81, 96, 82, 97, 13, 98, 93, 91, 99};
+	public static int[] knownThings = 
+		{
+		/*Other*/ 0, 2, -60, -112, -128, -90, -62, 61, -22, -20, -82, -80, 5, 3, -110, -96, -94, -126, -125, -109, -76,
+		/*Enemies*/ 25, 84, 80, 95, 81, 96, 82, 97, 13, 98, 93, 91, 99
+		};
 }

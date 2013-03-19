@@ -4,6 +4,11 @@ import java.util.Stack;
 
 import ch.idsia.agents.controllers.kbarrett.first.MapSquare.Direction;
 
+/**
+ * @deprecated
+ * @author Kim
+ *
+ */
 public class MovementInstruction
 {
 	MapSquare squareToMoveTo;

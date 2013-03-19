@@ -9,14 +9,8 @@ import ch.idsia.benchmark.mario.environments.Environment;
  * @author Kim Barrett
  * @see ch.idsia.agents.Agent
  */
-public class FirstAgent implements Agent {
-	
-	//DEBUG VALUES
-	/**
-	 * Remove this to find everywhere where a debug instruction has been entered.
-	 */
-	public static boolean debug = true;
-	
+public class FirstAgent implements Agent 
+{	
 	String name = "FirstAgent";
 	
 	//Classes for storing knowledge & making decisions
@@ -41,6 +35,7 @@ public class FirstAgent implements Agent {
 	public boolean[] getAction()
 	{
 		boolean[] array = movement.reset();
+		//Store each action made so they can be repeated on the same level for observation purposes.
 		FirstAgentRecorder.getAction(array);
 		return array;
 	}
@@ -50,8 +45,7 @@ public class FirstAgent implements Agent {
 	 * This gets called by the game every frame & passes the updated Environment
 	 * to the Agent to allow it to update its knowledge of the world (such as
 	 * where remaining enemies, coins and blocks are).
-	 * @param environment containing updated knowledge 
-	 * @see ch.idsia.agents.Agent#integrateObservation(ch.idsia.benchmark.mario.environments.Environment)
+	 * @param environment containing updated knowledge
 	 */
 	@Override
 	public void integrateObservation(Environment environment) {
@@ -64,7 +58,6 @@ public class FirstAgent implements Agent {
 				levelSceneInvestigator.setMarioScreenPos(environment.getMarioFloatPos());
 				levelSceneInvestigator.updateMapFromLevelScene(environment.getMergedObservationZZ(0, 0));
 				levelSceneInvestigator.setMarioMode(environment.getMarioMode());
-				//System.out.println("WHEN SET MARIOMODE IS: " + levelSceneInvestigator.getMarioMode());
 		
 				movement.setMarioMapLoc(levelSceneInvestigator.getMarioMapLoc());
 		
@@ -86,25 +79,18 @@ public class FirstAgent implements Agent {
 	}
 
 	/**
-	 * Used to tell Mario when he has done a good move & when he hasn't.
-	 * Examples:
-	 * Increases if coins, mushrooms or hidden blocks are collected; or if 
-	 * enemies are stomped on. Decreases if you collide with an enemy.
-	 * @param intermediateReward gives the new value of the reward
-	 * @see ch.idsia.agents.Agent#giveIntermediateReward(float)
+	 * Used to give the current score to the agent.
+	 * Not needed by this agent.
 	 */
 	@Override
-	public void giveIntermediateReward(float intermediateReward) {
-		// FIXME Auto-generated method stub
-
-	}
+	public void giveIntermediateReward(float intermediateReward) {}
 
 	/**
 	 * Used to reset the agent at the end of an episode.
-	 * @see ch.idsia.agents.Agent#reset()
 	 */
 	@Override
-	public void reset() {
+	public void reset()
+	{
 		movement.reset();
 	}
 
@@ -125,7 +111,6 @@ public class FirstAgent implements Agent {
 
 	/**
 	 * Gets the name of the agent.
-	 * @see ch.idsia.agents.Agent#getName()
 	 */
 	@Override
 	public String getName() {
@@ -134,7 +119,6 @@ public class FirstAgent implements Agent {
 
 	/**
 	 * Sets the name of the agent.
-	 * @see ch.idsia.agents.Agent#getName(String)
 	 */
 	@Override
 	public void setName(String name) {

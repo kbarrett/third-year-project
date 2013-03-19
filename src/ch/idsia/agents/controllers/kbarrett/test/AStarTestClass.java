@@ -9,8 +9,6 @@ import ch.idsia.agents.controllers.kbarrett.first.MapUpdater;
 import ch.idsia.agents.controllers.kbarrett.first.Search;
 
 public class AStarTestClass {
-	
-	static boolean debug = FirstAgent.debug;
 	static ArrayList<ArrayList<MapSquare>> map = new ArrayList<ArrayList<MapSquare>>(7);
 	static int[] marioMapLoc = {5,3};
 	

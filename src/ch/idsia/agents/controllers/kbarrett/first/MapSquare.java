@@ -88,41 +88,49 @@ public class MapSquare {
 			reachableSquares.clear();
 		}
 		//Vertical
-			
+			//Mario can jump if the square below him is occupied but the one above him is not.
 			if(!Encoding.isEnvironment(getSquareAbove()) && Encoding.isEnvironment(getSquareBelow()))
 			{
 				//If the square below is "Environment" then he can reach the square above
 				addToReachableSquares(getSquareAbove());
 			}
+			
+			//Mario can fall if the square below him is empty
+			if (!Encoding.isEnvironment(getSquareBelow()))
 			{
-				if (!Encoding.isEnvironment(getSquareBelow()))
-				{
-					//He can reach the square below, because it is empty
-					addToReachableSquares(getSquareBelow());
-				}
+				//He can reach the square below, because it is empty
+				addToReachableSquares(getSquareBelow());
+			}
 		//Horizontal
-				else //can only move left/right if there's ground below us
+			else //can only move left/right if there's ground below us
+			{
+				//If the square to the left is empty
+				if(!Encoding.isEnvironment(getSquareLeft()))
 				{
-					//If the square to the left is empty
-					if(!Encoding.isEnvironment(getSquareLeft()))
-					{
-						//He can reach the square to the left
-						addToReachableSquares(getSquareLeft());
-					}
-					//If the square to the right is empty
-					if(!Encoding.isEnvironment(getSquareRight()))
-					{
-						//He can reach the square to the right
-						addToReachableSquares(getSquareRight());
-					}
+					//He can reach the square to the left
+					addToReachableSquares(getSquareLeft());
+				}
+				//If the square to the right is empty
+				if(!Encoding.isEnvironment(getSquareRight()))
+				{
+					//He can reach the square to the right
+					addToReachableSquares(getSquareRight());
 				}
 			}
 	}
 	
+	/**
+	 * 
+	 * @return
+	 */
 	public byte getEncoding() {
 		return encoding;
 	}
-
+	
+	/**
+	 * 
+	 * @param encoding
+	 */
 	public void setEncoding(byte encoding) {
 		this.encoding = encoding;
 	}
@@ -140,10 +148,23 @@ public class MapSquare {
 		checkHeadButt(newList, requireHeadButtBuffer(marioMode));
 		return new ArrayList<MapSquare>(newList);
 	}
+	/**
+	 * 
+	 * @param square
+	 * @return
+	 */
 	public boolean isAlwaysReachable(MapSquare square)
 	{
 		return reachableSquares.contains(square);
 	}
+	
+	/**
+	 * 
+	 * @param currentJumpHeight
+	 * @param currentJumpWidth
+	 * @param enteredFrom
+	 * @return
+	 */
 	private ArrayList<MapSquare> getAppropriateSquares(int currentJumpHeight, int currentJumpWidth, Direction enteredFrom)
 	{
 		ArrayList<MapSquare> squares = new ArrayList<MapSquare>();
@@ -181,6 +202,11 @@ public class MapSquare {
 		return squares;
 	}
 	
+	/**
+	 * 
+	 * @param marioMode
+	 * @return
+	 */
 	private boolean requireHeadButtBuffer(int marioMode)
 	{
 		switch(marioMode)
@@ -197,6 +223,12 @@ public class MapSquare {
 		}
 		}
 	}
+	
+	/**
+	 * 
+	 * @param newList
+	 * @param headButtBuffer
+	 */
 	private void checkHeadButt(HashSet<MapSquare> newList, boolean headButtBuffer)
 	{
 		if(headButtBuffer)

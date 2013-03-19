@@ -40,7 +40,7 @@ public class MapUpdater {
 		for(int i = 0; i < levelScene.length; ++i)
 		{
 			int levelSceneMidPoint0 = (levelScene.length / 2);
-			//FIXME: this should be using marioLoc in the levelScene, not always assuming he's in the middle everytime!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+			//FIXME: this should be using marioLoc in the levelScene, not always assuming he's in the middle every time
 			for(int j = 0; j < levelScene[i].length; ++j)
 			{
 				int levelSceneMidPoint1 = (levelScene[i].length / 2);
@@ -61,14 +61,22 @@ public class MapUpdater {
 	}
 	private static void workOutReachableSquares()
 	{
-		int levelSceneMidPoint0 = (levelScene.length / 2);
-		for(int i = 0; i < levelScene.length; ++i)
+		int levelSceneMidPoint = (levelScene.length / 2);
+		
+		int lowerY = Math.max(0, getMapYCoordinate(0,  marioMapLoc[0], levelSceneMidPoint) - 1);
+		int upperY = Math.min(map.size(), getMapYCoordinate(levelScene.length,  marioMapLoc[0], levelSceneMidPoint) + 1);
+		for(int i = lowerY; i< upperY; ++i)
 		{
-			int levelSceneMidPoint1 = (levelScene[i].length / 2);
-			for(int j = 0; j < levelScene[i].length; ++j)
+			int lowerX = Math.max(0, getMapXCoordinate(0,  marioMapLoc[1], levelSceneMidPoint) - 1);
+			int upperX = Math.min(map.get(i).size(), getMapXCoordinate(levelScene.length,  marioMapLoc[1], levelSceneMidPoint) + 1);
+
+			for(int j = lowerX; j < upperX; ++j)
 			{
-				MapSquare square = map.get(getMapYCoordinate(i,  marioMapLoc[0], levelSceneMidPoint0)).get(getMapXCoordinate(j,  marioMapLoc[1], levelSceneMidPoint1));
-				square.workOutReachableSquares();
+				MapSquare square = map.get(i).get(j);
+				if(square != null)
+				{
+					square.workOutReachableSquares();
+				}
 			}
 		}
 	}
@@ -130,10 +138,7 @@ public class MapUpdater {
 		}
 		for(int i = 0; i < map.size(); ++i)
 		{
-			while(map.get(i).size() < newWidth)
-			{
-				map.get(i).add(null);
-			}
+			map.get(i).ensureCapacity(newWidth);
 		}
 		if(newPosOfOrigin[0] != 0 || newPosOfOrigin[1] != 0)
 		{
