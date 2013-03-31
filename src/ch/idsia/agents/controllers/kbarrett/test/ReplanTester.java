@@ -3,12 +3,14 @@ package ch.idsia.agents.controllers.kbarrett.test;
 import java.util.ArrayList;
 import java.util.Stack;
 
-import org.objectweb.asm.tree.IntInsnNode;
-
 import ch.idsia.agents.controllers.kbarrett.first.MapSquare;
 import ch.idsia.agents.controllers.kbarrett.first.MapUpdater;
 import ch.idsia.agents.controllers.kbarrett.first.PlanStorer;
-
+/**
+ * Used to test the replan functionality of {@link PlanStorer} on a hard-coded map and plan.
+ * @author Kim
+ *
+ */
 public class ReplanTester {
 	
 	static byte[][] levelScene = {

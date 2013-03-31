@@ -252,7 +252,7 @@ public class LevelSceneInvestigator
 			if(enemy.size() > 0)
 			{
 				//Adapt plan to avoid them
-				planStorer.avoid(enemy, map, marioMode);
+				planStorer.avoid(enemy, map, marioMode, 6);
 			}
 			
 			//Get next stage in the plan

@@ -1,20 +1,29 @@
 package ch.idsia.agents.controllers.kbarrett.first;
 
-import java.awt.geom.Point2D;
 import java.util.ArrayList;
 
 /**
  * Used to update the map from a levelScene.
  * 
- * @author Kim
+ * @author Kim Barrett
  *
  */
-public class MapUpdater {
-	
+public class MapUpdater
+{
+	/**
+	 * The map to be updated.
+	 */
 	private static ArrayList<ArrayList<MapSquare>> map;
+	/**
+	 * The levelScene to be incorporated into it.
+	 */
 	private static byte[][] levelScene;
+	/** 
+	 * Mario's current location in the map.
+	 */
 	private static int[] marioMapLoc;
 	
+	//To prevent this constructor being used.
 	private MapUpdater() {}
 	
 	/**
@@ -33,19 +42,22 @@ public class MapUpdater {
 		workOutReachableSquares();
 		return MapUpdater.map;
 	}
-
+	
+	/**
+	 * Incorporates the given levelScene into the map.
+	 */
 	private static void updateMap()
 	{
-		increaseMapSize();
+		increaseMapSize(); //if required
+		//Updates the locations in the map with updated information contained in the levelscene.
 		for(int i = 0; i < levelScene.length; ++i)
 		{
 			int levelSceneMidPoint0 = (levelScene.length / 2);
-			//FIXME: this should be using marioLoc in the levelScene, not always assuming he's in the middle every time
 			for(int j = 0; j < levelScene[i].length; ++j)
 			{
 				int levelSceneMidPoint1 = (levelScene[i].length / 2);
-				int y = getMapYCoordinate(i,  marioMapLoc[0], levelSceneMidPoint0);
-				int x = getMapXCoordinate(j,  marioMapLoc[1], levelSceneMidPoint1);
+				int y = getMapCoordinate(i,  marioMapLoc[0], levelSceneMidPoint0);
+				int x = getMapCoordinate(j,  marioMapLoc[1], levelSceneMidPoint1);
 				MapSquare square = map.get(y).get(x);
 				if(square==null)
 				{
@@ -59,16 +71,20 @@ public class MapUpdater {
 		}
 		
 	}
+	/**
+	 * Update which squares are reachable.
+	 * Only alters squares that have been updated by the levelscene - i.e. those inside and adjacent where the levelscene was inserted.
+	 */
 	private static void workOutReachableSquares()
 	{
 		int levelSceneMidPoint = (levelScene.length / 2);
 		
-		int lowerY = Math.max(0, getMapYCoordinate(0,  marioMapLoc[0], levelSceneMidPoint) - 1);
-		int upperY = Math.min(map.size(), getMapYCoordinate(levelScene.length,  marioMapLoc[0], levelSceneMidPoint) + 1);
+		int lowerY = Math.max(0, getMapCoordinate(0,  marioMapLoc[0], levelSceneMidPoint) - 1);
+		int upperY = Math.min(map.size(), getMapCoordinate(levelScene.length,  marioMapLoc[0], levelSceneMidPoint) + 1);
 		for(int i = lowerY; i< upperY; ++i)
 		{
-			int lowerX = Math.max(0, getMapXCoordinate(0,  marioMapLoc[1], levelSceneMidPoint) - 1);
-			int upperX = Math.min(map.get(i).size(), getMapXCoordinate(levelScene.length,  marioMapLoc[1], levelSceneMidPoint) + 1);
+			int lowerX = Math.max(0, getMapCoordinate(0,  marioMapLoc[1], levelSceneMidPoint) - 1);
+			int upperX = Math.min(map.get(i).size(), getMapCoordinate(levelScene.length,  marioMapLoc[1], levelSceneMidPoint) + 1);
 
 			for(int j = lowerX; j < upperX; ++j)
 			{
@@ -138,7 +154,10 @@ public class MapUpdater {
 		}
 		for(int i = 0; i < map.size(); ++i)
 		{
-			map.get(i).ensureCapacity(newWidth);
+			while(map.get(i).size() < newWidth)
+			{
+				map.get(i).add(null);
+			}
 		}
 		if(newPosOfOrigin[0] != 0 || newPosOfOrigin[1] != 0)
 		{
@@ -157,36 +176,55 @@ public class MapUpdater {
 		}
 		return map;
 	}
-	
+	/**
+	 * Translates between map-coordinates and levelscene-coordinates.
+	 * @param mapCoords - the required map coordinates.
+	 * @param marioMapLoc - where Mario is currently in the map.
+	 * @param marioLoc - where Mario is currently in the levelscene.
+	 * @return coordinates of where this map location is in the level scene.
+	 * Note: will return a location outside of the bounds of the level scene if the given map location was not in the current level scene.
+	 */
 	public static int[] getLevelSceneCoordinates(int[] mapCoords, int[] marioMapLoc, int[] marioLoc)
 	{
 		int[] levelSceneCoords = new int[2];
-		levelSceneCoords[0] = getLevelSceneYCoordinate(mapCoords[0], marioMapLoc[0], marioLoc[0]);
-		levelSceneCoords[1] = getLevelSceneXCoordinate(mapCoords[1], marioMapLoc[1], marioLoc[1]);
+		levelSceneCoords[0] = getLevelSceneCoordinate(mapCoords[0], marioMapLoc[0], marioLoc[0]);
+		levelSceneCoords[1] = getLevelSceneCoordinate(mapCoords[1], marioMapLoc[1], marioLoc[1]);
 		return levelSceneCoords;
 	}
-	public static int getLevelSceneXCoordinate(int mapXCoord, int marioMapXLoc, int marioXLoc)
+	/**
+	 * Translates a specific coordinate (x or y) between map and level scene coordinates.
+	 * @param mapCoord - the map x/y coordinate
+	 * @param marioMapLoc - the x/y location of Mario in the map.
+	 * @param marioLoc - the x/y location of Mario in the levelScene.
+	 * @return the x/y level scene coordinate
+	 */
+	public static int getLevelSceneCoordinate(int mapCoord, int marioMapLoc, int marioLoc)
 	{
-		return mapXCoord + marioXLoc - marioMapXLoc;
+		return mapCoord + marioLoc - marioMapLoc;
 	}
-	public static int getLevelSceneYCoordinate(int mapYCoord, int marioMapYLoc, int marioYLoc)
-	{
-		return mapYCoord + marioYLoc - marioMapYLoc;
-	}
-	
+	/**
+	 * Translates between map-coordinates and levelscene-coordinates.
+	 * @param levelSceneCoords - the required levelscene coordinates.
+	 * @param marioMapLoc - where Mario is currently in the map.
+	 * @param marioLoc - where Mario is currently in the levelscene.
+	 * @return coordinates of where this level scene is within the map.
+	 */
 	public static int[] getMapCoordinates(int[] levelSceneCoords, int[] marioMapLoc, int[] marioLoc)
 	{
 		int[] mapCoords = new int[2];
-		mapCoords[0] = getMapYCoordinate(mapCoords[0], marioMapLoc[0], marioLoc[0]);
-		mapCoords[1] = getMapXCoordinate(mapCoords[1], marioMapLoc[1], marioLoc[1]);
+		mapCoords[0] = getMapCoordinate(mapCoords[0], marioMapLoc[0], marioLoc[0]);
+		mapCoords[1] = getMapCoordinate(mapCoords[1], marioMapLoc[1], marioLoc[1]);
 		return mapCoords;
 	}
-	public static int getMapXCoordinate(int levelSceneXCoord, int marioMapXLoc, int marioXLoc)
+	/**
+	 * Translates a specific coordinate (x or y) between levelscene and map coordinates.
+	 * @param levelSceneCoord - the level scene x/y coordinate
+	 * @param marioMapLoc - the x/y location of Mario in the map.
+	 * @param marioLoc - the x/y location of Mario in the levelScene.
+	 * @return the x/y map coordinate
+	 */
+	public static int getMapCoordinate(int levelSceneCoord, int marioMapLoc, int marioLoc)
 	{
-		return levelSceneXCoord + marioMapXLoc - marioXLoc;
-	}
-	public static int getMapYCoordinate(int levelSceneYCoord, int marioMapYLoc, int marioYLoc)
-	{
-		return levelSceneYCoord + marioMapYLoc - marioYLoc;
+		return levelSceneCoord + marioMapLoc - marioLoc;
 	}
 }

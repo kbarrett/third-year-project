@@ -11,12 +11,17 @@ import ch.idsia.agents.controllers.kbarrett.first.MapSquare.Direction;
  */
 public class MovementInstruction
 {
+	/**
+	 * The square to move towards.
+	 */
 	MapSquare squareToMoveTo;
 	/**
 	 * The direction from which Mario enters this square.
 	 */
 	Direction directionEntered;
-	//Direction directionExitted;
+	/**
+	 * The number of concurrent steps Mario has taken in the same direction.
+	 */
 	int numberOfStepsInSameDirection = 0;
 	
 	public MapSquare getSquareToMoveTo()

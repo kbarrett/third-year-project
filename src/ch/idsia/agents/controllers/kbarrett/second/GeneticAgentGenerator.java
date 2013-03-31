@@ -1,15 +1,14 @@
 package ch.idsia.agents.controllers.kbarrett.second;
 
-import java.sql.Savepoint;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import org.jdom.Element;
-import org.jdom.JDOMException;
 
-import ch.idsia.scenarios.Play;
+import org.jdom.Element;
+
 import ch.idsia.agents.controllers.kbarrett.Evolver;
 import ch.idsia.agents.controllers.kbarrett.GeneticAlgorithm;
+import ch.idsia.scenarios.Play;
 
 public class GeneticAgentGenerator
 {
@@ -45,7 +44,7 @@ public class GeneticAgentGenerator
 		
 		SecondAgentManager.resetNumbers();
 		
-		for(int i = 0; i < 8; ++i)
+		for(int i = 0; i < 5; ++i)
 		{
 			System.out.println("Iteration " + i);
 			SecondAgentManager.setValues(population);

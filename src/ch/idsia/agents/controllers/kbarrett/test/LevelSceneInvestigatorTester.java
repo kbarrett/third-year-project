@@ -6,7 +6,10 @@ import ch.idsia.agents.controllers.kbarrett.first.LevelSceneInvestigator;
 import ch.idsia.agents.controllers.kbarrett.first.MapSquare;
 import ch.idsia.agents.controllers.kbarrett.first.MapUpdater;
 import ch.idsia.agents.controllers.kbarrett.first.Movement;
-
+/**
+ * Used to test {@link LevelSceneInvestigator} on a hard-coded map.
+ * @author Kim Barrett
+ */
 public class LevelSceneInvestigatorTester {
 	
 	static LevelSceneInvestigator levelSceneInvestigator;

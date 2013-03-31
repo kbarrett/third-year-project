@@ -14,6 +14,7 @@ public class LevelSceneMovement implements Cloneable, Serializable
 {
 	public static final int LevelSceneSize = 11;
 	public static final int NO_REWARD_SET = Integer.MIN_VALUE;
+	private static final int breadthWeighting = 5;
 	
 	private byte[][] levelScene;
 	private final static String LevelSceneName = "LevelScene";
@@ -146,7 +147,7 @@ public class LevelSceneMovement implements Cloneable, Serializable
 	private int getWeighting(int i)
 	{
 		if(i == 0 || i == LevelSceneSize) {return 1;}
-		return (int) (Math.floor(LevelSceneSize/6) - Math.floor(Math.abs(Math.floor(LevelSceneSize/2) - i)/3));
+		return (int) (Math.floor(LevelSceneSize/breadthWeighting) - Math.floor(Math.abs(Math.floor(LevelSceneSize/(breadthWeighting/2)) - i)/3));
 	}
 	
 	@Override
@@ -368,7 +369,7 @@ class LevelSceneMovementEvolver implements Evolver<LevelSceneMovement>
 	@Override
 	public int getSizeOfGeneration()
 	{
-		return 200;
+		return 100;
 	}
 
 	@Override

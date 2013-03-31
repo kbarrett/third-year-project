@@ -2,12 +2,13 @@ package ch.idsia.agents.controllers.kbarrett.test;
 
 import java.util.ArrayList;
 
-import ch.idsia.agents.controllers.kbarrett.Encoding;
-import ch.idsia.agents.controllers.kbarrett.first.FirstAgent;
 import ch.idsia.agents.controllers.kbarrett.first.MapSquare;
 import ch.idsia.agents.controllers.kbarrett.first.MapUpdater;
 import ch.idsia.agents.controllers.kbarrett.first.Search;
-
+/**
+ * Tests {@link Search} on a hard-coded map.
+ * @author Kim Barrett
+ */
 public class AStarTestClass {
 	static ArrayList<ArrayList<MapSquare>> map = new ArrayList<ArrayList<MapSquare>>(7);
 	static int[] marioMapLoc = {5,3};

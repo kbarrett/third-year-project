@@ -1,19 +1,17 @@
 package ch.idsia.agents.controllers.kbarrett.test;
 
-import java.awt.event.KeyAdapter;
 import java.util.ArrayList;
 
 import ch.idsia.agents.Agent;
 import ch.idsia.benchmark.mario.engine.sprites.Mario;
-import ch.idsia.benchmark.mario.engine.sprites.Sprite;
 import ch.idsia.benchmark.mario.environments.Environment;
 
 /**
- * 
+ * Test {@link Agent} used to explore what it is possible to make an agent do.
  * @author Kim Barrett
  *
  */
-public class MyAgent /*extends KeyAdapter*/ implements Agent {
+public class MyAgent implements Agent {
 	
 	String name = "Kim's Agent";
 	

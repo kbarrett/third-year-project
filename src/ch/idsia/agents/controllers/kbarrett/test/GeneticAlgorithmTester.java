@@ -1,4 +1,4 @@
-package ch.idsia.agents.controllers.kbarrett.second;
+package ch.idsia.agents.controllers.kbarrett.test;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -8,7 +8,11 @@ import org.jdom.Element;
 
 import ch.idsia.agents.controllers.kbarrett.Evolver;
 import ch.idsia.agents.controllers.kbarrett.GeneticAlgorithm;
-
+/**
+ * Tests {@link GeneticAlgorithm} on a simple class ({@link EvolvingObject}).
+ * @author Kim Barrett
+ *
+ */
 public class GeneticAlgorithmTester
 {
 	public static void main(String[] args)
@@ -31,7 +35,11 @@ public class GeneticAlgorithmTester
 	}
 
 }
-
+/**
+ * Class containing two floats, used to test {@link GeneticAlgorithm}.
+ * @author Kim Barrett
+ *
+ */
 class EvolvingObject
 {
 	private float i;

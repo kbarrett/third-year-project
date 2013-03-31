@@ -1,6 +1,5 @@
 package ch.idsia.agents.controllers.kbarrett.second;
 
-import java.util.LinkedList;
 import java.util.List;
 
 public class SecondAgentManager
@@ -16,6 +15,7 @@ public class SecondAgentManager
 	
 	public static void initialise(int size)
 	{
+		currentAgent = 0;
 		fitnesses = new float[size];
 		probabilityJump = new float[size];
 		probabilityMoveRight = new float[size];
@@ -47,7 +47,7 @@ public class SecondAgentManager
 	}
 	public static float getProbabilityRun(int agentNumber)
 	{
-		return (int)probabilityRun[agentNumber];
+		return probabilityRun[agentNumber];
 	}
 	public static float getProbabilityShoot(int agentNumber)
 	{

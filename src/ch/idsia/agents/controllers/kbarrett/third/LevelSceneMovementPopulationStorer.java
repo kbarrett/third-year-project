@@ -10,7 +10,8 @@ public class LevelSceneMovementPopulationStorer
 {
 	private static final ArrayList<LevelSceneMovement> population = new ArrayList<LevelSceneMovement>();
 	static Object lock = new Object();
-	private static final int MaxPopulationSize = 20000;
+	//FIXME: report says this is 20000
+	private static final int MaxPopulationSize = 10000;
 	
 	private static Evolver<LevelSceneMovement> evolver;
 	
@@ -120,8 +121,7 @@ public class LevelSceneMovementPopulationStorer
 			{
 				System.err.println("Error loading population: " + e.getMessage());
 			}
+			save();
 		}
-		
-		save();
 	}
 }

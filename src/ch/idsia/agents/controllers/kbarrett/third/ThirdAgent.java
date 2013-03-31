@@ -28,6 +28,11 @@ public class ThirdAgent implements Agent
 
 	public ThirdAgent()
 	{
+		initialiseThread();
+	}
+	
+	private void initialiseThread()
+	{
 		levelSceneSearchThread = new LevelSceneSearchThread();
 		levelSceneSearchThread.setPriority(Thread.MAX_PRIORITY);
 	}
@@ -40,6 +45,8 @@ public class ThirdAgent implements Agent
 			levelSceneSearchThread.join();
 			boolean[] actions = levelSceneSearchThread.getNearestMovement().getActions();
 
+			initialiseThread();
+			
 			lastActions = actions;
 			lastMovement = thisMovement;
 			return actions;
@@ -133,7 +140,7 @@ class LevelSceneSearchThread extends Thread
 	public void start(LevelSceneMovement requiredLevelSceneMovement)
 	{
 		search.giveRequiredLevelSceneMovement(requiredLevelSceneMovement);
-		run();
+		start();
 	}
 
 	public LevelSceneMovement getNearestMovement()

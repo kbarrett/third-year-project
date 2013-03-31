@@ -11,20 +11,31 @@ public class PlanStorer {
 	
 	/**
 	 * Stores the current plan of movement that Mario is executing.
-	 * FIXME: should be private!!!!!!!!!
 	 */
 	public Stack<MapSquare> plan;
-	
+	/**
+	 * Whether the current plan is important.
+	 * I.e. whether it is heading towards a coin (or other "good" location) as opposed to just the RHS of the screen.
+	 */
 	private boolean importantPlan = true;
-
+	/**
+	 * @return whether the current plan is important.
+	 * I.e. whether it is heading towards a coin (or other "good" location) as opposed to just the RHS of the screen.
+	 */
 	public boolean isImportant()
 	{
 		return importantPlan;
 	}
+	/**
+	 * @return whether a plan is currently being stored.
+	 */
 	public boolean havePlan()
 	{
 		return plan!=null && !plan.isEmpty();
 	}
+	/**
+	 * @return the next location in the plan.
+	 */
 	public MapSquare getNextPlanLocation()
 	{
 		if(plan == null || plan.size() == 0) {return null;}
@@ -33,6 +44,9 @@ public class PlanStorer {
 	/**
 	 * Makes a plan from the current position {@link #marioMapLoc} to the desiredPosition and stores it in {@link #plan}.
 	 * @param desiredPosition - a int array of size 2 representing the location that the plan should head towards
+	 * @param startLocation - the location the plan should start at - generally this should be Mario's current location
+	 * @param important - whether the given plan is important
+	 * @param marioMode - Mario's current mode.
 	 */
 	public void makePlan(MapSquare desiredPosition, MapSquare startLocation, boolean important, int marioMode)
 	{	
@@ -50,6 +64,13 @@ public class PlanStorer {
 			plan = newPlan;
 		}
 	}
+	/**
+	 * Makes a plan from the current position {@link #marioMapLoc} to the desiredPosition and stores it in {@link #plan}.
+	 * Assumes the plan created will be an {@link #importantPlan}.
+	 * @param desiredPosition - a int array of size 2 representing the location that the plan should head towards
+	 * @param startLocation - the location the plan should start at - generally this should be Mario's current location
+	 * @param marioMode - Mario's current mode.
+	 */
 	public void makePlan(MapSquare desiredPosition, MapSquare startLocation, int marioMode)
 	{
 		makePlan(desiredPosition, startLocation, true, marioMode);
@@ -74,67 +95,17 @@ public class PlanStorer {
 	}
 	/**
 	 * Gets the next step in the {@link #plan} (if one exists).
-	 * @return int array of size 2 representing the location of the next step of the plan.
+	 * @return MapSquare representing the location of the next step of the plan.
 	 */
 	public MapSquare getLocationToMoveTo(MapSquare marioCurrentLocation, LevelSceneInvestigator levelSceneInvestigator)
 	{
 		//If we have no plan, we cannot get the next step from it.
 		if(plan == null || plan.size() == 0)
 		{
-			/*MapSquare loc = levelSceneInvestigator.checkForEnemies(4, 4);
-			if(loc!=null)
-			{
-				makePlan(loc, marioCurrentLocation);
-				if(plan != null && plan.size() > 0)
-				{
-					return getLocationToMoveTo(marioCurrentLocation, levelSceneInvestigator);
-				}
-			}*/
 			return null;
 		}
-		
-		//This is the next step of the plan
-		MapSquare nextLocation = plan.peek();
-		/*if(plan.size() == 0)
-		{
-			return levelSceneInvestigator.checkForEnemies(4, 4);
-		}
-			
-		MapSquare enemies = levelSceneInvestigator.checkForEnemies(nextLocation.getMapLocationX(), nextLocation.getMapLocationY());
-		if(enemies!=null)
-		{
-			plan.push(levelSceneInvestigator.getMapSquare(enemies.getMapLocationY(),enemies.getMapLocationX()));
-			return enemies;
-		}*/
-		
-		//Return it
-		return shiftLoc(nextLocation);
-	}
-	private MapSquare shiftLoc(MapSquare nextLocation)
-	{
-		if(false && Encoding.isEnvironment(nextLocation.getSquareRight()) && Encoding.isEnvironment(nextLocation.getSquareLeft()))
-		{
-			if(plan.size() > 2)
-			{
-				int i = plan.size() - 2;
-				int distance = 0;
-				while(i >= 0)
-				{
-					if(!Encoding.isEnvironment(plan.get(i).getSquareRight()) && Encoding.isEnvironment(plan.get(i).getSquareLeft()))
-					{
-						break;
-					}
-					distance = nextLocation.getMapLocationX() - plan.get(i).getMapLocationX();
-					if(distance != 0)
-					{
-						MapSquare shiftedSquare = new MapSquare(nextLocation.getEncoding(), null, nextLocation.getMapLocationX() + distance, nextLocation.getMapLocationY());
-						return shiftedSquare;
-					}
-					--i;
-				}
-			}
-		}
-		return nextLocation;
+		//Otherwise return the next step of the plan
+		return plan.peek();
 	}
 	/**
 	 * Attempts to find a way for Mario to get back on track with {@link #plan}.
@@ -150,7 +121,7 @@ public class PlanStorer {
 		int rejoinSquare = -1;
 		
 		//For each step in the plan
-		for(int i = plan.size() - 1; i >= 0 ; --i)
+		for(int i = plan.size() - 1; i >= Math.max(0, plan.size() - adjustment) ; --i)
 		{
 			//Find a new plan to this square from the current square, using the same number of steps (+ the adjustment value)
 			Stack<MapSquare> thisPlan = Search.aStar(plan.get(i), marioCurrentLocation, plan.size() - i + adjustment, marioMode);
@@ -174,13 +145,11 @@ public class PlanStorer {
 		
 		if(rejoinSquare < 0) //we failed to find a new route
 		{
-			//System.err.println("Plan unachievable. Can't reach " + plan.peek() + " from " + marioCurrentLocation);
 			//remove plan as it is unachievable from the current position
 			plan.clear();
 		}
 		else //we have found a new route
 		{
-			//LevelSceneInvestigator.debugPrint("Replanning from square " + rejoinSquare);
 			//Remove all steps in the plan before the point at which the new plan joins the old plan
 			while(plan.size() > rejoinSquare)
 			{
@@ -191,7 +160,6 @@ public class PlanStorer {
 			{
 				plan.push(newPlan.elementAt(i));
 			}
-			//LevelSceneInvestigator.debugPrint("new plan: " + plan.toString());
 		}
 	}
 
@@ -219,11 +187,17 @@ public class PlanStorer {
 	
 	/**
 	 * Avoids the given squares - generally used to avoid squares containing enemies
+	 * @param squares - the squares to avoid
+	 * @param map - the map in which the plan should be made
+	 * @param marioMode - the mode Mario is currently in
+	 * @param checkLength - the number of steps in the plan that should be checked whether they are affected.
 	 */
-	public void avoid(List<MapSquare> squares, ArrayList<ArrayList<MapSquare>> map, int marioMode)
+	public void avoid(List<MapSquare> squares, ArrayList<ArrayList<MapSquare>> map, int marioMode, int checkLength)
 	{
-		for(MapSquare planSquare : plan)
+		for(int i = plan.size() - 1; i >= plan.size() - (1 + checkLength); ++i)
 		{
+			MapSquare planSquare = plan.get(i);
+			//If the step in the plan is one to be avoiding
 			if(squares.contains(planSquare))
 			{
 				MapSquare squaresSquare = squares.get(squares.indexOf(planSquare)); //get the correct square out of squares
@@ -232,6 +206,7 @@ public class PlanStorer {
 				Stack<MapSquare> newPlan = Search.aStar(sq, plan.peek(), marioMode);
 				if(newPlan != null) //if a plan was found
 				{
+					//Update the global plan to avoid this square.
 					MapSquare cur;
 					do
 					{
