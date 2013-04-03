@@ -28,7 +28,6 @@ public class FirstAgent implements Agent
 	 * movement: true indicates it is being requested during this frame & false 
 	 * means it is not. 
 	 * From 0 to 5 the corresponding movements are: left, right, down, jump, speed, up.
-	 * @see ch.idsia.agents.Agent#getAction()
 	 */
 	@Override
 	public boolean[] getAction()
