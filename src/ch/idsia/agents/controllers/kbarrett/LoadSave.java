@@ -1,7 +1,6 @@
 package ch.idsia.agents.controllers.kbarrett;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.StringWriter;

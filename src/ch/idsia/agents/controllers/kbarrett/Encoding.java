@@ -1,6 +1,5 @@
 package ch.idsia.agents.controllers.kbarrett;
 
-import ch.idsia.agents.controllers.kbarrett.first.FirstAgent;
 import ch.idsia.agents.controllers.kbarrett.first.MapSquare;
 import ch.idsia.benchmark.mario.engine.GeneralizerLevelScene;
 import ch.idsia.benchmark.mario.engine.sprites.Sprite;
@@ -70,18 +69,21 @@ public class Encoding
 		if(type==null) {return false;}
 		return isEnemySprite(type.getEncoding());
 	}
-	
-	/* 
-	 * Methods used to simplify the encodings for ThirdAgent
+	/**
+	 * Reduces the number of possible values that the elements of an array can take.
+	 * @param encoding - the unsimplified encoding
+	 * @return a simplified representation of the encoding.
 	 */
-	static final public byte simplify(byte encoding)
+	static public byte simplify(byte encoding)
 	{
 		if(isEnvironment(encoding))
 		{
+			//Map all environment encodings to the same value, as they all affect Mario in the same way.
 			return -1;
 		}
 		else if (encoding == FIREBALL)
 		{
+			//Fireballs don't affect Mario so ignore them.
 			return 0;
 		}
 		else return encoding;

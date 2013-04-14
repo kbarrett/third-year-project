@@ -176,7 +176,7 @@ class SecondAgentEvolver implements Evolver<SecondAgent>
 			currentAgent = 0;
 		}
 		//Return the children.
-		ArrayList<SecondAgent> returnValue = new ArrayList<SecondAgent>();
+		ArrayList<SecondAgent> returnValue = new ArrayList<SecondAgent>(2);
 		returnValue.add(newAgent1);
 		returnValue.add(newAgent2);
 		return returnValue;
@@ -222,7 +222,7 @@ class SecondAgentEvolver implements Evolver<SecondAgent>
 		}
 		else
 		{
-			element.setProbabilityShoot(element.getProbabilityRun() - (float)Math.random());
+			element.setProbabilityRun(element.getProbabilityRun() - (float)Math.random());
 		}
 	}
 
